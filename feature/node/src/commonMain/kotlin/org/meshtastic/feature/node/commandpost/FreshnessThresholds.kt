@@ -30,12 +30,17 @@ import kotlin.time.Duration.Companion.seconds
  * @property refreshInterval how often the view recomputes ages without waiting for a new packet.
  */
 data class FreshnessThresholds(
-    val recentContact: Duration = 15.minutes,
-    val stalePosition: Duration = 10.minutes,
-    val clockTolerance: Duration = 2.minutes,
-    val refreshInterval: Duration = 15.seconds,
+    val recentContact: Duration = RECENT_CONTACT,
+    val stalePosition: Duration = STALE_POSITION,
+    val clockTolerance: Duration = CLOCK_TOLERANCE,
+    val refreshInterval: Duration = REFRESH_INTERVAL,
 ) {
     companion object {
+        private val RECENT_CONTACT = 15.minutes
+        private val STALE_POSITION = 10.minutes
+        private val CLOCK_TOLERANCE = 2.minutes
+        private val REFRESH_INTERVAL = 15.seconds
+
         val Default = FreshnessThresholds()
     }
 }

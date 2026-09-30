@@ -79,9 +79,11 @@ fun CommandPostScreen(
     onNavigateUp: () -> Unit,
     onOpenNode: (Int) -> Unit,
     onOpenMessages: (String) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val rows by viewModel.rows.collectAsStateWithLifecycle()
     Scaffold(
+        modifier = modifier,
         topBar = {
             MainAppBar(
                 title = stringResource(Res.string.command_post_title),

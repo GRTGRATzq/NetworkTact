@@ -130,9 +130,9 @@ fun NodeListScreen(
     activeNodeId: Int? = null,
     onHandleDeepLink: (org.meshtastic.core.common.util.CommonUri, onInvalid: () -> Unit) -> Unit = { _, _ -> },
     onNavigateToConnections: () -> Unit = {},
-    onEditStatusMessage: () -> Unit = {},
     // Non-null only in command post (PC) mode: shows the app bar action back to the command post view.
     onOpenCommandPost: (() -> Unit)? = null,
+    onEditStatusMessage: () -> Unit = {},
 ) {
     val showToast = org.meshtastic.core.ui.util.rememberShowToastResource()
     val scope = rememberCoroutineScope()
