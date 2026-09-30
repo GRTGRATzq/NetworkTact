@@ -177,11 +177,14 @@ private fun ContactLine(state: ContactState) {
     val (text, color) =
         when (state) {
             ContactState.NeverHeard -> stringResource(Res.string.command_post_contact_never) to neutral
+
             is ContactState.SeenRecently ->
                 stringResource(Res.string.command_post_contact_recent, formatAge(state.age)) to
                     MaterialTheme.colorScheme.onSurface
+
             is ContactState.NotHeardSince ->
                 stringResource(Res.string.command_post_contact_stale, formatAge(state.age)) to neutral
+
             is ContactState.InconsistentTimestamp ->
                 stringResource(Res.string.command_post_contact_inconsistent, formatAge(state.ahead)) to
                     MaterialTheme.colorScheme.error
@@ -197,16 +200,22 @@ private fun PositionLine(state: PositionState) {
     val (text, color) =
         when (state) {
             PositionState.NoPosition -> stringResource(Res.string.command_post_position_none) to neutral
+
             is PositionState.Fresh ->
                 stringResource(Res.string.command_post_position_fresh, formatAge(state.age)) to
                     MaterialTheme.colorScheme.primary
+
             is PositionState.Stale ->
                 stringResource(Res.string.command_post_position_stale, formatAge(state.age)) to error
+
             is PositionState.StaleAtLeast ->
                 stringResource(Res.string.command_post_position_stale_at_least, formatAge(state.minAge)) to error
+
             is PositionState.ReceivedFixTimeUnknown ->
                 stringResource(Res.string.command_post_position_fix_unknown, formatAge(state.minAge)) to neutral
+
             PositionState.NoFixTime -> stringResource(Res.string.command_post_position_no_time) to neutral
+
             is PositionState.InconsistentTimestamp ->
                 stringResource(Res.string.command_post_position_inconsistent, formatAge(state.ahead)) to error
         }
@@ -233,16 +242,18 @@ private fun PositionLine(state: PositionState) {
 private fun formatAge(duration: Duration): String {
     val totalMinutes = duration.inWholeMinutes
     return when {
-        totalMinutes < 1 ->
-            stringResource(Res.string.command_post_duration_seconds, duration.inWholeSeconds.toString())
+        totalMinutes < 1 -> stringResource(Res.string.command_post_duration_seconds, duration.inWholeSeconds.toString())
+
         totalMinutes < MINUTES_PER_HOUR ->
             stringResource(Res.string.command_post_duration_minutes, totalMinutes.toString())
+
         duration.inWholeHours < HOURS_PER_DAY ->
             stringResource(
                 Res.string.command_post_duration_hours,
                 duration.inWholeHours.toString(),
                 (totalMinutes % MINUTES_PER_HOUR).toString().padStart(2, '0'),
             )
+
         else ->
             stringResource(
                 Res.string.command_post_duration_days,

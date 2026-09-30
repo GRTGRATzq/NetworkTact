@@ -110,8 +110,7 @@ class CommandPostContentTest {
 
         onNodeWithText(getString(Res.string.command_post_position_stale_at_least, minutesText(12.minutes)))
             .assertExists()
-        onNodeWithText(getString(Res.string.command_post_position_fix_unknown, minutesText(4.minutes)))
-            .assertExists()
+        onNodeWithText(getString(Res.string.command_post_position_fix_unknown, minutesText(4.minutes))).assertExists()
         onNodeWithText(getString(Res.string.command_post_position_no_time)).assertExists()
         onNodeWithText(getString(Res.string.command_post_position_fresh, minutesText(4.minutes))).assertDoesNotExist()
         onAllNodesWithText(getString(Res.string.command_post_contact_recent, minutesText(1.minutes)))

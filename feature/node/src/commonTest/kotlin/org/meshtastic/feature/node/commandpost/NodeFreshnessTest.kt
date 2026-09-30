@@ -161,10 +161,7 @@ class NodeFreshnessTest {
     fun `the same fresh position turns old as the clock advances`() {
         val fix = ago(9 * 60)
         assertEquals(PositionState.Fresh(9.minutes), NodeFreshness.position(true, fix, fix, now, t))
-        assertEquals(
-            PositionState.Stale(10.minutes + 15.seconds),
-            NodeFreshness.position(true, fix, fix, now + 75, t),
-        )
+        assertEquals(PositionState.Stale(10.minutes + 15.seconds), NodeFreshness.position(true, fix, fix, now + 75, t))
     }
 
     @Test

@@ -143,7 +143,8 @@ class UiPrefsImplTest {
     }
 
     @Test
-    fun `command post mode defaults to false`() = testScope.runTest { assertFalse(prefs.commandPostMode.value) }
+    fun `command post mode defaults to false so the field layout is unchanged`() =
+        testScope.runTest { assertFalse(prefs.commandPostMode.value) }
 
     @Test
     fun `command post mode persists when enabled`() = testScope.runTest {
