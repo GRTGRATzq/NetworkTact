@@ -18,6 +18,8 @@ package org.meshtastic.feature.messaging.component
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
@@ -28,13 +30,17 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -54,6 +60,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
@@ -70,12 +77,14 @@ import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import org.meshtastic.core.common.util.DateFormatter
+import org.meshtastic.core.common.util.MetricFormatter
 import org.meshtastic.core.model.Message
 import org.meshtastic.core.model.MessageStatus
 import org.meshtastic.core.model.Node
@@ -87,27 +96,20 @@ import org.meshtastic.core.resources.action_show_message_status
 import org.meshtastic.core.resources.filter_message_label
 import org.meshtastic.core.resources.message_translated_label
 import org.meshtastic.core.resources.reply
+import org.meshtastic.core.resources.rssi
 import org.meshtastic.core.resources.security_signed_verified
+import org.meshtastic.core.resources.snr
 import org.meshtastic.core.ui.component.AutoLinkText
 import org.meshtastic.core.ui.component.HighlightedText
-import org.meshtastic.core.ui.component.NODE_TINT_EMPHASIZED
-import org.meshtastic.core.ui.component.NODE_TINT_MUTED
-import org.meshtastic.core.ui.component.NODE_TINT_NORMAL
-import org.meshtastic.core.ui.component.NodeChip
-import org.meshtastic.core.ui.component.Rssi
-import org.meshtastic.core.ui.component.Snr
 import org.meshtastic.core.ui.component.TransportIcon
-import org.meshtastic.core.ui.component.nodeBorderStroke
-import org.meshtastic.core.ui.component.nodeTintedContainer
 import org.meshtastic.core.ui.emoji.EmojiPickerDialog
 import org.meshtastic.core.ui.icon.FormatQuote
 import org.meshtastic.core.ui.icon.HopCount
 import org.meshtastic.core.ui.icon.MeshtasticIcons
 import org.meshtastic.core.ui.icon.Reply
 import org.meshtastic.core.ui.icon.ShieldCheck
-import org.meshtastic.core.ui.theme.MessageItemColors
-import org.meshtastic.core.ui.theme.StatusColors.StatusGreen
 import org.meshtastic.core.ui.util.createClipEntry
+import org.meshtastic.feature.messaging.priority.MessagePriority
 
 internal const val MESSAGE_STATUS_LABEL_TEST_TAG = "message_status_label"
 
@@ -268,17 +270,24 @@ fun MessageItem(
 
     val containsBel = message.text.contains('\u0007')
 
-    val nodeColor = Color(if (message.fromLocal) ourNode.colors.second else node.colors.second)
-    // Match the node card: a faint node wash over the neutral surface + a node outline (more AA than a saturated
-    // fill).
-    val tintFraction =
-        when {
-            inSelectionMode && selected -> NODE_TINT_EMPHASIZED
-            message.filtered || (inSelectionMode && !selected) -> NODE_TINT_MUTED
-            else -> NODE_TINT_NORMAL
+    // Colour codes the priority only: a light priority wash over the neutral card and a side bar.
+    // Selection and filtering are carried by the outline and opacity, never by a hue.
+    val priority = remember(message.text) { MessagePriority.of(message.text) }
+    val accent = priorityAccent(priority)
+    val baseContainer = CardDefaults.cardColors().containerColor
+    val containerColor =
+        if (priority == MessagePriority.INFO) {
+            baseContainer
+        } else {
+            accent.copy(alpha = PRIORITY_WASH_ALPHA).compositeOver(baseContainer)
         }
-    val containerColor = nodeTintedContainer(nodeColor, fraction = tintFraction)
-    val cardBorder = nodeBorderStroke(nodeColor, active = selected)
+    val cardBorder =
+        if (selected) {
+            BorderStroke(2.dp, MaterialTheme.colorScheme.onSurface)
+        } else {
+            BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+        }
+    val bubbleAlpha = if (message.filtered || (inSelectionMode && !selected)) MUTED_BUBBLE_ALPHA else 1f
     val contentColor = MaterialTheme.colorScheme.onSurface
     val metadataStyle = MaterialTheme.typography.labelSmall
     val messageShape =
@@ -292,7 +301,7 @@ fun MessageItem(
         Modifier.padding(horizontal = 12.dp)
             .then(
                 if (containsBel) {
-                    Modifier.border(2.dp, color = MessageItemColors.Red, shape = messageShape)
+                    Modifier.border(2.dp, color = MaterialTheme.colorScheme.onSurface, shape = messageShape)
                 } else {
                     Modifier
                 },
@@ -315,7 +324,7 @@ fun MessageItem(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
             ) {
-                NodeChip(node = node, onClick = onClickChip, modifier = Modifier.heightIn(min = 28.dp))
+                NeutralNodeChip(node = node, onClick = onClickChip, modifier = Modifier.heightIn(min = 28.dp))
                 Text(
                     text = node.user.long_name,
                     modifier = Modifier.weight(1f, fill = false),
@@ -435,6 +444,7 @@ fun MessageItem(
                     },
                 )
                 .then(messageModifier)
+                .alpha(bubbleAlpha)
                 .semantics(mergeDescendants = true) {
                     contentDescription = messageA11yText
                     role = Role.Button
@@ -445,106 +455,118 @@ fun MessageItem(
             shape = messageShape,
             border = cardBorder,
         ) {
-            Column(modifier = Modifier.width(IntrinsicSize.Max)) {
-                OriginalMessageSnippet(
-                    modifier = Modifier.fillMaxWidth(),
-                    message = message,
-                    ourNode = ourNode,
-                    onNavigateToOriginalMessage = onNavigateToOriginalMessage,
+            Row(modifier = Modifier.height(IntrinsicSize.Min)) {
+                Box(
+                    modifier =
+                    Modifier.width(PRIORITY_BAR_WIDTH)
+                        .fillMaxHeight()
+                        .background(accent)
+                        .testTag(PRIORITY_BAR_TEST_TAG),
                 )
+                Column(modifier = Modifier.width(IntrinsicSize.Max)) {
+                    PriorityLabel(
+                        priority = priority,
+                        modifier = Modifier.padding(start = 12.dp, end = 12.dp, top = 6.dp),
+                    )
+                    OriginalMessageSnippet(
+                        modifier = Modifier.fillMaxWidth(),
+                        message = message,
+                        ourNode = ourNode,
+                        onNavigateToOriginalMessage = onNavigateToOriginalMessage,
+                    )
 
-                Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
-                    if (searchQuery.isNotEmpty()) {
-                        HighlightedText(
-                            text = message.text,
-                            query = searchQuery,
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = contentColor,
-                        )
-                    } else {
-                        val mentionDisplayName =
-                            remember(resolveMention) {
-                                { id: String ->
-                                    resolveMention(id)?.let { it.user.long_name.ifEmpty { it.user.short_name } }
+                    Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
+                        if (searchQuery.isNotEmpty()) {
+                            HighlightedText(
+                                text = message.text,
+                                query = searchQuery,
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = contentColor,
+                            )
+                        } else {
+                            val mentionDisplayName =
+                                remember(resolveMention) {
+                                    { id: String ->
+                                        resolveMention(id)?.let { it.user.long_name.ifEmpty { it.user.short_name } }
+                                    }
                                 }
-                            }
-                        AutoLinkText(
-                            text = bodyText,
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = contentColor,
-                            mentionName = mentionDisplayName,
-                            onMentionClick = { id -> resolveMention(id)?.let(onClickChip) },
-                        )
-                    }
+                            AutoLinkText(
+                                text = bodyText,
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = contentColor,
+                                mentionName = mentionDisplayName,
+                                onMentionClick = { id -> resolveMention(id)?.let(onClickChip) },
+                            )
+                        }
 
-                    Row(
-                        modifier = Modifier.padding(top = 4.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    ) {
-                        if (!message.fromLocal) {
-                            // All mesh diagnostics (signature, signal or hops, transport) grouped in one compact
-                            // run.
-                            DiagnosticsRow {
-                                // XEdDSA is only set on verified broadcasts, never DMs — so this never shows on a
-                                // DM.
-                                if (message.xeddsaSigned) {
-                                    Icon(
-                                        imageVector = MeshtasticIcons.ShieldCheck,
-                                        contentDescription = stringResource(Res.string.security_signed_verified),
-                                        modifier = Modifier.size(14.dp),
-                                        tint = MaterialTheme.colorScheme.StatusGreen,
-                                    )
-                                }
-                                TransportIcon(
-                                    transport = message.transportMechanism,
-                                    viaMqtt = message.viaMqtt,
-                                    modifier = Modifier.size(14.dp),
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
-                                if (message.hopsAway == 0 && !message.viaMqtt) {
-                                    Snr(message.snr)
-                                    Rssi(message.rssi)
-                                } else {
-                                    Icon(
-                                        imageVector = MeshtasticIcons.HopCount,
-                                        contentDescription = null,
+                        Row(
+                            modifier = Modifier.padding(top = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        ) {
+                            if (!message.fromLocal) {
+                                // All mesh diagnostics (signature, signal or hops, transport) grouped in one run.
+                                DiagnosticsRow {
+                                    // XEdDSA is only set on verified broadcasts, never DMs.
+                                    if (message.xeddsaSigned) {
+                                        Icon(
+                                            imageVector = MeshtasticIcons.ShieldCheck,
+                                            contentDescription =
+                                            stringResource(Res.string.security_signed_verified),
+                                            modifier = Modifier.size(14.dp),
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        )
+                                    }
+                                    TransportIcon(
+                                        transport = message.transportMechanism,
+                                        viaMqtt = message.viaMqtt,
                                         modifier = Modifier.size(14.dp),
                                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                     )
-                                    Text(
-                                        text = if (message.hopsAway >= 0) message.hopsAway.toString() else "?",
-                                        style = metadataStyle,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    )
+                                    if (message.hopsAway == 0 && !message.viaMqtt) {
+                                        NeutralSnr(message.snr)
+                                        NeutralRssi(message.rssi)
+                                    } else {
+                                        Icon(
+                                            imageVector = MeshtasticIcons.HopCount,
+                                            contentDescription = null,
+                                            modifier = Modifier.size(14.dp),
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        )
+                                        Text(
+                                            text = if (message.hopsAway >= 0) message.hopsAway.toString() else "?",
+                                            style = metadataStyle,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        )
+                                    }
                                 }
                             }
-                        }
-                        if (containsBel) {
-                            Text(text = "\uD83D\uDD14")
-                        }
-                        if (message.filtered) {
-                            Text(
-                                text = stringResource(Res.string.filter_message_label),
-                                style = metadataStyle,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
-                        if (showsTranslation) {
-                            Text(
-                                text = stringResource(Res.string.message_translated_label),
-                                style = metadataStyle,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
-                        if (message.fromLocal) {
-                            MessageStatusLabel(
-                                status = message.status ?: MessageStatus.UNKNOWN,
-                                text = stringResource(statusString.second),
-                                metadataStyle = metadataStyle,
-                                isWarning = isDirectImplicitAck || isRetryableFailure || isForgedAck,
-                                onStatusClick = onStatusClick,
-                            )
+                            if (containsBel) {
+                                Text(text = "\uD83D\uDD14")
+                            }
+                            if (message.filtered) {
+                                Text(
+                                    text = stringResource(Res.string.filter_message_label),
+                                    style = metadataStyle,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                            if (showsTranslation) {
+                                Text(
+                                    text = stringResource(Res.string.message_translated_label),
+                                    style = metadataStyle,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                            if (message.fromLocal) {
+                                MessageStatusLabel(
+                                    status = message.status ?: MessageStatus.UNKNOWN,
+                                    text = stringResource(statusString.second),
+                                    metadataStyle = metadataStyle,
+                                    isWarning = isDirectImplicitAck || isRetryableFailure || isForgedAck,
+                                    onStatusClick = onStatusClick,
+                                )
+                            }
                         }
                     }
                 }
@@ -575,6 +597,63 @@ private val REPLY_SWIPE_THRESHOLD = 64.dp
 private const val REPLY_SWIPE_OVERDRAG = 1.5f
 
 private val QUICK_REACTION_BAR_CORNER = 20.dp
+
+private val PRIORITY_BAR_WIDTH = 5.dp
+
+/** Opacity of a filtered bubble, or of an unselected one while selecting. */
+private const val MUTED_BUBBLE_ALPHA = 0.6f
+
+internal const val PRIORITY_BAR_TEST_TAG = "message_priority_bar"
+
+/**
+ * SNR in the same format as the shared indicator, without its quality colour (red to green): in these screens colour is
+ * reserved for priority. An absent reading renders nothing.
+ */
+@Composable
+private fun NeutralSnr(snr: Float?, modifier: Modifier = Modifier) {
+    if (snr == null) return
+    Text(
+        text = "${stringResource(Res.string.snr)} ${MetricFormatter.snr(snr, decimalPlaces = 2)}",
+        modifier = modifier,
+        style = MaterialTheme.typography.labelSmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+}
+
+/** RSSI counterpart of [NeutralSnr]. */
+@Composable
+private fun NeutralRssi(rssi: Int?, modifier: Modifier = Modifier) {
+    if (rssi == null) return
+    Text(
+        text = "${stringResource(Res.string.rssi)} ${MetricFormatter.rssi(rssi)}",
+        modifier = modifier,
+        style = MaterialTheme.typography.labelSmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+}
+
+/** Sender chip without the node's own hue: in these screens colour is reserved for priority. */
+@Composable
+private fun NeutralNodeChip(node: Node, onClick: (Node) -> Unit, modifier: Modifier = Modifier) {
+    Surface(
+        onClick = { onClick(node) },
+        modifier = modifier.defaultMinSize(minWidth = 48.dp),
+        shape = MaterialTheme.shapes.small,
+        color = MaterialTheme.colorScheme.surfaceContainerHighest,
+        contentColor = MaterialTheme.colorScheme.onSurface,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+    ) {
+        Box(modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp), contentAlignment = Alignment.Center) {
+            Text(
+                text = node.user.short_name.ifEmpty { "???" },
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.Bold,
+                textDecoration = TextDecoration.LineThrough.takeIf { node.isIgnored },
+                maxLines = 1,
+            )
+        }
+    }
+}
 
 /** Reply arrow revealed behind a bubble as it is dragged; [progress] runs 0..1 up to the commit threshold. */
 @Composable
@@ -670,8 +749,7 @@ private fun OriginalMessageSnippet(
         val originalMessageNode = if (originalMessage.fromLocal) ourNode else originalMessage.node
         // Same node-tinted treatment as the bubble (keeps onSurface text AA), but at the emphasized tint so the quoted
         // header still reads as distinct from the bubble body below it.
-        val replyContainerColor =
-            nodeTintedContainer(Color(originalMessageNode.colors.second), fraction = NODE_TINT_EMPHASIZED)
+        val replyContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest
         val replyContentColor = MaterialTheme.colorScheme.onSurface
         // Rectangle shape — the outer message bubble's Surface clips to its
         // rounded corners, so the reply header inherits the correct top radii
