@@ -170,6 +170,12 @@ class SettingsViewModel(
         uiPrefs.setShowFullMessageTimestamps(show)
     }
 
+    val commandPostMode = uiPrefs.commandPostMode
+
+    fun setCommandPostMode(enabled: Boolean) {
+        uiPrefs.setCommandPostMode(enabled)
+    }
+
     /** Set the application locale. Empty string means system default. */
     fun setLocale(languageTag: String) {
         uiPrefs.setLocale(languageTag)

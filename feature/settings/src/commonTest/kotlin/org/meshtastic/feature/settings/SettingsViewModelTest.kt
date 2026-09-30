@@ -238,6 +238,13 @@ class SettingsViewModelTest {
     }
 
     @Test
+    fun `setCommandPostMode updates prefs`() = runTest {
+        viewModel.setCommandPostMode(true)
+
+        appPreferences.ui.commandPostMode.value shouldBe true
+    }
+
+    @Test
     fun `setLocale updates prefs`() = runTest {
         viewModel.setLocale("fr")
         appPreferences.ui.locale.value shouldBe "fr"

@@ -1383,4 +1383,6 @@
     <string name="you">Vous</string>
     <string name="zoom_in">Zoom +</string>
     <string name="zoom_out">Zoom -</string>
+    <string name="command_post_mode">Mode poste de commandement</string>
+    <string name="command_post_mode_summary">Mode d'affichage : désactivé pour l'affichage Terrain (inchangé), activé pour ouvrir la vue PC (lecture seule) au démarrage.</string>
 </resources>

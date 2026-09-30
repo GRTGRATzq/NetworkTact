@@ -45,6 +45,8 @@ import org.meshtastic.core.ui.theme.AppTheme
 internal fun ColumnScope.AppearanceSettingsContent(
     showFullMessageTimestamps: Boolean,
     onShowFullMessageTimestampsChange: (Boolean) -> Unit,
+    commandPostMode: Boolean,
+    onCommandPostModeChange: (Boolean) -> Unit,
     onShowLanguagePicker: () -> Unit,
     onShowThemePicker: () -> Unit,
     unitsSummary: String,
@@ -93,6 +95,8 @@ internal fun ColumnScope.AppearanceSettingsContent(
         checked = showFullMessageTimestamps,
         onCheckedChange = onShowFullMessageTimestampsChange,
     )
+
+    CommandPostModeSetting(checked = commandPostMode, onCheckedChange = onCommandPostModeChange)
 }
 
 @Preview(showBackground = true)
@@ -103,6 +107,8 @@ fun AppearanceSectionPreview() {
             AppearanceSettingsContent(
                 showFullMessageTimestamps = false,
                 onShowFullMessageTimestampsChange = {},
+                commandPostMode = false,
+                onCommandPostModeChange = {},
                 onShowLanguagePicker = {},
                 onShowThemePicker = {},
                 unitsSummary = "System default",

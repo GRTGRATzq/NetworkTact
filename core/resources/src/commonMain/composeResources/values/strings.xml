@@ -245,6 +245,8 @@
     <string name="co2_temperature">CO₂ Temp</string>
     <string name="collapse_chart">Collapse chart</string>
     <string name="collapsed">Collapsed</string>
+    <string name="command_post_mode">Command post mode</string>
+    <string name="command_post_mode_summary">Display mode: off for the field layout (unchanged), on to open the read-only command post view on launch.</string>
     <string name="communicate_off_the_grid">Communicate off-the-grid with your friends and community without cell service.</string>
     <!-- COMPASS -->
     <string name="compass_bearing">Bearing: %1$s</string>

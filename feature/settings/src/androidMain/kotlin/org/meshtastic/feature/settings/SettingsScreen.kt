@@ -113,6 +113,7 @@ fun SettingsScreen(
     val isConnected by settingsViewModel.isConnected.collectAsStateWithLifecycle(false)
     val isOtaCapable by settingsViewModel.isOtaCapable.collectAsStateWithLifecycle()
     val showFullMessageTimestamps by settingsViewModel.showFullMessageTimestamps.collectAsStateWithLifecycle()
+    val commandPostMode by settingsViewModel.commandPostMode.collectAsStateWithLifecycle()
     val destNode by viewModel.destNode.collectAsStateWithLifecycle()
     val state by viewModel.radioConfigState.collectAsStateWithLifecycle()
 
@@ -289,6 +290,8 @@ fun SettingsScreen(
                     AppearanceSettingsContent(
                         showFullMessageTimestamps = showFullMessageTimestamps,
                         onShowFullMessageTimestampsChange = settingsViewModel::setShowFullMessageTimestamps,
+                        commandPostMode = commandPostMode,
+                        onCommandPostModeChange = settingsViewModel::setCommandPostMode,
                         onShowLanguagePicker = { showLanguagePickerDialog = true },
                         onShowThemePicker = { showThemePickerDialog = true },
                         unitsSummary = stringResource(UnitsOption.entries.first { it.override == unitsOverride }.label),

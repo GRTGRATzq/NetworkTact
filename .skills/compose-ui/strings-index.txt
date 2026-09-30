@@ -221,6 +221,8 @@ co2_humidity
 co2_temperature
 collapse_chart
 collapsed
+command_post_mode
+command_post_mode_summary
 communicate_off_the_grid
 ### COMPASS ###
 compass_bearing
