@@ -44,6 +44,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -101,6 +102,7 @@ import org.meshtastic.core.model.util.getChannel
 import org.meshtastic.core.resources.Res
 import org.meshtastic.core.resources.archived_channel_read_only
 import org.meshtastic.core.resources.send
+import org.meshtastic.core.resources.tactmsg_too_long
 import org.meshtastic.core.resources.type_a_message
 import org.meshtastic.core.resources.unknown_channel
 import org.meshtastic.core.ui.component.InlineStyle
@@ -113,16 +115,19 @@ import org.meshtastic.core.ui.theme.AppTheme
 import org.meshtastic.core.ui.util.createClipEntry
 import org.meshtastic.core.ui.util.isFromSoftKeyboard
 import org.meshtastic.feature.messaging.component.ActionModeTopBar
+import org.meshtastic.feature.messaging.component.AlertPill
 import org.meshtastic.feature.messaging.component.DeleteMessageDialog
 import org.meshtastic.feature.messaging.component.FormattingToolbar
 import org.meshtastic.feature.messaging.component.MESSAGE_CHARACTER_LIMIT_BYTES
 import org.meshtastic.feature.messaging.component.MessageMenuAction
 import org.meshtastic.feature.messaging.component.MessageSearchBar
 import org.meshtastic.feature.messaging.component.MessageTopBar
+import org.meshtastic.feature.messaging.component.PrioritySelector
 import org.meshtastic.feature.messaging.component.QuickChatRow
 import org.meshtastic.feature.messaging.component.ReplySnippet
 import org.meshtastic.feature.messaging.component.ScrollToBottomFab
 import org.meshtastic.feature.messaging.component.TranslationModelDownloadDialog
+import org.meshtastic.feature.messaging.priority.MessagePriority
 
 private const val ROUNDED_CORNER_PERCENT = 100
 private const val MAX_LINES = 3
@@ -881,6 +886,15 @@ internal fun MessageInput(
         if (mentionActive) {
             MentionSuggestions(suggestions = suggestions, onPick = ::insertMention)
         }
+        if (isEnabled) {
+            PrioritySelector(
+                selected = MessagePriority.of(currentTextRaw),
+                onSelect = { priority ->
+                    textFieldState.setTextAndPlaceCursorAtEnd(MessagePriority.withPriority(currentTextRaw, priority))
+                },
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp),
+            )
+        }
         OutlinedTextField(
             modifier =
             Modifier.fillMaxWidth()
@@ -906,6 +920,16 @@ internal fun MessageInput(
             enabled = isEnabled,
             shape = RoundedCornerShape(ROUNDED_CORNER_PERCENT.toFloat()),
             isError = isOverLimit,
+            // Red is reserved for urgent messages: an oversized message is flagged by the alert pill and a
+            // high-contrast outline instead of the theme's error colour.
+            colors =
+            OutlinedTextFieldDefaults.colors(
+                errorBorderColor = MaterialTheme.colorScheme.onSurface,
+                errorCursorColor = MaterialTheme.colorScheme.onSurface,
+                errorTrailingIconColor = MaterialTheme.colorScheme.onSurface,
+                errorSupportingTextColor = MaterialTheme.colorScheme.onSurface,
+                errorPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            ),
             placeholder = { Text(stringResource(Res.string.type_a_message)) },
             // A multi-line field must keep its Enter key: Compose only sets IME_FLAG_NO_ENTER_ACTION for
             // ImeAction.Default, and without it an IME may swap Enter for the action, leaving no way to type a newline.
@@ -914,16 +938,17 @@ internal fun MessageInput(
             supportingText = {
                 // The counter is only useful as the limit approaches. Showing 0/200 before a character is typed is
                 // chrome that every chat client has learned to hide.
-                if (isEnabled && currentByteLength >= maxByteSize - COUNTER_VISIBLE_WITHIN_BYTES) {
+                if (isEnabled && isOverLimit) {
+                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
+                        AlertPill(
+                            text = stringResource(Res.string.tactmsg_too_long) + " · $currentByteLength/$maxByteSize",
+                        )
+                    }
+                } else if (isEnabled && currentByteLength >= maxByteSize - COUNTER_VISIBLE_WITHIN_BYTES) {
                     Text(
                         text = "$currentByteLength/$maxByteSize",
                         style = MaterialTheme.typography.bodySmall,
-                        color =
-                        if (isOverLimit) {
-                            MaterialTheme.colorScheme.error
-                        } else {
-                            MaterialTheme.colorScheme.onSurfaceVariant
-                        },
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.fillMaxWidth(),
                         textAlign = TextAlign.End,
                     )
