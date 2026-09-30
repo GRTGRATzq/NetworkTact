@@ -132,6 +132,14 @@ interface UiPrefs {
     fun setShowFullMessageTimestamps(show: Boolean)
 
     /**
+     * Display mode: false for the field (Terrain) layout, true for the command post (PC) layout, which opens the
+     * read-only command post view on launch.
+     */
+    val commandPostMode: StateFlow<Boolean>
+
+    fun setCommandPostMode(enabled: Boolean)
+
+    /**
      * Whether to apply an event edition's ambient theme (accent wash + custom typeface) app-wide (opt-out; default on).
      */
     val eventThemeEnabled: StateFlow<Boolean>

@@ -139,6 +139,12 @@ class FakeUiPrefs : UiPrefs {
         showFullMessageTimestamps.value = show
     }
 
+    override val commandPostMode = MutableStateFlow(false)
+
+    override fun setCommandPostMode(enabled: Boolean) {
+        commandPostMode.value = enabled
+    }
+
     override val eventThemeEnabled = MutableStateFlow(true)
 
     override fun setEventThemeEnabled(enabled: Boolean) {

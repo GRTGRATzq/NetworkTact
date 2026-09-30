@@ -119,6 +119,14 @@ class UiPrefsImpl(private val dataStore: UiDataStore, dispatchers: CoroutineDisp
         scope.launch { dataStore.edit { it[KEY_SHOW_FULL_MESSAGE_TIMESTAMPS] = show } }
     }
 
+    // Eagerly: MainScreen reads it once, at launch, to pick the start screen.
+    override val commandPostMode: StateFlow<Boolean> =
+        dataStore.data.map { it[KEY_COMMAND_POST_MODE] ?: false }.stateIn(scope, SharingStarted.Eagerly, false)
+
+    override fun setCommandPostMode(enabled: Boolean) {
+        scope.launch { dataStore.edit { it[KEY_COMMAND_POST_MODE] = enabled } }
+    }
+
     override val eventThemeEnabled: StateFlow<Boolean> =
         dataStore.data.map { it[KEY_EVENT_THEME_ENABLED] ?: true }.stateIn(scope, SharingStarted.Eagerly, true)
 
@@ -309,6 +317,7 @@ class UiPrefsImpl(private val dataStore: UiDataStore, dispatchers: CoroutineDisp
         val KEY_SHOW_QUICK_CHAT_PREF = booleanPreferencesKey("show-quick-chat")
         val KEY_SHOW_FULL_MESSAGE_TIMESTAMPS = booleanPreferencesKey("show-full-message-timestamps")
         val KEY_EVENT_THEME_ENABLED = booleanPreferencesKey("event-theme-enabled")
+        val KEY_COMMAND_POST_MODE = booleanPreferencesKey("command-post-mode")
 
         val KEY_APP_INTRO_COMPLETED = booleanPreferencesKey("app_intro_completed")
         val KEY_THEME = intPreferencesKey("theme")

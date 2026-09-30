@@ -143,6 +143,18 @@ class UiPrefsImplTest {
     }
 
     @Test
+    fun `command post mode defaults to false`() = testScope.runTest { assertFalse(prefs.commandPostMode.value) }
+
+    @Test
+    fun `command post mode persists when enabled`() = testScope.runTest {
+        prefs.setCommandPostMode(true)
+
+        val stored = dataStore.data.first { it[UiPrefsImpl.KEY_COMMAND_POST_MODE] == true }
+        assertTrue(prefs.commandPostMode.value)
+        assertEquals(true, stored[UiPrefsImpl.KEY_COMMAND_POST_MODE])
+    }
+
+    @Test
     fun `firmware update notification keys persist without duplicates`() = testScope.runTest {
         prefs.recordFirmwareUpdateNotificationKey("firmware-update-notified:node:target:2.8.0")
         prefs.recordFirmwareUpdateNotificationKey("firmware-update-notified:node:target:2.8.0")
