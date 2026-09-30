@@ -85,6 +85,7 @@ import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
 import kotlinx.collections.immutable.ImmutableMap
 import kotlinx.collections.immutable.persistentMapOf
@@ -117,8 +118,10 @@ import org.meshtastic.core.ui.util.isFromSoftKeyboard
 import org.meshtastic.feature.messaging.component.ActionModeTopBar
 import org.meshtastic.feature.messaging.component.AlertPill
 import org.meshtastic.feature.messaging.component.DeleteMessageDialog
+import org.meshtastic.feature.messaging.component.FilteredEmptyNotice
 import org.meshtastic.feature.messaging.component.FormattingToolbar
 import org.meshtastic.feature.messaging.component.MESSAGE_CHARACTER_LIMIT_BYTES
+import org.meshtastic.feature.messaging.component.MessageFilterBar
 import org.meshtastic.feature.messaging.component.MessageMenuAction
 import org.meshtastic.feature.messaging.component.MessageSearchBar
 import org.meshtastic.feature.messaging.component.MessageTopBar
@@ -200,6 +203,8 @@ fun MessageScreen(
     val currentSearchResult by viewModel.currentSearchResult.collectAsStateWithLifecycle()
     val translationAvailable by viewModel.translationAvailable.collectAsStateWithLifecycle()
     val translationDialogState by viewModel.translationDialogState.collectAsStateWithLifecycle()
+    val threadFilter by viewModel.threadFilter.collectAsStateWithLifecycle()
+    val isDirectConversation = remember(contactKey) { ContactKey(contactKey).addressString != NodeAddress.ID_BROADCAST }
 
     // Read the stored draft before wiring the composer up, so its initial empty value cannot erase one.
     LaunchedEffect(contactKey) { viewModel.loadDraft(contactKey) }
@@ -522,53 +527,67 @@ fun MessageScreen(
             }
         },
     ) { paddingValues ->
-        Box(Modifier.fillMaxSize().padding(paddingValues).focusable()) {
-            MessageListPaged(
-                modifier = Modifier.fillMaxSize(),
-                listState = listState,
-                state =
-                MessageListPagedState(
-                    nodes = nodes,
-                    ourNode = ourNode,
-                    messages = pagedMessages,
-                    selectedIds = selectedMessageIds,
-                    contactKey = contactKey,
-                    firstUnreadMessageUuid = firstUnreadMessageUuid,
-                    hasUnreadMessages = hasUnreadMessages == true,
-                    filteredCount = filteredCount,
-                    showFiltered = showFiltered,
-                    filteringDisabled = filteringDisabled,
-                    searchQuery = if (isSearchActive) searchQuery else "",
-                    translationAvailable = translationAvailable,
-                    showFullMessageTimestamps = showFullMessageTimestamps,
-                    canReact = !isRetiredChannel,
-                    canSend = !isRetiredChannel,
-                ),
-                handlers =
-                MessageListHandlers(
-                    onUnreadChanged = { messageUuid, timestamp ->
-                        onEvent(MessageScreenEvent.ClearUnreadCount(messageUuid, timestamp))
-                    },
-                    // A retired conversation is read-only; the send path refuses these anyway, so do not offer
-                    // them.
-                    onSendReaction =
-                    if (isRetiredChannel) {
-                        { _, _ -> }
-                    } else {
-                        { emoji, id -> onEvent(MessageScreenEvent.SendReaction(emoji, id)) }
-                    },
-                    onClickChip = { onEvent(MessageScreenEvent.NodeDetails(it)) },
-                    onDeleteMessages = { viewModel.deleteMessages(it) },
-                    onSendMessage = { text, key -> if (!isRetiredChannel) viewModel.sendMessage(text, key) },
-                    onReply = { message -> if (!isRetiredChannel) replyingToPacketId = message?.packetId },
-                    onTranslate = { onEvent(MessageScreenEvent.TranslateMessage(it)) },
-                    onToggleTranslation = { onEvent(MessageScreenEvent.ToggleShowTranslated(it)) },
-                ),
-                quickEmojis = viewModel.frequentEmojis,
+        Column(Modifier.fillMaxSize().padding(paddingValues)) {
+            MessageFilterBar(
+                filter = threadFilter,
+                isDirectMessage = isDirectConversation,
+                onFilterChange = viewModel::setThreadFilter,
             )
-            // Show FAB if we can scroll towards the newest messages (index 0).
-            if (listState.canScrollBackward) {
-                ScrollToBottomFab(coroutineScope, listState, unreadCount, newestUnreadSender)
+            Box(Modifier.fillMaxWidth().weight(1f).focusable()) {
+                MessageListPaged(
+                    modifier = Modifier.fillMaxSize(),
+                    listState = listState,
+                    state =
+                    MessageListPagedState(
+                        nodes = nodes,
+                        ourNode = ourNode,
+                        messages = pagedMessages,
+                        selectedIds = selectedMessageIds,
+                        contactKey = contactKey,
+                        firstUnreadMessageUuid = firstUnreadMessageUuid,
+                        hasUnreadMessages = hasUnreadMessages == true,
+                        filteredCount = filteredCount,
+                        showFiltered = showFiltered,
+                        filteringDisabled = filteringDisabled,
+                        searchQuery = if (isSearchActive) searchQuery else "",
+                        translationAvailable = translationAvailable,
+                        showFullMessageTimestamps = showFullMessageTimestamps,
+                        canReact = !isRetiredChannel,
+                        canSend = !isRetiredChannel,
+                    ),
+                    handlers =
+                    MessageListHandlers(
+                        onUnreadChanged = { messageUuid, timestamp ->
+                            onEvent(MessageScreenEvent.ClearUnreadCount(messageUuid, timestamp))
+                        },
+                        // A retired conversation is read-only; the send path refuses these anyway, so do not offer
+                        // them.
+                        onSendReaction =
+                        if (isRetiredChannel) {
+                            { _, _ -> }
+                        } else {
+                            { emoji, id -> onEvent(MessageScreenEvent.SendReaction(emoji, id)) }
+                        },
+                        onClickChip = { onEvent(MessageScreenEvent.NodeDetails(it)) },
+                        onDeleteMessages = { viewModel.deleteMessages(it) },
+                        onSendMessage = { text, key -> if (!isRetiredChannel) viewModel.sendMessage(text, key) },
+                        onReply = { message -> if (!isRetiredChannel) replyingToPacketId = message?.packetId },
+                        onTranslate = { onEvent(MessageScreenEvent.TranslateMessage(it)) },
+                        onToggleTranslation = { onEvent(MessageScreenEvent.ToggleShowTranslated(it)) },
+                    ),
+                    quickEmojis = viewModel.frequentEmojis,
+                )
+                if (
+                    threadFilter.isActive &&
+                    pagedMessages.itemCount == 0 &&
+                    pagedMessages.loadState.refresh !is LoadState.Loading
+                ) {
+                    FilteredEmptyNotice()
+                }
+                // Show FAB if we can scroll towards the newest messages (index 0).
+                if (listState.canScrollBackward) {
+                    ScrollToBottomFab(coroutineScope, listState, unreadCount, newestUnreadSender)
+                }
             }
         }
     }

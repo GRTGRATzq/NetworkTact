@@ -21,6 +21,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
+import androidx.paging.filter
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
@@ -43,6 +44,7 @@ import kotlinx.coroutines.withContext
 import org.koin.core.annotation.KoinViewModel
 import org.meshtastic.core.common.util.currentLocaleCode
 import org.meshtastic.core.common.util.ioDispatcher
+import org.meshtastic.core.model.ContactKey
 import org.meshtastic.core.model.ContactSettings
 import org.meshtastic.core.model.Message
 import org.meshtastic.core.model.Node
@@ -69,6 +71,8 @@ import org.meshtastic.core.ui.util.SnackbarManager
 import org.meshtastic.core.ui.viewmodel.errorEventFlow
 import org.meshtastic.core.ui.viewmodel.safeLaunch
 import org.meshtastic.core.ui.viewmodel.stateInWhileSubscribed
+import org.meshtastic.feature.messaging.filter.ThreadFilter
+import org.meshtastic.feature.messaging.status.sentStatusOf
 import org.meshtastic.feature.messaging.translation.DownloadResult
 import org.meshtastic.feature.messaging.translation.MessageTranslationService
 import org.meshtastic.feature.messaging.translation.TranslationResult
@@ -222,6 +226,30 @@ class MessageViewModel(
             }
             .cachedIn(viewModelScope)
 
+    private val _threadFilter = MutableStateFlow(ThreadFilter())
+
+    /** Display-only priority / unacknowledged filter for the conversation on screen. */
+    val threadFilter: StateFlow<ThreadFilter> = _threadFilter.asStateFlow()
+
+    fun setThreadFilter(filter: ThreadFilter) {
+        _threadFilter.value = filter
+    }
+
+    /** [pagedMessagesForContactKey] with [threadFilter] applied on top of the cached pages; storage is untouched. */
+    private val filteredPagedMessages: Flow<PagingData<Message>> =
+        combine(pagedMessagesForContactKey, _threadFilter, contactKeyForPagedMessages) { pagingData, filter, key ->
+            if (!filter.isActive || key == null) {
+                pagingData
+            } else {
+                val isDirect = ContactKey(key).addressString != NodeAddress.ID_BROADCAST
+                pagingData.filter { message ->
+                    val sentStatus =
+                        sentStatusOf(message.status, message.routingError, message.ackProofStatus, isDirect)
+                    filter.matches(message.text, message.fromLocal, sentStatus, isDirect)
+                }
+            }
+        }
+
     val frequentEmojis: List<String>
         get() =
             customEmojiPrefs.customEmojiFrequency.value
@@ -336,6 +364,7 @@ class MessageViewModel(
     fun setContactKey(contactKey: String) {
         if (contactKeyForPagedMessages.value != contactKey) {
             contactKeyForPagedMessages.value = contactKey
+            _threadFilter.value = ThreadFilter()
         }
     }
 
@@ -346,8 +375,9 @@ class MessageViewModel(
     fun getMessagesFromPaged(contactKey: String): Flow<PagingData<Message>> {
         if (contactKeyForPagedMessages.value != contactKey) {
             contactKeyForPagedMessages.value = contactKey
+            _threadFilter.value = ThreadFilter()
         }
-        return pagedMessagesForContactKey
+        return filteredPagedMessages
     }
 
     /**
