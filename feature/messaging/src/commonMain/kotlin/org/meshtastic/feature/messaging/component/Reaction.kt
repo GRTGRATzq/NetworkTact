@@ -36,6 +36,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SheetValue
@@ -67,16 +68,14 @@ import org.meshtastic.core.model.util.getShortDateTime
 import org.meshtastic.core.resources.Res
 import org.meshtastic.core.resources.react
 import org.meshtastic.core.resources.security_signed_verified
+import org.meshtastic.core.resources.tactmsg_alert_icon
 import org.meshtastic.core.resources.you
-import org.meshtastic.core.ui.component.Rssi
-import org.meshtastic.core.ui.component.Snr
 import org.meshtastic.core.ui.emoji.EmojiPickerDialog
 import org.meshtastic.core.ui.icon.AddReaction
 import org.meshtastic.core.ui.icon.HopCount
 import org.meshtastic.core.ui.icon.MeshtasticIcons
 import org.meshtastic.core.ui.icon.ShieldCheck
-import org.meshtastic.core.ui.theme.StatusColors.StatusGreen
-import org.meshtastic.core.ui.theme.StatusColors.StatusYellow
+import org.meshtastic.core.ui.icon.Warning
 import org.meshtastic.feature.messaging.DeliveryInfo
 
 @Composable
@@ -100,19 +99,21 @@ internal fun ReactionItem(
             .combinedClickable(onClick = onClick, onLongClick = onLongClick)
             .minimumInteractiveComponentSize()
             .then(if (isSending) Modifier.graphicsLayer(alpha = 0.5f) else Modifier),
+        // Red is reserved for urgent messages: a failed reaction is an inverted pill with an alert icon instead.
         color =
         when {
-            isError -> MaterialTheme.colorScheme.errorContainer
+            isError -> MaterialTheme.colorScheme.inverseSurface
             else -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
         },
+        contentColor = if (isError) MaterialTheme.colorScheme.inverseOnSurface else MaterialTheme.colorScheme.onSurface,
         shape = if (emojiCount > 1) MaterialTheme.shapes.small else CircleShape,
         border =
         BorderStroke(
             width = 1.dp,
             color =
             when {
-                isError -> MaterialTheme.colorScheme.error
-                isWarning -> MaterialTheme.colorScheme.StatusYellow
+                isError -> MaterialTheme.colorScheme.inverseSurface
+                isWarning -> MaterialTheme.colorScheme.onSurface
                 else -> MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
             },
         ),
@@ -122,13 +123,20 @@ internal fun ReactionItem(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(4.dp),
         ) {
+            if (isError || isWarning) {
+                Icon(
+                    imageVector = MeshtasticIcons.Warning,
+                    contentDescription = stringResource(Res.string.tactmsg_alert_icon),
+                    modifier = Modifier.size(12.dp),
+                )
+            }
             Text(text = emoji, style = MaterialTheme.typography.labelMedium)
             if (emojiCount > 1) {
                 Text(
                     text = emojiCount.toString(),
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = if (isError) LocalContentColor.current else MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         }
@@ -305,7 +313,7 @@ internal fun ReactionDialog(
                                 imageVector = MeshtasticIcons.ShieldCheck,
                                 contentDescription = stringResource(Res.string.security_signed_verified),
                                 modifier = Modifier.size(14.dp),
-                                tint = MaterialTheme.colorScheme.StatusGreen,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }
                     }
@@ -332,8 +340,8 @@ internal fun ReactionDialog(
                     if (!isLocalOrPreDbUpdateReaction) {
                         if (reaction.hopsAway == 0) {
                             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                Snr(reaction.snr)
-                                Rssi(reaction.rssi)
+                                NeutralSnr(reaction.snr)
+                                NeutralRssi(reaction.rssi)
                             }
                         } else {
                             Row(

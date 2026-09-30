@@ -84,6 +84,7 @@ import org.meshtastic.core.resources.delete
 import org.meshtastic.core.resources.delete_messages
 import org.meshtastic.core.resources.delete_messages_title
 import org.meshtastic.core.resources.download
+import org.meshtastic.core.resources.error
 import org.meshtastic.core.resources.filter_disable_for_contact
 import org.meshtastic.core.resources.filter_enable_for_contact
 import org.meshtastic.core.resources.filter_hide_count
@@ -91,6 +92,7 @@ import org.meshtastic.core.resources.filter_settings
 import org.meshtastic.core.resources.filter_show_count
 import org.meshtastic.core.resources.jump_to_latest_from
 import org.meshtastic.core.resources.jump_to_latest_from_and_more
+import org.meshtastic.core.resources.message_delivery_status
 import org.meshtastic.core.resources.navigate_back
 import org.meshtastic.core.resources.new_messages_below
 import org.meshtastic.core.resources.overflow_menu
@@ -132,6 +134,7 @@ import org.meshtastic.core.ui.icon.Visibility
 import org.meshtastic.core.ui.icon.VisibilityOff
 import org.meshtastic.feature.messaging.DeliveryInfo
 import org.meshtastic.feature.messaging.TranslationDialogState
+import org.meshtastic.feature.messaging.status.sentStatusOf
 import org.meshtastic.proto.ChannelSet
 
 // region ── ScrollToBottomFab ──
@@ -708,12 +711,14 @@ fun MessageStatusDialog(
     onResend: () -> Unit,
     onDismiss: () -> Unit,
     isDirectMessage: Boolean = false,
+    recipientName: String? = null,
 ) {
-    val (title, text) = message.getStatusStringRes(isDirectMessage)
+    val sentStatus = sentStatusOf(message.status, message.routingError, message.ackProofStatus, isDirectMessage)
+    val title = if (sentStatus.isAlert()) Res.string.error else Res.string.message_delivery_status
     DeliveryInfo(
         title = title,
         resendOption = resendOption,
-        text = text,
+        statusText = sentStatusText(sentStatus, recipientName),
         detail = message.getStatusDetailRes(),
         relays = message.relays,
         onConfirm = onResend,

@@ -36,10 +36,6 @@ import org.meshtastic.core.ui.icon.MessageEnroute
 import org.meshtastic.core.ui.icon.MessageError
 import org.meshtastic.core.ui.icon.MqttDelivered
 import org.meshtastic.core.ui.icon.Warning
-import org.meshtastic.core.ui.theme.StatusColors.StatusBlue
-import org.meshtastic.core.ui.theme.StatusColors.StatusGreen
-import org.meshtastic.core.ui.theme.StatusColors.StatusRed
-import org.meshtastic.core.ui.theme.StatusColors.StatusYellow
 
 @Composable
 fun MessageStatusIcon(
@@ -73,26 +69,10 @@ fun MessageStatusIcon(
     )
 }
 
+/**
+ * Delivery states are told apart by icon and text, never by hue: in the messaging screens colour codes the message
+ * priority only (red urgent, amber report). A warning is drawn at full contrast instead.
+ */
 @Composable
-internal fun messageStatusColor(status: MessageStatus, isWarning: Boolean = false): Color {
-    val colorScheme = MaterialTheme.colorScheme
-    if (isWarning) {
-        return colorScheme.StatusYellow
-    }
-    return when (status) {
-        MessageStatus.RECEIVED,
-        MessageStatus.DELIVERED,
-        MessageStatus.SFPP_CONFIRMED,
-        -> colorScheme.StatusGreen
-
-        MessageStatus.QUEUED,
-        MessageStatus.UNKNOWN,
-        -> colorScheme.StatusYellow
-
-        MessageStatus.ENROUTE,
-        MessageStatus.SFPP_ROUTING,
-        -> colorScheme.StatusBlue
-
-        MessageStatus.ERROR -> colorScheme.StatusRed
-    }
-}
+internal fun messageStatusColor(isWarning: Boolean = false): Color =
+    if (isWarning) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant

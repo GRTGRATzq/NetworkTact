@@ -116,6 +116,13 @@ internal data class MessageListPagedState(
     val canSend: Boolean = true,
 )
 
+/** The addressed node's name in a direct conversation (its id when unknown), or null for a channel. */
+internal fun directRecipientName(contactKey: String, nodes: List<Node>): String? {
+    val address = ContactKey(contactKey).addressString
+    if (address == NodeAddress.ID_BROADCAST) return null
+    return nodes.firstOrNull { it.user.id == address }?.user?.long_name?.ifBlank { null } ?: address
+}
+
 private fun MutableState<Set<Long>>.toggle(uuid: Long) {
     value =
         if (value.contains(uuid)) {
@@ -140,12 +147,14 @@ internal fun MessageListPaged(
     val nodeMap = remember(state.nodes) { state.nodes.associateBy { it.num } }
     val isDirectMessageConversation =
         remember(state.contactKey) { ContactKey(state.contactKey).addressString != NodeAddress.ID_BROADCAST }
+    val recipientName = remember(state.contactKey, state.nodes) { directRecipientName(state.contactKey, state.nodes) }
 
     var showStatusDialog by remember { mutableStateOf<Message?>(null) }
     showStatusDialog?.let { message ->
         MessageStatusDialog(
             message = message,
             isDirectMessage = isDirectMessageConversation,
+            recipientName = recipientName,
             resendOption = message.isStatusRetryable(isDirectMessageConversation) && state.canSend,
             onResend = {
                 // Resend deletes the old row and sends a fresh one. Never take the first half without the second:
@@ -387,6 +396,7 @@ private fun RenderPagedChatMessageRow(
             derivedStateOf { state.selectedIds.value.contains(message.uuid) }
         }
     val node = nodeMap[message.node.num] ?: message.node
+    val recipientName = remember(state.contactKey, state.nodes) { directRecipientName(state.contactKey, state.nodes) }
 
     // Resolve an @mention token ("!<hex>" = numeric node id) back to its node for live name + tap-to-open.
     val resolveMention: (String) -> Node? =
@@ -419,6 +429,7 @@ private fun RenderPagedChatMessageRow(
         onClickChip = handlers.onClickChip,
         resolveMention = resolveMention,
         onStatusClick = { onShowStatusDialog(message) },
+        recipientName = recipientName,
         onReply = { handlers.onReply(message) },
         emojis = message.emojis,
         showUserName = showUserName,

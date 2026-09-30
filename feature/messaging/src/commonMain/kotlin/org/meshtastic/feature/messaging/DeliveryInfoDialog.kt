@@ -40,6 +40,8 @@ fun DeliveryInfo(
     title: StringResource,
     resendOption: Boolean,
     text: StringResource? = null,
+    /** Already-resolved status line, shown when [text] is null. */
+    statusText: String? = null,
     detail: StringResource? = null,
     relays: Int = 0,
     onConfirm: (() -> Unit) = {},
@@ -52,12 +54,9 @@ fun DeliveryInfo(
     onConfirm = if (resendOption) onConfirm else null,
     text = {
         Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-            text?.let {
-                Text(
-                    text = stringResource(it),
-                    textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.bodyMedium,
-                )
+            val mainText = text?.let { stringResource(it) } ?: statusText
+            mainText?.let {
+                Text(text = it, textAlign = TextAlign.Center, style = MaterialTheme.typography.bodyMedium)
             }
             detail?.let {
                 Text(

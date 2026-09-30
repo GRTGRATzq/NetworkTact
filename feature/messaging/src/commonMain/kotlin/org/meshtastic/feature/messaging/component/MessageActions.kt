@@ -95,7 +95,7 @@ internal fun MessageStatusButton(
                 contentDescription = stringResource(Res.string.message_delivery_status),
                 tint =
                 if (isWarning) {
-                    messageStatusColor(currentStatus, isWarning = true)
+                    messageStatusColor(isWarning = true)
                 } else {
                     LocalContentColor.current
                 },

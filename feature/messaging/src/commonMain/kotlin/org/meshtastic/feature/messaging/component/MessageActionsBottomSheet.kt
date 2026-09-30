@@ -33,6 +33,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -40,6 +41,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
@@ -66,6 +68,7 @@ import org.meshtastic.core.resources.security_signed_verified
 import org.meshtastic.core.resources.select
 import org.meshtastic.core.resources.show_original
 import org.meshtastic.core.resources.show_translation
+import org.meshtastic.core.resources.tactmsg_alert_icon
 import org.meshtastic.core.resources.timestamp
 import org.meshtastic.core.resources.translate
 import org.meshtastic.core.ui.icon.AddReaction
@@ -80,6 +83,7 @@ import org.meshtastic.core.ui.icon.Reply
 import org.meshtastic.core.ui.icon.SelectAll
 import org.meshtastic.core.ui.icon.ShieldCheck
 import org.meshtastic.core.ui.icon.Translate
+import org.meshtastic.core.ui.icon.Warning
 import org.meshtastic.proto.MeshPacket
 
 @Suppress("LongMethod")
@@ -96,6 +100,8 @@ fun MessageActionsContent(
     /** False for an archived conversation: there is no channel left to reply into. */
     canReply: Boolean = true,
     statusString: Pair<StringResource, StringResource>? = null,
+    /** Already-resolved status line; takes precedence over [statusString]'s text when set. */
+    statusText: String? = null,
     status: MessageStatus? = null,
     timestamp: String? = null,
     xeddsaSigned: Boolean = false,
@@ -148,11 +154,11 @@ fun MessageActionsContent(
         if (status != null) {
             val title =
                 statusString?.first?.let { stringResource(it) } ?: stringResource(Res.string.message_delivery_status)
-            val statusText = statusString?.second?.let { stringResource(it) }
+            val resolvedStatusText = statusText ?: statusString?.second?.let { stringResource(it) }
 
             ListItem(
                 headlineContent = {
-                    Text(stringResource(Res.string.device_metrics_label_value, title, statusText.orEmpty()))
+                    Text(stringResource(Res.string.device_metrics_label_value, title, resolvedStatusText.orEmpty()))
                 },
                 leadingContent = { MessageStatusIcon(status = status) },
                 modifier =
@@ -246,16 +252,35 @@ private fun AckProofListItem(ackProofStatus: Int) {
             MeshPacket.AckProofStatus.ACK_PROOF_NO_KEY -> MeshtasticIcons.KeyOff
             else -> MeshtasticIcons.ShieldCheck
         }
+    // An invalid proof is a possible forgery: an inverted, high-contrast row with an alert icon. Not red, which these
+    // screens reserve for urgent messages.
+    val isInvalid = proofStatus == MeshPacket.AckProofStatus.ACK_PROOF_INVALID
     val tint =
         when (proofStatus) {
-            MeshPacket.AckProofStatus.ACK_PROOF_INVALID -> MaterialTheme.colorScheme.error
+            MeshPacket.AckProofStatus.ACK_PROOF_INVALID -> MaterialTheme.colorScheme.inverseOnSurface
             MeshPacket.AckProofStatus.ACK_PROOF_NO_KEY -> MaterialTheme.colorScheme.onSurfaceVariant
             else -> MaterialTheme.colorScheme.primary
         }
     ListItem(
-        headlineContent = { Text(stringResource(headline)) },
+        headlineContent = { Text(stringResource(headline), fontWeight = if (isInvalid) FontWeight.Bold else null) },
         supportingContent = { Text(stringResource(supporting)) },
-        leadingContent = { Icon(icon, contentDescription = null, tint = tint) },
+        leadingContent = {
+            Icon(
+                if (isInvalid) MeshtasticIcons.Warning else icon,
+                contentDescription = if (isInvalid) stringResource(Res.string.tactmsg_alert_icon) else null,
+                tint = tint,
+            )
+        },
+        colors =
+        if (isInvalid) {
+            ListItemDefaults.colors(
+                containerColor = MaterialTheme.colorScheme.inverseSurface,
+                headlineColor = MaterialTheme.colorScheme.inverseOnSurface,
+                supportingColor = MaterialTheme.colorScheme.inverseOnSurface,
+            )
+        } else {
+            ListItemDefaults.colors()
+        },
     )
 }
 

@@ -58,7 +58,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.graphicsLayer
@@ -70,12 +69,10 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.SemanticsPropertyKey
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.isSensitiveData
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
@@ -86,13 +83,10 @@ import org.jetbrains.compose.resources.stringResource
 import org.meshtastic.core.common.util.DateFormatter
 import org.meshtastic.core.common.util.MetricFormatter
 import org.meshtastic.core.model.Message
-import org.meshtastic.core.model.MessageStatus
 import org.meshtastic.core.model.Node
 import org.meshtastic.core.model.Reaction
-import org.meshtastic.core.model.isAckProofForged
 import org.meshtastic.core.resources.Res
 import org.meshtastic.core.resources.a11y_message_from
-import org.meshtastic.core.resources.action_show_message_status
 import org.meshtastic.core.resources.filter_message_label
 import org.meshtastic.core.resources.message_translated_label
 import org.meshtastic.core.resources.reply
@@ -110,6 +104,7 @@ import org.meshtastic.core.ui.icon.Reply
 import org.meshtastic.core.ui.icon.ShieldCheck
 import org.meshtastic.core.ui.util.createClipEntry
 import org.meshtastic.feature.messaging.priority.MessagePriority
+import org.meshtastic.feature.messaging.status.sentStatusOf
 
 internal const val MESSAGE_STATUS_LABEL_TEST_TAG = "message_status_label"
 
@@ -165,6 +160,8 @@ fun MessageItem(
     searchQuery: String = "",
     translationAvailable: Boolean = false,
     isDirectMessage: Boolean = false,
+    /** Name of the addressed node in a direct conversation, for the "acknowledged by" label. */
+    recipientName: String? = null,
     onTranslate: () -> Unit = {},
     onToggleTranslation: () -> Unit = {},
 ) = Column(
@@ -191,10 +188,11 @@ fun MessageItem(
         )
     val isLocal = node.num == ourNode.num
     val timestamp = formatMessageTimestamp(message, showFullMessageTimestamp)
-    val statusString = message.getStatusStringRes(isDirectMessage)
-    val isDirectImplicitAck = message.status == MessageStatus.DELIVERED && isDirectMessage
-    val isRetryableFailure = message.status == MessageStatus.ERROR && message.isStatusRetryable(isDirectMessage)
-    val isForgedAck = isAckProofForged(message.ackProofStatus)
+    val sentStatus =
+        remember(message.status, message.routingError, message.ackProofStatus, isDirectMessage) {
+            sentStatusOf(message.status, message.routingError, message.ackProofStatus, isDirectMessage)
+        }
+    val sentStatusText = sentStatusText(sentStatus, recipientName)
     // While searching, always show the original text — FTS matches and highlights apply to it, not the translation.
     val showsTranslation = message.showTranslated && message.translatedText != null && searchQuery.isEmpty()
     val bodyText = message.displayedText(searching = searchQuery.isNotEmpty())
@@ -228,7 +226,7 @@ fun MessageItem(
                             activeSheet = null
                             onDelete()
                         },
-                        statusString = statusString,
+                        statusText = sentStatusText,
                         status =
                         if (isLocal) {
                             message.status
@@ -559,11 +557,9 @@ fun MessageItem(
                                 )
                             }
                             if (message.fromLocal) {
-                                MessageStatusLabel(
-                                    status = message.status ?: MessageStatus.UNKNOWN,
-                                    text = stringResource(statusString.second),
-                                    metadataStyle = metadataStyle,
-                                    isWarning = isDirectImplicitAck || isRetryableFailure || isForgedAck,
+                                SentStatusLabel(
+                                    sentStatus = sentStatus,
+                                    recipientName = recipientName,
                                     onStatusClick = onStatusClick,
                                 )
                             }
@@ -610,7 +606,7 @@ internal const val PRIORITY_BAR_TEST_TAG = "message_priority_bar"
  * reserved for priority. An absent reading renders nothing.
  */
 @Composable
-private fun NeutralSnr(snr: Float?, modifier: Modifier = Modifier) {
+internal fun NeutralSnr(snr: Float?, modifier: Modifier = Modifier) {
     if (snr == null) return
     Text(
         text = "${stringResource(Res.string.snr)} ${MetricFormatter.snr(snr, decimalPlaces = 2)}",
@@ -622,7 +618,7 @@ private fun NeutralSnr(snr: Float?, modifier: Modifier = Modifier) {
 
 /** RSSI counterpart of [NeutralSnr]. */
 @Composable
-private fun NeutralRssi(rssi: Int?, modifier: Modifier = Modifier) {
+internal fun NeutralRssi(rssi: Int?, modifier: Modifier = Modifier) {
     if (rssi == null) return
     Text(
         text = "${stringResource(Res.string.rssi)} ${MetricFormatter.rssi(rssi)}",
@@ -672,8 +668,6 @@ private enum class ActiveSheet {
     Emoji,
 }
 
-internal val MessageStatusColorKey = SemanticsPropertyKey<Color>("MessageStatusColor")
-
 /** Row grouping a received message's mesh diagnostics (signature, signal or hops, transport). */
 @Composable
 private fun DiagnosticsRow(modifier: Modifier = Modifier, content: @Composable RowScope.() -> Unit) {
@@ -683,47 +677,6 @@ private fun DiagnosticsRow(modifier: Modifier = Modifier, content: @Composable R
         horizontalArrangement = Arrangement.spacedBy(4.dp),
         content = content,
     )
-}
-
-@Composable
-private fun MessageStatusLabel(
-    status: MessageStatus,
-    text: String,
-    metadataStyle: TextStyle,
-    isWarning: Boolean,
-    onStatusClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    val statusColor = messageStatusColor(status, isWarning = isWarning)
-    Row(
-        modifier =
-        modifier
-            .fillMaxWidth()
-            .testTag(MESSAGE_STATUS_LABEL_TEST_TAG)
-            .semantics { this[MessageStatusColorKey] = statusColor }
-            .clickable(
-                onClickLabel = stringResource(Res.string.action_show_message_status),
-                role = Role.Button,
-                onClick = onStatusClick,
-            ),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(3.dp),
-    ) {
-        MessageStatusIcon(
-            status = status,
-            modifier = Modifier.size(14.dp),
-            tint = statusColor,
-            includeContentDescription = false,
-        )
-        Text(
-            text = text,
-            modifier = Modifier.weight(1f, fill = false),
-            style = metadataStyle,
-            color = statusColor,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
-    }
 }
 
 private fun translationRowStateFor(message: Message, translationAvailable: Boolean): TranslationRowState? = when {

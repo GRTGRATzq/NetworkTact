@@ -16,8 +16,7 @@
  */
 package org.meshtastic.feature.messaging.component
 
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assert
@@ -34,7 +33,7 @@ import org.meshtastic.core.model.MessageStatus
 import org.meshtastic.core.model.Node
 import org.meshtastic.core.ui.component.preview.NodePreviewParameterProvider
 import org.meshtastic.core.ui.theme.AppTheme
-import org.meshtastic.core.ui.theme.StatusColors.StatusYellow
+import org.meshtastic.proto.MeshPacket
 import org.meshtastic.proto.Routing
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -222,15 +221,112 @@ class MessageItemTest {
     }
 
     @Test
-    fun localMessage_displaysDeliveryStatusText() = runComposeUiTest {
+    fun localDirectMessage_ackFromRecipientNamesTheRecipient() = runComposeUiTest {
         val testNode = NodePreviewParameterProvider().mickeyMouse
         val message = localMessage(node = testNode, status = MessageStatus.RECEIVED)
+
+        setContent {
+            MessageItem(
+                message = message,
+                node = testNode,
+                selected = false,
+                onStatusClick = {},
+                ourNode = testNode,
+                isDirectMessage = true,
+                recipientName = "BRAVO-2",
+            )
+        }
+
+        onNodeWithText("Acknowledged by BRAVO-2", useUnmergedTree = true).assertIsDisplayed()
+    }
+
+    @Test
+    fun localDirectMessage_validProofReadsVerified() = runComposeUiTest {
+        val testNode = NodePreviewParameterProvider().mickeyMouse
+        val message =
+            localMessage(node = testNode, status = MessageStatus.RECEIVED)
+                .copy(ackProofStatus = MeshPacket.AckProofStatus.ACK_PROOF_VALID.value)
+
+        setContent {
+            MessageItem(
+                message = message,
+                node = testNode,
+                selected = false,
+                onStatusClick = {},
+                ourNode = testNode,
+                isDirectMessage = true,
+                recipientName = "BRAVO-2",
+            )
+        }
+
+        onNodeWithText("Acknowledged by BRAVO-2 (verified)", useUnmergedTree = true).assertIsDisplayed()
+    }
+
+    @Test
+    fun localDirectMessage_invalidProofIsAnAlertNeverAnAck() = runComposeUiTest {
+        val testNode = NodePreviewParameterProvider().mickeyMouse
+        val message =
+            localMessage(node = testNode, status = MessageStatus.RECEIVED)
+                .copy(ackProofStatus = MeshPacket.AckProofStatus.ACK_PROOF_INVALID.value)
+
+        setContent {
+            MessageItem(
+                message = message,
+                node = testNode,
+                selected = false,
+                onStatusClick = {},
+                ourNode = testNode,
+                isDirectMessage = true,
+                recipientName = "BRAVO-2",
+            )
+        }
+
+        onNodeWithText("WARNING: invalid delivery proof, possible forgery", useUnmergedTree = true).assertIsDisplayed()
+        onNodeWithText("Acknowledged by BRAVO-2", substring = true, useUnmergedTree = true).assertDoesNotExist()
+        onNodeWithTag(MESSAGE_STATUS_LABEL_TEST_TAG, useUnmergedTree = true)
+            .assert(SemanticsMatcher.expectValue(SentStatusAlertKey, true))
+    }
+
+    @Test
+    fun localChannelMessage_markedDelivered_readsRelayedNeverAcknowledged() = runComposeUiTest {
+        assertChannelStatusReadsRelayed(MessageStatus.DELIVERED)
+    }
+
+    @Test
+    fun localChannelMessage_markedReceived_stillReadsRelayed() = runComposeUiTest {
+        assertChannelStatusReadsRelayed(MessageStatus.RECEIVED)
+    }
+
+    private fun ComposeUiTest.assertChannelStatusReadsRelayed(status: MessageStatus) {
+        val testNode = NodePreviewParameterProvider().mickeyMouse
+        val message = localMessage(node = testNode, status = status)
+        setContent {
+            MessageItem(
+                message = message,
+                node = testNode,
+                selected = false,
+                onStatusClick = {},
+                ourNode = testNode,
+                isDirectMessage = false,
+                recipientName = "PC-0",
+            )
+        }
+
+        onNodeWithText("Relayed by the mesh", useUnmergedTree = true).assertIsDisplayed()
+        onNodeWithText("Acknowledged", substring = true, useUnmergedTree = true).assertDoesNotExist()
+    }
+
+    @Test
+    fun urgentPrefix_isWrittenOutOnTheBubble() = runComposeUiTest {
+        val testNode = NodePreviewParameterProvider().mickeyMouse
+        val message = localMessage(node = testNode, status = MessageStatus.ENROUTE).copy(text = "[URG] ALPHA-1 appui")
 
         setContent {
             MessageItem(message = message, node = testNode, selected = false, onStatusClick = {}, ourNode = testNode)
         }
 
-        onNodeWithText("Delivered to recipient", useUnmergedTree = true).assertIsDisplayed()
+        onNodeWithText("URGENT", useUnmergedTree = true).assertIsDisplayed()
+        onNodeWithTag(PRIORITY_BAR_TEST_TAG, useUnmergedTree = true).assertExists()
     }
 
     @Test
@@ -249,7 +345,7 @@ class MessageItemTest {
             )
         }
 
-        onNodeWithText("Relayed, not confirmed by recipient", useUnmergedTree = true).assertIsDisplayed()
+        onNodeWithText("Relayed by the mesh", useUnmergedTree = true).assertIsDisplayed()
     }
 
     @Test
@@ -266,7 +362,7 @@ class MessageItemTest {
             MessageItem(message = message, node = testNode, selected = false, onStatusClick = {}, ourNode = testNode)
         }
 
-        onNodeWithText("Failed to deliver to mesh", useUnmergedTree = true).assertIsDisplayed()
+        onNodeWithText("Failed: no node confirmed receipt", useUnmergedTree = true).assertIsDisplayed()
     }
 
     @Test
@@ -279,11 +375,11 @@ class MessageItemTest {
             MessageItem(message = message, node = testNode, selected = false, onStatusClick = {}, ourNode = testNode)
         }
 
-        onNodeWithText("Channel/key mismatch", useUnmergedTree = true).assertIsDisplayed()
+        onNodeWithText("Failed: channel or key mismatch", useUnmergedTree = true).assertIsDisplayed()
     }
 
     @Test
-    fun retryableRoutingError_usesWarningStatusColor() = runComposeUiTest {
+    fun routingError_isDrawnAsAnAlert() = runComposeUiTest {
         val testNode = NodePreviewParameterProvider().mickeyMouse
         val message =
             localMessage(
@@ -291,11 +387,9 @@ class MessageItemTest {
                 status = MessageStatus.ERROR,
                 routingError = Routing.Error.MAX_RETRANSMIT.value,
             )
-        var warningColor = Color.Unspecified
 
         setContent {
             AppTheme {
-                warningColor = MaterialTheme.colorScheme.StatusYellow
                 MessageItem(
                     message = message,
                     node = testNode,
@@ -307,7 +401,8 @@ class MessageItemTest {
         }
 
         onNodeWithTag(MESSAGE_STATUS_LABEL_TEST_TAG, useUnmergedTree = true)
-            .assert(SemanticsMatcher.expectValue(MessageStatusColorKey, warningColor))
+            .assert(SemanticsMatcher.expectValue(SentStatusAlertKey, true))
+        onNodeWithContentDescription("Alert", useUnmergedTree = true).assertIsDisplayed()
     }
 
     @Test
@@ -322,7 +417,7 @@ class MessageItemTest {
 
         setContent { MessageStatusDialog(message = message, resendOption = true, onResend = {}, onDismiss = {}) }
 
-        onNodeWithText("Failed to deliver to mesh").assertIsDisplayed()
+        onNodeWithText("Failed: no node confirmed receipt").assertIsDisplayed()
         onNodeWithText("No node confirmed this message. Try again when you have better signal or more mesh coverage.")
             .assertIsDisplayed()
         onNodeWithText("Resend").assertIsDisplayed()
@@ -344,7 +439,7 @@ class MessageItemTest {
             )
         }
 
-        onNodeWithText("Sending...", useUnmergedTree = true).assertIsDisplayed()
+        onNodeWithText("Waiting for my radio", useUnmergedTree = true).assertIsDisplayed()
         onNodeWithTag(MESSAGE_STATUS_LABEL_TEST_TAG, useUnmergedTree = true).performClick()
 
         assertEquals(1, statusClicks)
@@ -359,7 +454,7 @@ class MessageItemTest {
             MessageItem(message = message, node = testNode, selected = false, onStatusClick = {}, ourNode = testNode)
         }
 
-        onNodeWithText("Sending...", useUnmergedTree = true).assertIsDisplayed()
+        onNodeWithText("Sent to my radio", useUnmergedTree = true).assertIsDisplayed()
         onNodeWithContentDescription("Message delivery status", useUnmergedTree = true).assertDoesNotExist()
     }
 
