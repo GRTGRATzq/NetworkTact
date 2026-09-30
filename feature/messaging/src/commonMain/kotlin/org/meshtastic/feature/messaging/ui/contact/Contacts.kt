@@ -172,6 +172,10 @@ fun ContactsScreen(
     // State for contacts list. Channel placeholders (empty broadcast channels) are already merged in by the VM.
     val contacts by viewModel.contactList.collectAsStateWithLifecycle()
     val channels by viewModel.channels.collectAsStateWithLifecycle()
+    // Channel tab (null = all): display-only, the conversations themselves are untouched.
+    var selectedChannelTab by rememberSaveable { mutableStateOf<Int?>(null) }
+    val visibleContacts =
+        remember(contacts, selectedChannelTab) { contacts.filter { isInChannelTab(it.contactKey, selectedChannelTab) } }
 
     val contactsListState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
@@ -305,7 +309,7 @@ fun ContactsScreen(
                     onDeleteSelected = { showDeleteDialog = true },
                     onSelectAll = {
                         selectedContactKeys.clear()
-                        selectedContactKeys.addAll(contacts.map { it.contactKey })
+                        selectedContactKeys.addAll(visibleContacts.map { it.contactKey })
                     },
                     isAllMuted = isAllMuted, // Pass the derived state
                     isAllPinned = isAllPinned,
@@ -317,8 +321,10 @@ fun ContactsScreen(
             val mutedLabel = stringResource(Res.string.contact_muted_snackbar)
             val undoLabel = stringResource(Res.string.undo)
 
+            ChannelTabs(channels = channels, selected = selectedChannelTab, onSelect = { selectedChannelTab = it })
+
             ContactListView(
-                contacts = contacts,
+                contacts = visibleContacts,
                 selectedList = selectedContactKeys,
                 activeContactKey = activeContactKey,
                 onClick = onContactClick,
@@ -778,13 +784,13 @@ private fun SwipeBackground(direction: SwipeToDismissBoxValue, isMuted: Boolean)
     val color =
         when (direction) {
             SwipeToDismissBoxValue.StartToEnd -> MaterialTheme.colorScheme.secondaryContainer
-            SwipeToDismissBoxValue.EndToStart -> MaterialTheme.colorScheme.errorContainer
+            SwipeToDismissBoxValue.EndToStart -> MaterialTheme.colorScheme.inverseSurface
             SwipeToDismissBoxValue.Settled -> Color.Transparent
         }
     val contentColor =
         when (direction) {
             SwipeToDismissBoxValue.StartToEnd -> MaterialTheme.colorScheme.onSecondaryContainer
-            SwipeToDismissBoxValue.EndToStart -> MaterialTheme.colorScheme.onErrorContainer
+            SwipeToDismissBoxValue.EndToStart -> MaterialTheme.colorScheme.inverseOnSurface
             SwipeToDismissBoxValue.Settled -> Color.Transparent
         }
     val label =

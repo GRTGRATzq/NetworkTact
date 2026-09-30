@@ -122,10 +122,9 @@ private fun ContactHeader(
     modifier: Modifier = Modifier,
     onNodeChipClick: () -> Unit = {},
 ) {
-    val colors =
-        contact.nodeColors?.let {
-            AssistChipDefaults.assistChipColors(labelColor = Color(it.first), containerColor = Color(it.second))
-        } ?: AssistChipDefaults.assistChipColors()
+    // Neutral chip: in the messaging screens colour codes message priority only, so a node's own hue (which can be
+    // red or amber) is not used here.
+    val colors = AssistChipDefaults.assistChipColors()
 
     Row(modifier = modifier.padding(0.dp), verticalAlignment = Alignment.CenterVertically) {
         AssistChip(
