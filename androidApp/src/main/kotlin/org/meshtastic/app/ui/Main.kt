@@ -26,6 +26,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -145,11 +146,13 @@ fun MainScreen() {
 @Composable
 private fun OpenCommandPostOnLaunch(radioSelected: Boolean, uiPrefs: UiPrefs, onOpen: () -> Unit) {
     var handled by rememberSaveable { mutableStateOf(false) }
+    // The effect runs once per launch and must not restart, so it reads the latest callback instead of keying on it.
+    val currentOnOpen by rememberUpdatedState(onOpen)
     LaunchedEffect(Unit) {
         if (handled || !radioSelected) return@LaunchedEffect
         val enabled = withTimeoutOrNull(COMMAND_POST_PREF_WAIT) { uiPrefs.commandPostMode.first { it } } ?: false
         handled = true
-        if (enabled) onOpen()
+        if (enabled) currentOnOpen()
     }
 }
 

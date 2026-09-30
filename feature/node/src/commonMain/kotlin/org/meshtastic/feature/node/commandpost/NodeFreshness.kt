@@ -89,25 +89,28 @@ object NodeFreshness {
         nowSeconds: Long,
         thresholds: FreshnessThresholds = FreshnessThresholds.Default,
     ): PositionState {
-        if (!hasPosition) return PositionState.NoPosition
-
         val fix = fixTimestampSeconds.toEpochSeconds()
-        if (fix != null) {
-            val age = (nowSeconds - fix).seconds
-            return when {
-                -age > thresholds.clockTolerance -> PositionState.InconsistentTimestamp(-age)
-                age > thresholds.stalePosition -> PositionState.Stale(age)
-                else -> PositionState.Fresh(age.coerceAtLeast(Duration.ZERO))
-            }
-        }
-
-        val time = positionTimeSeconds.toEpochSeconds() ?: return PositionState.NoFixTime
-        val minAge = (nowSeconds - time).seconds
+        val time = positionTimeSeconds.toEpochSeconds()
         return when {
-            -minAge > thresholds.clockTolerance -> PositionState.InconsistentTimestamp(-minAge)
-            minAge > thresholds.stalePosition -> PositionState.StaleAtLeast(minAge)
-            else -> PositionState.ReceivedFixTimeUnknown(minAge.coerceAtLeast(Duration.ZERO))
+            !hasPosition -> PositionState.NoPosition
+            fix != null -> fromFixTime((nowSeconds - fix).seconds, thresholds)
+            time != null -> fromPositionTime((nowSeconds - time).seconds, thresholds)
+            else -> PositionState.NoFixTime
         }
+    }
+
+    /** [age] comes from the sender's fix time: the only case that may be reported as fresh. */
+    private fun fromFixTime(age: Duration, thresholds: FreshnessThresholds): PositionState = when {
+        -age > thresholds.clockTolerance -> PositionState.InconsistentTimestamp(-age)
+        age > thresholds.stalePosition -> PositionState.Stale(age)
+        else -> PositionState.Fresh(age.coerceAtLeast(Duration.ZERO))
+    }
+
+    /** [minAge] comes from `Position.time`, a lower bound: never fresh, certainly old past the threshold. */
+    private fun fromPositionTime(minAge: Duration, thresholds: FreshnessThresholds): PositionState = when {
+        -minAge > thresholds.clockTolerance -> PositionState.InconsistentTimestamp(-minAge)
+        minAge > thresholds.stalePosition -> PositionState.StaleAtLeast(minAge)
+        else -> PositionState.ReceivedFixTimeUnknown(minAge.coerceAtLeast(Duration.ZERO))
     }
 
     fun contact(node: Node, nowSeconds: Long, thresholds: FreshnessThresholds = FreshnessThresholds.Default) =
