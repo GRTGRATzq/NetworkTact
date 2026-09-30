@@ -66,7 +66,7 @@ class CommandPostRowsTest {
     private val pc = node(num = 100, shortName = "PC-0", lastHeard = now.toInt())
 
     @Test
-    fun `local radio and ignored nodes are left out, most recent first, never heard last`() {
+    fun `local radio and ignored nodes are left out - most recent first - never heard last`() {
         val rows =
             buildCommandPostRows(
                 listOf(
