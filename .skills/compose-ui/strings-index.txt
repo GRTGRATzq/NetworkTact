@@ -221,8 +221,28 @@ co2_humidity
 co2_temperature
 collapse_chart
 collapsed
+### COMMAND ###
+command_post_contact_inconsistent
+command_post_contact_never
+command_post_contact_recent
+command_post_contact_stale
+command_post_duration_days
+command_post_duration_hours
+command_post_duration_minutes
+command_post_duration_seconds
+command_post_empty
 command_post_mode
 command_post_mode_summary
+command_post_open
+command_post_position_fix_unknown
+command_post_position_fresh
+command_post_position_inconsistent
+command_post_position_no_time
+command_post_position_none
+command_post_position_stale
+command_post_position_stale_at_least
+command_post_read_only
+command_post_title
 communicate_off_the_grid
 ### COMPASS ###
 compass_bearing

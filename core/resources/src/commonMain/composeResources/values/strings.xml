@@ -245,8 +245,28 @@
     <string name="co2_temperature">CO₂ Temp</string>
     <string name="collapse_chart">Collapse chart</string>
     <string name="collapsed">Collapsed</string>
+    <!-- COMMAND -->
+    <string name="command_post_contact_inconsistent">Inconsistent last contact time (%1$s in the future)</string>
+    <string name="command_post_contact_never">Never heard</string>
+    <string name="command_post_contact_recent">Seen recently: %1$s ago</string>
+    <string name="command_post_contact_stale">Not heard for %1$s</string>
+    <string name="command_post_duration_days">%1$s d %2$s h</string>
+    <string name="command_post_duration_hours">%1$s h %2$s min</string>
+    <string name="command_post_duration_minutes">%1$s min</string>
+    <string name="command_post_duration_seconds">%1$s s</string>
+    <string name="command_post_empty">No node known yet.</string>
     <string name="command_post_mode">Command post mode</string>
     <string name="command_post_mode_summary">Display mode: off for the field layout (unchanged), on to open the read-only command post view on launch.</string>
+    <string name="command_post_open">Command post view</string>
+    <string name="command_post_position_fix_unknown">Received %1$s ago, fix time unknown</string>
+    <string name="command_post_position_fresh">Fresh position: fix %1$s ago</string>
+    <string name="command_post_position_inconsistent">Inconsistent timestamp (%1$s in the future)</string>
+    <string name="command_post_position_no_time">Position without fix time (age unknown)</string>
+    <string name="command_post_position_none">No position</string>
+    <string name="command_post_position_stale">OLD POSITION: fix %1$s ago</string>
+    <string name="command_post_position_stale_at_least">OLD POSITION: at least %1$s old</string>
+    <string name="command_post_read_only">Read-only. Ages update on their own, even without new packets.</string>
+    <string name="command_post_title">Command post</string>
     <string name="communicate_off_the_grid">Communicate off-the-grid with your friends and community without cell service.</string>
     <!-- COMPASS -->
     <string name="compass_bearing">Bearing: %1$s</string>

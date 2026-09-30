@@ -1385,4 +1385,23 @@
     <string name="zoom_out">Zoom -</string>
     <string name="command_post_mode">Mode poste de commandement</string>
     <string name="command_post_mode_summary">Mode d'affichage : désactivé pour l'affichage Terrain (inchangé), activé pour ouvrir la vue PC (lecture seule) au démarrage.</string>
+    <string name="command_post_title">Poste de commandement</string>
+    <string name="command_post_open">Vue PC</string>
+    <string name="command_post_empty">Aucun nœud connu pour l'instant.</string>
+    <string name="command_post_read_only">Lecture seule. Les âges se mettent à jour seuls, même sans nouveau paquet.</string>
+    <string name="command_post_contact_never">Jamais entendu</string>
+    <string name="command_post_contact_recent">Vu récemment : il y a %1$s</string>
+    <string name="command_post_contact_stale">Pas entendu depuis %1$s</string>
+    <string name="command_post_contact_inconsistent">Heure du dernier contact incohérente (%1$s dans le futur)</string>
+    <string name="command_post_position_none">Aucune position</string>
+    <string name="command_post_position_fresh">Position fraîche : relevé il y a %1$s</string>
+    <string name="command_post_position_stale">POSITION ANCIENNE : relevé il y a %1$s</string>
+    <string name="command_post_position_stale_at_least">POSITION ANCIENNE : au moins %1$s</string>
+    <string name="command_post_position_fix_unknown">Reçue il y a %1$s, heure de relevé inconnue</string>
+    <string name="command_post_position_no_time">Position sans heure de relevé (âge inconnu)</string>
+    <string name="command_post_position_inconsistent">Horodatage incohérent (%1$s dans le futur)</string>
+    <string name="command_post_duration_seconds">%1$s s</string>
+    <string name="command_post_duration_minutes">%1$s min</string>
+    <string name="command_post_duration_hours">%1$s h %2$s</string>
+    <string name="command_post_duration_days">%1$s j %2$s h</string>
 </resources>
