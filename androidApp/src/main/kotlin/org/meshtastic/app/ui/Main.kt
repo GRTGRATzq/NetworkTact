@@ -24,12 +24,17 @@ import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import co.touchlab.kermit.Logger
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withTimeoutOrNull
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import org.meshtastic.app.BuildConfig
@@ -40,6 +45,7 @@ import org.meshtastic.core.navigation.NodesRoute
 import org.meshtastic.core.navigation.TopLevelDestination
 import org.meshtastic.core.navigation.rememberMultiBackstack
 import org.meshtastic.core.repository.PlatformAnalytics
+import org.meshtastic.core.repository.UiPrefs
 import org.meshtastic.core.resources.Res
 import org.meshtastic.core.resources.app_too_old
 import org.meshtastic.core.resources.must_update
@@ -59,6 +65,7 @@ import org.meshtastic.feature.settings.navigation.rememberSettingsRadioConfigVie
 import org.meshtastic.feature.settings.navigation.settingsGraph
 import org.meshtastic.feature.settings.radio.channel.channelsGraph
 import org.meshtastic.feature.wifiprovision.navigation.wifiProvisionGraph
+import kotlin.time.Duration.Companion.seconds
 
 @Composable
 fun MainScreen() {
@@ -69,6 +76,12 @@ fun MainScreen() {
     val backStack = multiBackstack.activeBackStack
     val scrollToTopEvents = viewModel.scrollToTopEventFlow
     val settingsRadioConfigViewModelProvider = rememberSettingsRadioConfigViewModelProvider(backStack)
+
+    OpenCommandPostOnLaunch(
+        radioSelected = initialTab == NodesRoute.Nodes,
+        uiPrefs = koinInject(),
+        onOpen = { multiBackstack.handleDeepLink(listOf(NodesRoute.Nodes, NodesRoute.CommandPost)) },
+    )
 
     AndroidAppVersionCheck(viewModel)
 
@@ -121,6 +134,26 @@ fun MainScreen() {
         }
     }
 }
+
+/**
+ * In command post (PC) mode, opens the command post view once per launch, on top of the Nodes tab so Back returns to
+ * the node list. Without a selected radio the app keeps starting on Connections. In field mode nothing happens.
+ *
+ * The preference is read from DataStore, whose StateFlow starts at false until the first read completes, so wait a
+ * short while for a true value instead of trusting the initial one.
+ */
+@Composable
+private fun OpenCommandPostOnLaunch(radioSelected: Boolean, uiPrefs: UiPrefs, onOpen: () -> Unit) {
+    var handled by rememberSaveable { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        if (handled || !radioSelected) return@LaunchedEffect
+        val enabled = withTimeoutOrNull(COMMAND_POST_PREF_WAIT) { uiPrefs.commandPostMode.first { it } } ?: false
+        handled = true
+        if (enabled) onOpen()
+    }
+}
+
+private val COMMAND_POST_PREF_WAIT = 2.seconds
 
 private fun initialRoute(deviceAddress: String?): NavKey =
     if (DeviceAddress.parse(deviceAddress) == null) TopLevelDestination.Connect.route else NodesRoute.Nodes

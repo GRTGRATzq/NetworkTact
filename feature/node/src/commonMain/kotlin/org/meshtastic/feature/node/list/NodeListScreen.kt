@@ -70,6 +70,7 @@ import org.meshtastic.core.model.NodeListDensity
 import org.meshtastic.core.model.excludes
 import org.meshtastic.core.resources.Res
 import org.meshtastic.core.resources.channel_invalid
+import org.meshtastic.core.resources.command_post_open
 import org.meshtastic.core.resources.hop_histogram_title
 import org.meshtastic.core.resources.node_list_help_title
 import org.meshtastic.core.resources.nodes
@@ -90,6 +91,7 @@ import org.meshtastic.core.ui.component.ScrollToTopEvent
 import org.meshtastic.core.ui.component.SharedContactDialog
 import org.meshtastic.core.ui.component.smartScrollToTop
 import org.meshtastic.core.ui.icon.BarChart
+import org.meshtastic.core.ui.icon.Groups
 import org.meshtastic.core.ui.icon.Info
 import org.meshtastic.core.ui.icon.MeshtasticIcons
 import org.meshtastic.core.ui.icon.NoDevice
@@ -129,6 +131,8 @@ fun NodeListScreen(
     onHandleDeepLink: (org.meshtastic.core.common.util.CommonUri, onInvalid: () -> Unit) -> Unit = { _, _ -> },
     onNavigateToConnections: () -> Unit = {},
     onEditStatusMessage: () -> Unit = {},
+    // Non-null only in command post (PC) mode: shows the app bar action back to the command post view.
+    onOpenCommandPost: (() -> Unit)? = null,
 ) {
     val showToast = org.meshtastic.core.ui.util.rememberShowToastResource()
     val scope = rememberCoroutineScope()
@@ -293,6 +297,14 @@ fun NodeListScreen(
                 canNavigateUp = false,
                 onNavigateUp = {},
                 actions = {
+                    onOpenCommandPost?.let { openCommandPost ->
+                        IconButton(onClick = openCommandPost) {
+                            Icon(
+                                imageVector = MeshtasticIcons.Groups,
+                                contentDescription = stringResource(Res.string.command_post_open),
+                            )
+                        }
+                    }
                     IconButton(onClick = { showHopHistogram = true }) {
                         Icon(
                             imageVector = MeshtasticIcons.BarChart,

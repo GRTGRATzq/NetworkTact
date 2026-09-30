@@ -17,13 +17,17 @@
 package org.meshtastic.feature.node.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import kotlinx.coroutines.flow.Flow
+import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import org.meshtastic.core.navigation.ContactsRoute
 import org.meshtastic.core.navigation.NodesRoute
 import org.meshtastic.core.navigation.SettingsRoute
+import org.meshtastic.core.repository.UiPrefs
 import org.meshtastic.core.ui.component.ScrollToTopEvent
 import org.meshtastic.feature.node.list.NodeListScreen
 import org.meshtastic.feature.node.list.NodeListViewModel
@@ -36,6 +40,7 @@ fun AdaptiveNodeListScreen(
     onNavigateToConnections: () -> Unit = {},
 ) {
     val nodeListViewModel: NodeListViewModel = koinViewModel()
+    val commandPostMode by koinInject<UiPrefs>().commandPostMode.collectAsStateWithLifecycle()
 
     NodeListScreen(
         viewModel = nodeListViewModel,
@@ -47,5 +52,6 @@ fun AdaptiveNodeListScreen(
         onNavigateToConnections = onNavigateToConnections,
         // A bare radio-config route on this tab's stack resolves to the local session, the same as Connections -> LoRa.
         onEditStatusMessage = { backStack.add(SettingsRoute.UserStatusMessage) },
+        onOpenCommandPost = if (commandPostMode) ({ backStack.add(NodesRoute.CommandPost) }) else null,
     )
 }

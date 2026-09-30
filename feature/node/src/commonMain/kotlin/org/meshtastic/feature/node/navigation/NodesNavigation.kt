@@ -55,6 +55,8 @@ import org.meshtastic.core.resources.power
 import org.meshtastic.core.resources.signal
 import org.meshtastic.core.resources.traceroute
 import org.meshtastic.core.ui.component.ScrollToTopEvent
+import org.meshtastic.feature.node.commandpost.CommandPostScreen
+import org.meshtastic.feature.node.commandpost.CommandPostViewModel
 import org.meshtastic.feature.node.compass.CompassViewModel
 import org.meshtastic.feature.node.detail.NodeDetailScreen
 import org.meshtastic.feature.node.detail.NodeDetailViewModel
@@ -85,6 +87,15 @@ fun EntryProviderScope<NavKey>.nodesGraph(
             scrollToTopEvents = scrollToTopEvents,
             onHandleDeepLink = onHandleDeepLink,
             onNavigateToConnections = onNavigateToConnections,
+        )
+    }
+
+    entry<NodesRoute.CommandPost>(metadata = { ListDetailSceneStrategy.listPane() }) {
+        CommandPostScreen(
+            viewModel = koinViewModel<CommandPostViewModel>(),
+            onNavigateUp = dropUnlessResumed { backStack.removeLastOrNull() },
+            onOpenNode = { num -> backStack.add(NodesRoute.NodeDetail(num)) },
+            onOpenMessages = { key -> backStack.add(ContactsRoute.Messages(key)) },
         )
     }
 
