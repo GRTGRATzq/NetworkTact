@@ -125,6 +125,8 @@ internal fun sentStatusText(sentStatus: SentStatus, recipientName: String?): Str
     SentStatus.Unknown -> stringResource(Res.string.tactmsg_status_unknown)
 }
 
+/** The icon for this state; composable because [MeshtasticIcons] getters load vector resources. */
+@Composable
 private fun SentStatus.icon(): ImageVector = when (this) {
     SentStatus.AwaitingRadio -> MeshtasticIcons.CloudUpload
 
