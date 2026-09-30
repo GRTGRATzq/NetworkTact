@@ -322,10 +322,10 @@
     <string name="desc_node_filter_clear">elimina filtro nodi</string>
     <string name="description">Descrizione</string>
     <!-- DESKTOP -->
-    <string name="desktop_notification_title">Meshtastic</string>
+    <string name="desktop_notification_title">NetworkTact</string>
     <string name="desktop_tray_quit">Esci</string>
-    <string name="desktop_tray_show">Mostra Meshtastic</string>
-    <string name="desktop_tray_tooltip">Meshtastic Desktop</string>
+    <string name="desktop_tray_show">Mostra NetworkTact</string>
+    <string name="desktop_tray_tooltip">NetworkTact Desktop</string>
     <string name="desktop_update_available_message">Meshtastic Desktop %1$s è pronto per il download.</string>
     <string name="desktop_update_available_title">Aggiornamento dell'app disponibile</string>
     <string name="desktop_update_download">Scarica l'aggiornamento %1$s</string>
@@ -902,7 +902,7 @@
     <!-- MESHTASTIC -->
     <string name="meshtastic">Meshtastic</string>
     <string name="meshtastic_alerts_notifications">Notifiche di allarme</string>
-    <string name="meshtastic_app_name">Meshtastic</string>
+    <string name="meshtastic_app_name">NetworkTact</string>
     <string name="meshtastic_broadcast_notifications">Notifiche di messaggi broadcast</string>
     <string name="meshtastic_low_battery_notifications">Notifica di batteria scarica</string>
     <string name="meshtastic_low_battery_temporary_remote_notifications">Notifiche batteria scarica (nodi preferiti)</string>
@@ -1069,7 +1069,7 @@
     <string name="not_connected">Non connesso</string>
     <string name="note">Note</string>
     <string name="notes">Note</string>
-    <string name="notification_permissions_description">Meshtastic utilizza le notifiche per tenerti aggiornato su nuovi messaggi e altri eventi importanti. È possibile aggiornare i permessi di notifica in qualsiasi momento dalle impostazioni.</string>
+    <string name="notification_permissions_description">NetworkTact utilizza le notifiche per tenerti aggiornato su nuovi messaggi e altri eventi importanti. È possibile aggiornare i permessi di notifica in qualsiasi momento dalle impostazioni.</string>
     <!-- NOTIFICATIONS -->
     <string name="notifications_for_channel_and_direct_messages">Notifiche per i canali e i messaggi diretti.</string>
     <string name="notifications_for_low_battery_alerts">Notifiche per gli avvisi di batteria scarica per il dispositivo collegato.</string>
@@ -1123,10 +1123,10 @@
     <string name="paxcounter_config">Configurazione Paxcounter</string>
     <string name="periodic_position_broadcast">Trasmissione periodica della posizione</string>
     <!-- PERMISSION -->
-    <string name="permission_missing_31">Meshtastic ha bisogno dei permessi "Dispositivi nelle vicinanze" abilitati per trovare e connettersi ai dispositivi tramite Bluetooth. È possibile disabilitare quando non è in uso.</string>
+    <string name="permission_missing_31">NetworkTact ha bisogno dei permessi "Dispositivi nelle vicinanze" abilitati per trovare e connettersi ai dispositivi tramite Bluetooth. È possibile disabilitare quando non è in uso.</string>
     <!-- PERMISSIONS -->
     <string name="phone_location">Posizione del telefono</string>
-    <string name="phone_location_description">Meshtastic utilizza la posizione del telefono per abilitare molte funzionalità. È possibile aggiornare i permessi riguardo la posizione in qualsiasi momento dalle impostazioni.</string>
+    <string name="phone_location_description">NetworkTact utilizza la posizione del telefono per abilitare molte funzionalità. È possibile aggiornare i permessi riguardo la posizione in qualsiasi momento dalle impostazioni.</string>
     <string name="pin_selected">Pin</string>
     <string name="play">Riproduci</string>
     <plurals name="plurals_hours">

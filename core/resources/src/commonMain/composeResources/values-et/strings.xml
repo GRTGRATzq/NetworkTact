@@ -345,10 +345,10 @@
     <string name="desc_node_filter_clear">eemalda sõlmefilter</string>
     <string name="description">Kirjeldus</string>
     <!-- DESKTOP -->
-    <string name="desktop_notification_title">Kärgvõrgustik</string>
+    <string name="desktop_notification_title">NetworkTact</string>
     <string name="desktop_tray_quit">Sule</string>
-    <string name="desktop_tray_show">Näita Meshtastic</string>
-    <string name="desktop_tray_tooltip">Meshtastic töölaud</string>
+    <string name="desktop_tray_show">Näita NetworkTact</string>
+    <string name="desktop_tray_tooltip">NetworkTact töölaud</string>
     <string name="desktop_update_available_message">Meshtastic töölaud %1$s on allalaadimiseks valmis.</string>
     <string name="desktop_update_available_title">Rakenduse värskendus on saadaval</string>
     <string name="desktop_update_download">Lae alla värskendus %1$s</string>
@@ -833,7 +833,7 @@
     <!-- LOCAL -->
     <string name="local_mbtiles_file">Kohalik MB-paani fail</string>
     <string name="local_network_permission">Kohaliku võrgu load</string>
-    <string name="local_network_permission_denied_hint">Meshtasticu jaoks on kohtvõrguühendus välja lülitatud. Kui see raadio on kohtvõrgus, siis ühendus katkeb seni, kuni lubad süsteemiseadetes kohtvõrguühenduse.</string>
+    <string name="local_network_permission_denied_hint">NetworkTacti jaoks on kohtvõrguühendus välja lülitatud. Kui see raadio on kohtvõrgus, siis ühendus katkeb seni, kuni lubad süsteemiseadetes kohtvõrguühenduse.</string>
     <string name="local_stats_bad">Paha %1$d</string>
     <string name="local_stats_battery">Aku: %1$d%</string>
     <string name="local_stats_diagnostics_prefix">Diagnostika: %1$s</string>
@@ -985,7 +985,7 @@
     <!-- MESHTASTIC -->
     <string name="meshtastic">Kärgvõrgustik</string>
     <string name="meshtastic_alerts_notifications">Märguteated</string>
-    <string name="meshtastic_app_name">Kärgvõrgustik</string>
+    <string name="meshtastic_app_name">NetworkTact</string>
     <string name="meshtastic_broadcast_notifications">Ringhäälingusõnumi teated</string>
     <string name="meshtastic_low_battery_notifications">Madala akupinge hoiatus</string>
     <string name="meshtastic_low_battery_temporary_remote_notifications">Madala akupinge teated (lemmik sõlmed)</string>
@@ -1190,7 +1190,7 @@
     <string name="not_now">Mitte praegu</string>
     <string name="note">Märkus</string>
     <string name="notes">Sõnumid</string>
-    <string name="notification_permissions_description">Meshtastic kasutab märguandeid, et hoida teid kursis uute sõnumite ja muude oluliste sündmustega. Saate oma märguannete õigusi igal ajal seadetes muuta.</string>
+    <string name="notification_permissions_description">NetworkTact kasutab märguandeid, et hoida teid kursis uute sõnumite ja muude oluliste sündmustega. Saate oma märguannete õigusi igal ajal seadetes muuta.</string>
     <!-- NOTIFICATIONS -->
     <string name="notifications_for_channel_and_direct_messages">Kanali märguanded ja otsesõnumid.</string>
     <string name="notifications_for_low_battery_alerts">Ühendatud seadme madala akutaseme märguanded.</string>
@@ -1247,7 +1247,7 @@
     <string name="periodic_position_broadcast">Perioodiline asukoha jagamine</string>
     <!-- PERMISSION -->
     <string name="permission_local_network_summary">Leia raadiod sinu WiFi võrgust</string>
-    <string name="permission_missing_31">Meshtastic vajab seadmete leidmiseks ja nendega sinihamba ​​kaudu ühenduse loomiseks „Lähi-seadmed” luba. Saate selle keelata, kui seda ei kasutata.</string>
+    <string name="permission_missing_31">NetworkTact vajab seadmete leidmiseks ja nendega sinihamba ​​kaudu ühenduse loomiseks „Lähi-seadmed” luba. Saate selle keelata, kui seda ei kasutata.</string>
     <string name="permission_state_allowed">Lubatud</string>
     <string name="permission_state_blocked">Blokeeritud - klõpsi süsteemi sätete avamiseks</string>
     <string name="permission_state_denied">Keelatud - klõpsi lubamiseks</string>
@@ -1263,7 +1263,7 @@
     <string name="permissions_nothing_needed">Midagi ei vaja su tähelepanu</string>
     <string name="permissions_show">Näita lubasid</string>
     <string name="phone_location">Telefoni asukoht</string>
-    <string name="phone_location_description">Meshtastic kasutab teie telefoni asukohta mitmete funktsioonide lubamiseks. Saate oma asukohalubasid igal ajal seadetes muuta.</string>
+    <string name="phone_location_description">NetworkTact kasutab teie telefoni asukohta mitmete funktsioonide lubamiseks. Saate oma asukohalubasid igal ajal seadetes muuta.</string>
     <string name="pin_selected">Klemm</string>
     <string name="play">Mängi ette</string>
     <plurals name="plurals_hours">
@@ -1581,7 +1581,7 @@
     <string name="tak_server_status_not_running">TAK server ei tööta</string>
     <string name="tak_server_status_off">Väljas</string>
     <string name="tak_server_status_starting">Käivitan TAK serveri</string>
-    <string name="tak_server_status_unavailable">Kohalik TAK server on Meshtasticus Androidi jaoks saadaval</string>
+    <string name="tak_server_status_unavailable">Kohalik TAK server on NetworkTactis Androidi jaoks saadaval</string>
     <string name="tak_server_status_waiting">Kuulan 127.0.0.1:8089 — ootan ATAK</string>
     <string name="tak_server_test_card_title">TAK kärgvõrgu test (arendaja)</string>
     <string name="tak_server_test_idle">Saada kõik %1$d testkinnitust kärgvõrku</string>

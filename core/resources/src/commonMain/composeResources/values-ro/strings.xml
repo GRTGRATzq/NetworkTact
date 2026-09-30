@@ -217,7 +217,7 @@
     <string name="desc_node_filter_clear">ștergeți filtrul nodurilor</string>
     <string name="description">Descriere</string>
     <!-- DESKTOP -->
-    <string name="desktop_notification_title">Meshtastic</string>
+    <string name="desktop_notification_title">NetworkTact</string>
     <string name="details">Detalii</string>
     <string name="detection_sensor">Senzor de detecție</string>
     <string name="detection_sensor_config">Configurare senzor detectare</string>
@@ -535,7 +535,7 @@
     <!-- MESHTASTIC -->
     <string name="meshtastic">Meshtastic</string>
     <string name="meshtastic_alerts_notifications">Notificări alerte</string>
-    <string name="meshtastic_app_name">Meshtastic</string>
+    <string name="meshtastic_app_name">NetworkTact</string>
     <string name="meshtastic_broadcast_notifications">Notificări mesaje difuzate</string>
     <string name="meshtastic_low_battery_notifications">Notificări pentru baterii descărcate</string>
     <string name="meshtastic_low_battery_temporary_remote_notifications">Notificări pentru baterii descărcate (noduri favorite)</string>
@@ -638,7 +638,7 @@
     <string name="not_connected">Neconectat</string>
     <string name="note">Notiță</string>
     <string name="notes">Notițe</string>
-    <string name="notification_permissions_description">Meshtastic folosește notificări pentru a te ține la curent cu mesaje noi și alte evenimente importante. Puteți actualiza permisiunile de notificare în orice moment din setări.</string>
+    <string name="notification_permissions_description">NetworkTact folosește notificări pentru a te ține la curent cu mesaje noi și alte evenimente importante. Puteți actualiza permisiunile de notificare în orice moment din setări.</string>
     <!-- NOTIFICATIONS -->
     <string name="notifications_for_channel_and_direct_messages">Notificări pentru canal și mesaje directe.</string>
     <string name="notifications_for_low_battery_alerts">Notificări pentru alerte de baterie scăzută pentru dispozitivul conectat.</string>
@@ -676,10 +676,10 @@
     <string name="paxcounter_config">Configurație Paxcounter</string>
     <string name="periodic_position_broadcast">Pozitie periodica</string>
     <!-- PERMISSION -->
-    <string name="permission_missing_31">Meshtastic necesită permisiunea „Dispozitive din apropiere” pentru a găsi și conecta dispozitive prin Bluetooth. Puteți dezactiva această funcție când nu o utilizați.</string>
+    <string name="permission_missing_31">NetworkTact necesită permisiunea „Dispozitive din apropiere” pentru a găsi și conecta dispozitive prin Bluetooth. Puteți dezactiva această funcție când nu o utilizați.</string>
     <!-- PERMISSIONS -->
     <string name="phone_location">Locaţia telefonului</string>
-    <string name="phone_location_description">Meshtastic folosește locația telefonului tău pentru a activa o serie de caracteristici. Poți actualiza permisiunile de locație în orice moment din setări.</string>
+    <string name="phone_location_description">NetworkTact folosește locația telefonului tău pentru a activa o serie de caracteristici. Poți actualiza permisiunile de locație în orice moment din setări.</string>
     <string name="play">Redare</string>
     <plurals name="plurals_hours">
         <item quantity="one">%1$d oră</item>
