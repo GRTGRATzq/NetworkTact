@@ -62,6 +62,9 @@ sealed interface NodesRoute : Route {
     @Serializable data object Nodes : NodesRoute, Graph
 
     @Serializable data class NodeDetail(val destNum: Int? = null) : NodesRoute
+
+    /** Read-only command post (PC) overview of every known node; the start screen in command post mode. */
+    @Serializable data object CommandPost : NodesRoute
 }
 
 @Serializable
