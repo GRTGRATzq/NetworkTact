@@ -1,0 +1,43 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+  <group
+      android:scaleX="0.37"
+      android:scaleY="0.37"
+      android:translateX="12"
+      android:translateY="12">
+    <path
+        android:pathData="M-4.157,-16.806L-14.374,-11.414M-18,-5.4L-18,5.4M-14.374,11.414L-4.157,16.806M18,-5.4L18,5.4M0,-5L0,-14.3M0,5L0,14.3M-4.422,-2.334L-14.374,-7.586M4.422,-2.334L14.374,-7.586M-4.422,2.334L-14.374,7.586"
+        android:strokeColor="#B6E2C2"
+        android:strokeWidth="1.8"
+        android:strokeLineCap="round" />
+    <path
+        android:pathData="M4.157,-16.806L14.374,-11.414M14.374,11.414L4.157,16.806M4.422,2.334L14.374,7.586"
+        android:strokeColor="#7CC864"
+        android:strokeWidth="1.8"
+        android:strokeLineCap="round" />
+    <path
+        android:pathData="M22.08,-7.305A19.5,19.5 0,0 1,22.08,7.305M-22.08,-7.305A19.5,19.5 0,0 0,-22.08,7.305"
+        android:strokeColor="#7CC864"
+        android:strokeAlpha="1"
+        android:strokeWidth="1.8"
+        android:strokeLineCap="round" />
+    <path
+        android:pathData="M24.749,-11.033A23.5,23.5 0,0 1,24.749,11.033M-24.749,-11.033A23.5,23.5 0,0 0,-24.749,11.033"
+        android:strokeColor="#7CC864"
+        android:strokeAlpha="0.75"
+        android:strokeWidth="1.8"
+        android:strokeLineCap="round" />
+    <path
+        android:pathData="M27.152,-14.467A27.3,27.3 0,0 1,27.152,14.467M-27.152,-14.467A27.3,27.3 0,0 0,-27.152,14.467"
+        android:strokeColor="#7CC864"
+        android:strokeAlpha="0.5"
+        android:strokeWidth="1.8"
+        android:strokeLineCap="round" />
+    <path
+        android:pathData="M-3.5,0a3.5,3.5 0,1 1,7,0a3.5,3.5 0,1 1,-7,0zM-3.2,-19a3.2,3.2 0,1 1,6.4,0a3.2,3.2 0,1 1,-6.4,0zM-3.2,19a3.2,3.2 0,1 1,6.4,0a3.2,3.2 0,1 1,-6.4,0zM-20.6,-9.5a2.6,2.6 0,1 1,5.2,0a2.6,2.6 0,1 1,-5.2,0zM15.4,-9.5a2.6,2.6 0,1 1,5.2,0a2.6,2.6 0,1 1,-5.2,0zM-20.6,9.5a2.6,2.6 0,1 1,5.2,0a2.6,2.6 0,1 1,-5.2,0zM15.4,9.5a2.6,2.6 0,1 1,5.2,0a2.6,2.6 0,1 1,-5.2,0z"
+        android:fillColor="#B6E2C2" />
+  </group>
+</vector>
