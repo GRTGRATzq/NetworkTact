@@ -64,6 +64,7 @@ import org.meshtastic.core.model.Message
 import org.meshtastic.core.model.Node
 import org.meshtastic.core.model.NodeAddress
 import org.meshtastic.core.model.Reaction
+import org.meshtastic.core.model.team.TeamSuffix
 import org.meshtastic.feature.messaging.component.DateSeparator
 import org.meshtastic.feature.messaging.component.MessageItem
 import org.meshtastic.feature.messaging.component.MessageStatusDialog
@@ -120,7 +121,9 @@ internal data class MessageListPagedState(
 internal fun directRecipientName(contactKey: String, nodes: List<Node>): String? {
     val address = ContactKey(contactKey).addressString
     if (address == NodeAddress.ID_BROADCAST) return null
-    return nodes.firstOrNull { it.user.id == address }?.user?.long_name?.ifBlank { null } ?: address
+    // The team suffix is left out here: this name goes into "Me → X" headers and acknowledgement lines.
+    return nodes.firstOrNull { it.user.id == address }?.user?.long_name?.ifBlank { null }?.let(TeamSuffix::displayName)
+        ?: address
 }
 
 private fun MutableState<Set<Long>>.toggle(uuid: Long) {

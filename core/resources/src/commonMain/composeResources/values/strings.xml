@@ -1848,6 +1848,7 @@
     <string name="teams_manual_hint">One team per line, or separated by ;</string>
     <string name="teams_manual_title">Type the list by hand</string>
     <string name="teams_manual_use">Use this list</string>
+    <string name="teams_member">Team %1$s</string>
     <string name="teams_my_radio_name">My radio: %1$s</string>
     <string name="teams_my_team">My team</string>
     <string name="teams_my_team_not_in_list">My team, %1$s, is no longer in the list. It stays as it is on my radio until I choose another one.</string>

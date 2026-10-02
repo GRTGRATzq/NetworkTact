@@ -103,6 +103,7 @@ import org.meshtastic.core.ui.icon.MeshtasticIcons
 import org.meshtastic.core.ui.icon.Reply
 import org.meshtastic.core.ui.icon.ShieldCheck
 import org.meshtastic.core.ui.util.createClipEntry
+import org.meshtastic.core.ui.util.nameWithTeam
 import org.meshtastic.feature.messaging.priority.MessagePriority
 import org.meshtastic.feature.messaging.status.sentStatusOf
 
@@ -304,7 +305,7 @@ fun MessageItem(
                     Modifier
                 },
             )
-    val senderName = if (message.fromLocal) ourNode.user.long_name else node.user.long_name
+    val senderName = nameWithTeam(if (message.fromLocal) ourNode.user.long_name else node.user.long_name)
     val messageA11yText = stringResource(Res.string.a11y_message_from, senderName, bodyText)
     // Timestamp lives in the group header (Google Chat pattern) rather than inside every bubble; grouping is
     // time-windowed upstream, so the header time is always close to every message in the run.
@@ -324,7 +325,7 @@ fun MessageItem(
             ) {
                 NeutralNodeChip(node = node, onClick = onClickChip, modifier = Modifier.heightIn(min = 28.dp))
                 Text(
-                    text = node.user.long_name,
+                    text = senderName,
                     modifier = Modifier.weight(1f, fill = false),
                     overflow = TextOverflow.Ellipsis,
                     maxLines = 1,

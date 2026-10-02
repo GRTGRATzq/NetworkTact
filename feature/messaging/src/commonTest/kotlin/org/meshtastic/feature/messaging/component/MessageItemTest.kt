@@ -123,6 +123,30 @@ class MessageItemTest {
         onNodeWithText("SNR 0.00 dB", useUnmergedTree = true).assertIsDisplayed()
     }
 
+    @Test
+    fun senderTeamIsShownAfterTheNameWithoutTheSuffix() = runComposeUiTest {
+        val base = NodePreviewParameterProvider().minnieMouse
+        val sender = base.copy(user = base.user.copy(long_name = "ALPHA-1 [Alpha]"))
+        val message = directMessage(node = sender, snr = 1f)
+
+        setContent {
+            AppTheme {
+                MessageItem(
+                    message = message,
+                    node = sender,
+                    selected = false,
+                    onClick = {},
+                    onLongClick = {},
+                    onStatusClick = {},
+                    ourNode = base,
+                )
+            }
+        }
+
+        onNodeWithText("ALPHA-1 · Team Alpha", useUnmergedTree = true).assertIsDisplayed()
+        onNodeWithText("ALPHA-1 [Alpha]", substring = true, useUnmergedTree = true).assertDoesNotExist()
+    }
+
     private fun directMessage(node: Node, snr: Float?) = Message(
         text = "Direct message",
         time = "10:00",

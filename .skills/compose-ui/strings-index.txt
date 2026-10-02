@@ -1791,6 +1791,7 @@ teams_error_name_too_long
 teams_manual_hint
 teams_manual_title
 teams_manual_use
+teams_member
 teams_my_radio_name
 teams_my_team
 teams_my_team_not_in_list

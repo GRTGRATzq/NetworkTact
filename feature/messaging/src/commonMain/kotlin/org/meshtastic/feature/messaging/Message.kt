@@ -115,6 +115,7 @@ import org.meshtastic.core.ui.icon.Send
 import org.meshtastic.core.ui.theme.AppTheme
 import org.meshtastic.core.ui.util.createClipEntry
 import org.meshtastic.core.ui.util.isFromSoftKeyboard
+import org.meshtastic.core.ui.util.nameWithTeam
 import org.meshtastic.feature.messaging.component.ActionModeTopBar
 import org.meshtastic.feature.messaging.component.AlertPill
 import org.meshtastic.feature.messaging.component.DeleteMessageDialog
@@ -256,6 +257,8 @@ fun MessageScreen(
                 else -> viewModel.getUser(nodeId).long_name
             }
         }
+    // A direct conversation is titled after the node, its declared team shown after the name.
+    val displayTitle = if (nodeId == NodeAddress.ID_BROADCAST) title else nameWithTeam(title)
 
     val isMismatchKey =
         remember(channelIndex, nodeId, viewModel) {
@@ -464,7 +467,7 @@ fun MessageScreen(
                 )
             } else {
                 MessageTopBar(
-                    title = title,
+                    title = displayTitle,
                     channelIndex = channelIndex,
                     mismatchKey = isMismatchKey,
                     onNavigateBack = { onEvent(MessageScreenEvent.NavigateBack) },

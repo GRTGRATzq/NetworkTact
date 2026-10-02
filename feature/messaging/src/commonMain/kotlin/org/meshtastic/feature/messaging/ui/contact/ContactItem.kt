@@ -65,6 +65,7 @@ import org.meshtastic.core.ui.icon.Keep
 import org.meshtastic.core.ui.icon.MeshtasticIcons
 import org.meshtastic.core.ui.icon.VolumeOff
 import org.meshtastic.core.ui.theme.AppTheme
+import org.meshtastic.core.ui.util.nameWithTeam
 import org.meshtastic.proto.ChannelSet
 
 @Suppress("LongMethod")
@@ -165,7 +166,8 @@ private fun ContactHeader(
             fontWeight = FontWeight.Medium,
             overflow = TextOverflow.Ellipsis,
             maxLines = 1,
-            text = contact.longName,
+            // Direct conversations carry the node's long name, which may declare a team; channels keep theirs as is.
+            text = if (isBroadcast) contact.longName else nameWithTeam(contact.longName),
         )
         Text(
             text = contact.lastMessageTime?.let { DateFormatter.formatShortDate(it) }.orEmpty(),

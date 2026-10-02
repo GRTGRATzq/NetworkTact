@@ -1256,6 +1256,7 @@
     <string name="teams_manual_hint">Une équipe par ligne, ou séparées par ;</string>
     <string name="teams_manual_title">Saisie manuelle de secours</string>
     <string name="teams_manual_use">Utiliser cette liste</string>
+    <string name="teams_member">Équipe %1$s</string>
     <string name="teams_my_radio_name">Ma radio : %1$s</string>
     <string name="teams_my_team">Mon équipe</string>
     <string name="teams_my_team_not_in_list">Mon équipe, %1$s, n'est plus dans la liste. Elle reste inchangée sur ma radio tant que je n'en choisis pas une autre.</string>

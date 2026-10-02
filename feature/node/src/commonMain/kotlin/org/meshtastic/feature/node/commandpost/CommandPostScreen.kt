@@ -67,6 +67,7 @@ import org.meshtastic.core.ui.component.MainAppBar
 import org.meshtastic.core.ui.icon.MeshtasticIcons
 import org.meshtastic.core.ui.icon.Message
 import org.meshtastic.core.ui.icon.Warning
+import org.meshtastic.core.ui.util.nameWithTeam
 import kotlin.time.Duration
 
 private const val COORDINATE_DECIMALS = 5
@@ -146,7 +147,7 @@ private fun CommandPostCard(row: CommandPostRow, onOpenNode: (Int) -> Unit, onOp
                         fontWeight = FontWeight.Bold,
                     )
                     if (row.longName.isNotBlank() && row.longName != row.shortName) {
-                        Text(text = row.longName, style = MaterialTheme.typography.bodySmall)
+                        Text(text = nameWithTeam(row.longName), style = MaterialTheme.typography.bodySmall)
                     }
                 }
                 row.directMessageKey?.let { key ->
