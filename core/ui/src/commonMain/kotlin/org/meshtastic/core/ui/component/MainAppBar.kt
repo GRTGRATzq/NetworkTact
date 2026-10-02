@@ -39,7 +39,8 @@ import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
 import org.meshtastic.core.model.Node
 import org.meshtastic.core.resources.Res
-import org.meshtastic.core.resources.ic_meshtastic
+import org.meshtastic.core.resources.ic_networktact
+import org.meshtastic.core.resources.meshtastic_app_name
 import org.meshtastic.core.resources.navigate_back
 import org.meshtastic.core.ui.icon.ArrowBack
 import org.meshtastic.core.ui.icon.MeshtasticIcons
@@ -111,9 +112,15 @@ fun MainAppBar(
                     }
                 }
             } else {
-                // The Meshtastic logo is never swapped for event branding — the app's identity stays put. Event
-                // firmware is surfaced on the Connections screen instead (EventFirmwareCard).
-                { Icon(imageVector = vectorResource(Res.drawable.ic_meshtastic), contentDescription = null) }
+                // The NetworkTact symbol is never swapped for event branding — the app's identity stays put. Event
+                // firmware is surfaced on the Connections screen instead (EventFirmwareCard). Icon tints it with
+                // the bar's content colour, so it stays legible in light and dark themes.
+                {
+                    Icon(
+                        imageVector = vectorResource(Res.drawable.ic_networktact),
+                        contentDescription = stringResource(Res.string.meshtastic_app_name),
+                    )
+                }
             },
             actions = {
                 TopBarActions(
