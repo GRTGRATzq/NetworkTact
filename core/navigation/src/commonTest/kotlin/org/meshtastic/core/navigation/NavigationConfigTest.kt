@@ -104,6 +104,7 @@ class NavigationConfigTest {
             SettingsRoute.About,
             SettingsRoute.Acknowledgements,
             SettingsRoute.FilterSettings,
+            SettingsRoute.Teams,
             // FirmwareRoute
             FirmwareRoute.FirmwareGraph,
             FirmwareRoute.FirmwareUpdate,

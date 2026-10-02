@@ -180,6 +180,9 @@ sealed interface SettingsRoute : Route {
 
     @Serializable data object FilterSettings : SettingsRoute
 
+    /** Team list (received, typed or broadcast) and the choice of my radio's team. */
+    @Serializable data object Teams : SettingsRoute
+
     @Serializable data object NodeList : SettingsRoute
 
     @Serializable data object DeviceLinks : SettingsRoute

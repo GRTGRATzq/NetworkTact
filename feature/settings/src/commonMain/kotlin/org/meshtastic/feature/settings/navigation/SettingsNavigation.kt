@@ -82,6 +82,7 @@ import org.meshtastic.feature.settings.radio.component.TAKConfigScreen
 import org.meshtastic.feature.settings.radio.component.TakServerScreen
 import org.meshtastic.feature.settings.radio.component.TelemetryConfigScreen
 import org.meshtastic.feature.settings.radio.component.UserConfigScreen
+import org.meshtastic.feature.settings.team.TeamsScreen
 import kotlin.reflect.KClass
 
 /**
@@ -432,6 +433,10 @@ fun EntryProviderScope<NavKey>.settingsGraph(
     entry<SettingsRoute.FilterSettings> {
         val viewModel: FilterSettingsViewModel = koinViewModel()
         FilterSettingsScreen(viewModel = viewModel, onBack = dropUnlessResumed { backStack.removeLastOrNull() })
+    }
+
+    entry<SettingsRoute.Teams> {
+        TeamsScreen(viewModel = koinViewModel(), onBack = dropUnlessResumed { backStack.removeLastOrNull() })
     }
 
     entry<SettingsRoute.NodeList> {
