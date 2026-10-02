@@ -44,10 +44,11 @@ import org.jetbrains.compose.resources.stringResource
 import org.meshtastic.core.resources.Res
 import org.meshtastic.core.resources.tactmsg_filter_empty
 import org.meshtastic.core.resources.tactmsg_filter_team
-import org.meshtastic.core.resources.tactmsg_filter_team_unavailable
 import org.meshtastic.core.resources.tactmsg_filter_unacked
 import org.meshtastic.core.resources.tactmsg_filter_unacked_direct_only
 import org.meshtastic.core.resources.tactmsg_filters
+import org.meshtastic.core.resources.teams_filter_no_list
+import org.meshtastic.core.resources.teams_member
 import org.meshtastic.core.ui.icon.Check
 import org.meshtastic.core.ui.icon.MeshtasticIcons
 import org.meshtastic.core.ui.theme.AppTheme
@@ -55,8 +56,9 @@ import org.meshtastic.feature.messaging.filter.ThreadFilter
 import org.meshtastic.feature.messaging.priority.MessagePriority
 
 /**
- * Filters at the top of a conversation: priority (Info / CR / Urgent), unacknowledged direct messages, and a team
- * filter that is present but disabled until teams can be configured. Selection is shown by a check mark, not by colour.
+ * Filters at the top of a conversation: priority (Info / CR / Urgent), unacknowledged direct messages, and one chip per
+ * team of the adopted list ([teams]), which keeps the messages of senders declaring that team. Without a list the team
+ * chip stays disabled and says why. Selection is shown by a check mark, not by colour.
  */
 @Composable
 internal fun MessageFilterBar(
@@ -64,6 +66,7 @@ internal fun MessageFilterBar(
     isDirectMessage: Boolean,
     onFilterChange: (ThreadFilter) -> Unit,
     modifier: Modifier = Modifier,
+    teams: List<String> = emptyList(),
 ) {
     val description = stringResource(Res.string.tactmsg_filters)
     Column(modifier = modifier.fillMaxWidth().semantics { contentDescription = description }) {
@@ -92,17 +95,29 @@ internal fun MessageFilterBar(
                 enabled = isDirectMessage,
                 onClick = { onFilterChange(filter.copy(unackedOnly = !filter.unackedOnly)) },
             )
-            CheckFilterChip(
-                selected = false,
-                label = stringResource(Res.string.tactmsg_filter_team),
-                enabled = false,
-                onClick = {},
-            )
-            Text(
-                text = stringResource(Res.string.tactmsg_filter_team_unavailable),
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            // A team selected before the list changed stays offered, so the filter can still be cleared.
+            val teamChoices =
+                teams + listOfNotNull(filter.team?.takeIf { selected -> teams.none { it.equals(selected, true) } })
+            if (teamChoices.isEmpty()) {
+                CheckFilterChip(
+                    selected = false,
+                    label = stringResource(Res.string.tactmsg_filter_team),
+                    enabled = false,
+                    onClick = {},
+                )
+                Text(
+                    text = stringResource(Res.string.teams_filter_no_list),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            teamChoices.forEach { team ->
+                CheckFilterChip(
+                    selected = filter.team.equals(team, ignoreCase = true),
+                    label = stringResource(Res.string.teams_member, team),
+                    onClick = { onFilterChange(filter.toggleTeam(team)) },
+                )
+            }
         }
         HorizontalDivider()
     }
@@ -154,6 +169,12 @@ private fun MessageFilterBarPreview() {
                     filter = ThreadFilter(priorities = setOf(MessagePriority.URGENT), unackedOnly = true),
                     isDirectMessage = true,
                     onFilterChange = {},
+                )
+                MessageFilterBar(
+                    filter = ThreadFilter(team = "Alpha"),
+                    isDirectMessage = false,
+                    onFilterChange = {},
+                    teams = listOf("Alpha", "Bravo"),
                 )
                 MessageFilterBar(filter = ThreadFilter(), isDirectMessage = false, onFilterChange = {})
             }

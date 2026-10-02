@@ -1702,7 +1702,6 @@ tactmsg_filter_all_channels
 tactmsg_filter_channels
 tactmsg_filter_empty
 tactmsg_filter_team
-tactmsg_filter_team_unavailable
 tactmsg_filter_unacked
 tactmsg_filter_unacked_direct_only
 tactmsg_filters
@@ -1788,6 +1787,7 @@ teams_error_empty
 teams_error_invalid_name
 teams_error_message_too_long
 teams_error_name_too_long
+teams_filter_no_list
 teams_manual_hint
 teams_manual_title
 teams_manual_use

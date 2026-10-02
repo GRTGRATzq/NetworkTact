@@ -1756,7 +1756,6 @@
     <string name="tactmsg_filter_channels">Channels</string>
     <string name="tactmsg_filter_empty">No message matches the filters</string>
     <string name="tactmsg_filter_team">Team</string>
-    <string name="tactmsg_filter_team_unavailable">Available after team setup</string>
     <string name="tactmsg_filter_unacked">Not acknowledged</string>
     <string name="tactmsg_filter_unacked_direct_only">Direct messages only</string>
     <string name="tactmsg_filters">Message filters</string>
@@ -1845,6 +1844,7 @@
     <string name="teams_error_invalid_name">« %1$s »: [ ] and ; are not allowed.</string>
     <string name="teams_error_message_too_long">The list takes %1$d bytes, more than the %2$d a message can carry. Shorten or remove teams.</string>
     <string name="teams_error_name_too_long">« %1$s » is longer than %2$d bytes.</string>
+    <string name="teams_filter_no_list">No team list yet</string>
     <string name="teams_manual_hint">One team per line, or separated by ;</string>
     <string name="teams_manual_title">Type the list by hand</string>
     <string name="teams_manual_use">Use this list</string>

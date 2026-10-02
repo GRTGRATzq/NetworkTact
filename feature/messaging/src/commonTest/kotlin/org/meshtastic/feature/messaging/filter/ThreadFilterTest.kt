@@ -87,4 +87,30 @@ class ThreadFilterTest {
         assertEquals(setOf(MessagePriority.REPORT), on.priorities)
         assertEquals(emptySet(), on.togglePriority(MessagePriority.REPORT).priorities)
     }
+
+    @Test
+    fun teamFilterKeepsOnlyThatTeamsSenders() {
+        val filter = ThreadFilter(team = "Alpha")
+        assertTrue(filter.isActive)
+        assertTrue(filter.matches("info", false, SentStatus.Unknown, false, senderLongName = "ALPHA-1 [Alpha]"))
+        assertTrue(filter.matches("info", false, SentStatus.Unknown, false, senderLongName = "ALPHA-2 [alpha] (MQTT)"))
+        assertFalse(filter.matches("info", false, SentStatus.Unknown, false, senderLongName = "BRAVO-2 [Bravo]"))
+        assertFalse(filter.matches("info", false, SentStatus.Unknown, false, senderLongName = "CHARLIE-3"))
+    }
+
+    @Test
+    fun teamFilterCombinesWithPriority() {
+        val filter = ThreadFilter(priorities = setOf(MessagePriority.URGENT), team = "Alpha")
+        assertTrue(filter.matches("[URG] contact", false, SentStatus.Unknown, false, "ALPHA-1 [Alpha]"))
+        assertFalse(filter.matches("contact", false, SentStatus.Unknown, false, "ALPHA-1 [Alpha]"))
+        assertFalse(filter.matches("[URG] contact", false, SentStatus.Unknown, false, "BRAVO-2 [Bravo]"))
+    }
+
+    @Test
+    fun toggleTeamSelectsThenClears() {
+        val on = ThreadFilter().toggleTeam("Alpha")
+        assertEquals("Alpha", on.team)
+        assertEquals("Bravo", on.toggleTeam("Bravo").team)
+        assertEquals(null, on.toggleTeam("ALPHA").team)
+    }
 }

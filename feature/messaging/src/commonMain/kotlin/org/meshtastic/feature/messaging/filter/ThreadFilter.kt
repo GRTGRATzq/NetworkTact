@@ -16,6 +16,7 @@
  */
 package org.meshtastic.feature.messaging.filter
 
+import org.meshtastic.core.model.team.TeamSuffix
 import org.meshtastic.feature.messaging.priority.MessagePriority
 import org.meshtastic.feature.messaging.status.SentStatus
 import org.meshtastic.feature.messaging.status.isAwaitingRecipientAck
@@ -28,17 +29,37 @@ import org.meshtastic.feature.messaging.status.sentStatusOf
  * @property priorities the priorities to show; empty shows every priority.
  * @property unackedOnly keep only direct messages this device sent that the recipient has not acknowledged. Meaningless
  *   in a channel, where no message can be acknowledged by a recipient, so it matches nothing there.
+ * @property team keep only messages whose sender declares this team in its long name (see [TeamSuffix]), ignoring case;
+ *   null shows every sender. The team is what the sender declares, not a verified fact.
  */
-data class ThreadFilter(val priorities: Set<MessagePriority> = emptySet(), val unackedOnly: Boolean = false) {
+data class ThreadFilter(
+    val priorities: Set<MessagePriority> = emptySet(),
+    val unackedOnly: Boolean = false,
+    val team: String? = null,
+) {
     val isActive: Boolean
-        get() = priorities.isNotEmpty() || unackedOnly
+        get() = priorities.isNotEmpty() || unackedOnly || team != null
 
     fun togglePriority(priority: MessagePriority): ThreadFilter =
         copy(priorities = if (priority in priorities) priorities - priority else priorities + priority)
 
-    /** Whether a message with [text] and [sentStatus] is shown; see [sentStatusOf] for how the status is derived. */
-    fun matches(text: String, fromLocal: Boolean, sentStatus: SentStatus, isDirectMessage: Boolean): Boolean {
-        if (priorities.isNotEmpty() && MessagePriority.of(text) !in priorities) return false
-        return !unackedOnly || isAwaitingRecipientAck(sentStatus, fromLocal, isDirectMessage)
+    /** Selects [name], or clears the team filter when [name] is already the one selected. */
+    fun toggleTeam(name: String): ThreadFilter = copy(team = if (team.equals(name, ignoreCase = true)) null else name)
+
+    /**
+     * Whether a message with [text] and [sentStatus], sent by a node named [senderLongName], is shown; see
+     * [sentStatusOf] for how the status is derived.
+     */
+    fun matches(
+        text: String,
+        fromLocal: Boolean,
+        sentStatus: SentStatus,
+        isDirectMessage: Boolean,
+        senderLongName: String = "",
+    ): Boolean {
+        val priorityOk = priorities.isEmpty() || MessagePriority.of(text) in priorities
+        val teamOk = team == null || TeamSuffix.teamOf(senderLongName).equals(team, ignoreCase = true)
+        val ackOk = !unackedOnly || isAwaitingRecipientAck(sentStatus, fromLocal, isDirectMessage)
+        return priorityOk && teamOk && ackOk
     }
 }

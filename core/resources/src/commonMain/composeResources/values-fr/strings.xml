@@ -1253,6 +1253,7 @@
     <string name="teams_error_invalid_name">« %1$s » : [ ] et ; sont interdits.</string>
     <string name="teams_error_message_too_long">La liste fait %1$d octets, plus que les %2$d d'un message. Raccourcissez ou retirez des équipes.</string>
     <string name="teams_error_name_too_long">« %1$s » dépasse %2$d octets.</string>
+    <string name="teams_filter_no_list">Aucune liste d'équipes</string>
     <string name="teams_manual_hint">Une équipe par ligne, ou séparées par ;</string>
     <string name="teams_manual_title">Saisie manuelle de secours</string>
     <string name="teams_manual_use">Utiliser cette liste</string>
@@ -1452,7 +1453,6 @@
     <string name="tactmsg_filter_channels">Canaux</string>
     <string name="tactmsg_filter_empty">Aucun message ne correspond aux filtres</string>
     <string name="tactmsg_filter_team">Équipe</string>
-    <string name="tactmsg_filter_team_unavailable">Disponible après la configuration des équipes</string>
     <string name="tactmsg_filter_unacked">Sans accusé</string>
     <string name="tactmsg_filter_unacked_direct_only">Messages directs uniquement</string>
     <string name="tactmsg_filters">Filtres des messages</string>

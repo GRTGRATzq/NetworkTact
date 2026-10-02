@@ -245,7 +245,7 @@ class MessageViewModel(
                 pagingData.filter { message ->
                     val sentStatus =
                         sentStatusOf(message.status, message.routingError, message.ackProofStatus, isDirect)
-                    filter.matches(message.text, message.fromLocal, sentStatus, isDirect)
+                    filter.matches(message.text, message.fromLocal, sentStatus, isDirect, message.node.user.long_name)
                 }
             }
         }
