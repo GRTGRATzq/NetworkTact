@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Splash screen background, dark: the app's dark background (backgroundDark) -->
+    <color name="networktact_splash_background">#1A1B26</color>
+</resources>
