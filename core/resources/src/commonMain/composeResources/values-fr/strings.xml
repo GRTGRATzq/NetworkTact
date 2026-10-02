@@ -1262,6 +1262,7 @@
     <string name="teams_pending_accept">Adopter</string>
     <string name="teams_pending_dismiss">Ignorer</string>
     <string name="teams_pending_from">Envoyée par %1$s (%2$s) · %3$s</string>
+    <string name="teams_pending_later">Plus tard</string>
     <string name="teams_pending_question">Adopter cette liste ? N'importe quel nœud du réseau peut en envoyer une : vérifiez d'abord l'émetteur.</string>
     <string name="teams_pending_title">Nouvelle liste d'équipes reçue</string>
     <string name="teams_send_failed">Non envoyé à ma radio.</string>

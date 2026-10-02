@@ -1854,6 +1854,7 @@
     <string name="teams_pending_accept">Adopt</string>
     <string name="teams_pending_dismiss">Ignore</string>
     <string name="teams_pending_from">Sent by %1$s (%2$s) · %3$s</string>
+    <string name="teams_pending_later">Later</string>
     <string name="teams_pending_question">Adopt this list? Anyone on the mesh can send one: check the sender first.</string>
     <string name="teams_pending_title">New team list received</string>
     <string name="teams_send_failed">Not sent to my radio.</string>

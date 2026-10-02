@@ -65,6 +65,7 @@ import org.meshtastic.feature.settings.lockdown.LockdownDialog
 import org.meshtastic.feature.settings.navigation.rememberSettingsRadioConfigViewModelProvider
 import org.meshtastic.feature.settings.navigation.settingsGraph
 import org.meshtastic.feature.settings.radio.channel.channelsGraph
+import org.meshtastic.feature.settings.team.PendingTeamRosterPrompt
 import org.meshtastic.feature.wifiprovision.navigation.wifiProvisionGraph
 import kotlin.time.Duration.Companion.seconds
 
@@ -85,6 +86,9 @@ fun MainScreen() {
     )
 
     AndroidAppVersionCheck(viewModel)
+
+    // A team list received over the mesh is only adopted once the user answers this prompt.
+    PendingTeamRosterPrompt()
 
     val lockdownState by viewModel.lockdownState.collectAsStateWithLifecycle()
     LockdownDialog(
