@@ -56,6 +56,7 @@ import org.meshtastic.core.resources.local_network_permission_denied_hint
 import org.meshtastic.core.takserver.MeshToCotBroadcaster
 import org.meshtastic.core.takserver.TAKMeshIntegration
 import org.meshtastic.core.takserver.TAKServerManager
+import org.meshtastic.core.testing.FakeTeamRosterPrefs
 import org.meshtastic.proto.FromRadio
 import org.meshtastic.proto.LocalModuleConfig
 import org.meshtastic.proto.MyNodeInfo
@@ -168,6 +169,12 @@ class MeshServiceOrchestratorTest {
             connectionManager = connectionManager,
             dispatchers = dispatchers,
             localNetworkAccess = localNetworkAccess,
+            teamRosterListener =
+            TeamRosterListener(
+                serviceRepository = serviceRepository,
+                nodeRepository = nodeRepository,
+                teamRosterPrefs = FakeTeamRosterPrefs(),
+            ),
         )
     }
 
