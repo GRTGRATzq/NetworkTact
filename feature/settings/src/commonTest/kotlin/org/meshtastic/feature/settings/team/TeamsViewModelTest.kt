@@ -37,9 +37,12 @@ import org.meshtastic.core.model.ConnectionState
 import org.meshtastic.core.model.Node
 import org.meshtastic.core.model.team.TeamRoster
 import org.meshtastic.core.model.team.TeamRosterRecord
+import org.meshtastic.core.repository.usecase.SendMessageUseCase
 import org.meshtastic.core.testing.FakeNodeRepository
+import org.meshtastic.core.testing.FakeRadioConfigRepository
 import org.meshtastic.core.testing.FakeServiceRepository
 import org.meshtastic.core.testing.FakeTeamRosterPrefs
+import org.meshtastic.core.testing.FakeUiPrefs
 import org.meshtastic.proto.HardwareModel
 import org.meshtastic.proto.User
 import kotlin.test.AfterTest
@@ -70,6 +73,7 @@ class TeamsViewModelTest {
     private val nodes = FakeNodeRepository()
     private val service = FakeServiceRepository()
     private val radioConfigUseCase: RadioConfigUseCase = mock(MockMode.autofill)
+    private val sendMessageUseCase: SendMessageUseCase = mock(MockMode.autofill)
     private lateinit var viewModel: TeamsViewModel
 
     @BeforeTest
@@ -78,7 +82,17 @@ class TeamsViewModelTest {
         everySuspend { radioConfigUseCase.setOwner(any(), any(), any()) } returns 1
         nodes.setOurNode(Node(num = myNum, user = owner))
         service.setConnectionState(ConnectionState.Connected)
-        viewModel = TeamsViewModel(prefs, nodes, service, radioConfigUseCase)
+        everySuspend { sendMessageUseCase(any(), any(), any()) } returns 1
+        viewModel =
+            TeamsViewModel(
+                teamRosterPrefs = prefs,
+                nodeRepository = nodes,
+                serviceRepository = service,
+                radioConfigUseCase = radioConfigUseCase,
+                sendMessageUseCase = sendMessageUseCase,
+                radioConfigRepository = FakeRadioConfigRepository(),
+                uiPrefs = FakeUiPrefs(),
+            )
     }
 
     @AfterTest
@@ -211,5 +225,35 @@ class TeamsViewModelTest {
         viewModel.acceptPending(received)
         assertEquals(received, prefs.roster.value)
         assertNull(prefs.pendingRoster.value)
+    }
+
+    @Test
+    fun broadcast_sends_the_list_as_text_on_the_chosen_channel_and_adopts_it() = runTest {
+        viewModel.broadcast(TeamRoster(listOf("Alpha", "Bravo")), channelIndex = 2)
+
+        verifySuspend { sendMessageUseCase("[EQUIPES] Alpha;Bravo", "2^all", null) }
+        assertEquals(listOf("Alpha", "Bravo"), prefs.roster.value?.teams)
+        assertEquals(TeamRosterRecord.Source.BROADCAST, prefs.roster.value?.source)
+        assertEquals(BroadcastResult.Sent("2"), viewModel.broadcastResult.value)
+    }
+
+    @Test
+    fun broadcast_is_refused_while_my_radio_is_not_connected() = runTest {
+        service.setConnectionState(ConnectionState.Disconnected)
+
+        viewModel.broadcast(TeamRoster(listOf("Alpha")), channelIndex = 0)
+
+        verifySuspend(exactly(0)) { sendMessageUseCase(any(), any(), any()) }
+        assertNull(prefs.roster.value)
+    }
+
+    @Test
+    fun a_failed_broadcast_adopts_nothing() = runTest {
+        everySuspend { sendMessageUseCase(any(), any(), any()) } calls { error("queue full") }
+
+        viewModel.broadcast(TeamRoster(listOf("Alpha")), channelIndex = 0)
+
+        assertNull(prefs.roster.value)
+        assertEquals(BroadcastResult.Failed, viewModel.broadcastResult.value)
     }
 }

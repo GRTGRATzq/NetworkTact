@@ -1772,6 +1772,12 @@ tak_server_v1_fallback_notice
 teams_blocked_licensed
 teams_blocked_no_node
 teams_blocked_not_connected
+teams_broadcast_channel
+teams_broadcast_failed
+teams_broadcast_hint
+teams_broadcast_send
+teams_broadcast_sent
+teams_broadcast_title
 teams_confirm_names
 teams_confirm_send
 teams_confirm_title

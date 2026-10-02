@@ -59,6 +59,7 @@ import org.meshtastic.core.ui.theme.AppTheme
 fun TeamsScreen(viewModel: TeamsViewModel, onBack: () -> Unit, modifier: Modifier = Modifier) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val sendResult by viewModel.sendResult.collectAsStateWithLifecycle()
+    val broadcastResult by viewModel.broadcastResult.collectAsStateWithLifecycle()
     // The team the user picked (null for "no team") with its name change, until the change is confirmed or dropped.
     var proposal by remember { mutableStateOf<TeamProposal?>(null) }
 
@@ -86,6 +87,11 @@ fun TeamsScreen(viewModel: TeamsViewModel, onBack: () -> Unit, modifier: Modifie
             onAcceptPending = viewModel::acceptPending,
             onDismissPending = viewModel::dismissPending,
             onAdoptManual = viewModel::adoptManual,
+            broadcastResult = broadcastResult,
+            onBroadcast = { roster, channel ->
+                viewModel.clearBroadcastResult()
+                viewModel.broadcast(roster, channel)
+            },
             modifier = Modifier.padding(paddingValues),
         )
     }
@@ -113,6 +119,8 @@ internal fun TeamsContent(
     onAcceptPending: (TeamRosterRecord) -> Unit,
     onDismissPending: (TeamRosterRecord) -> Unit,
     onAdoptManual: (TeamRoster) -> Unit,
+    broadcastResult: BroadcastResult?,
+    onBroadcast: (TeamRoster, Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     LazyColumn(
@@ -130,6 +138,9 @@ internal fun TeamsContent(
             }
         }
         item { CurrentListCard(state.roster) }
+        if (state.commandPostMode) {
+            item { TeamBroadcastCard(state = state, result = broadcastResult, onBroadcast = onBroadcast) }
+        }
         item { MyTeamCard(state = state, sendResult = sendResult, onChooseTeam = onChooseTeam) }
         item { ManualEntryCard(onAdoptManual = onAdoptManual) }
         item {
@@ -200,12 +211,17 @@ private fun TeamsContentPreview() {
                     myLongName = "ALPHA-1 [Alpha]",
                     myTeam = "Alpha",
                     block = null,
+                    commandPostMode = true,
+                    channels = listOf("Général", "Équipe Alpha", "PC"),
+                    connected = true,
                 ),
                 sendResult = null,
                 onChooseTeam = {},
                 onAcceptPending = {},
                 onDismissPending = {},
                 onAdoptManual = {},
+                broadcastResult = null,
+                onBroadcast = { _, _ -> },
             )
         }
     }

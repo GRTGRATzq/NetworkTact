@@ -1237,6 +1237,12 @@
     <string name="teams_blocked_licensed">Ma radio est en mode radioamateur : son nom suit d'autres règles et n'est pas modifié ici.</string>
     <string name="teams_blocked_no_node">Le nom de ma radio n'est pas encore connu. Attendez la fin de la connexion.</string>
     <string name="teams_blocked_not_connected">Ma radio n'est pas connectée : rien ne peut être modifié ni enregistré.</string>
+    <string name="teams_broadcast_channel">Canal</string>
+    <string name="teams_broadcast_failed">Non diffusée.</string>
+    <string name="teams_broadcast_hint">Envoie « [EQUIPES] … » comme un message texte ordinaire sur le canal choisi. Chaque téléphone NetworkTact qui le reçoit demande l'accord de son utilisateur avant de l'adopter.</string>
+    <string name="teams_broadcast_send">Diffuser</string>
+    <string name="teams_broadcast_sent">Liste placée dans la conversation %1$s, où s'affiche son état d'envoi. C'est désormais la liste de ce téléphone.</string>
+    <string name="teams_broadcast_title">Diffuser la liste (PC)</string>
     <string name="teams_confirm_names">Nom long : %1$s → %2$s</string>
     <string name="teams_confirm_send">Envoyer à ma radio</string>
     <string name="teams_confirm_title">Modifier le nom de ma radio ?</string>

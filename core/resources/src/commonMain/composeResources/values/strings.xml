@@ -1829,6 +1829,12 @@
     <string name="teams_blocked_licensed">My radio is in licensed (ham) mode: its name follows other rules and is not changed here.</string>
     <string name="teams_blocked_no_node">My radio's name is not known yet. Wait for the connection to finish.</string>
     <string name="teams_blocked_not_connected">My radio is not connected: nothing can be changed or saved.</string>
+    <string name="teams_broadcast_channel">Channel</string>
+    <string name="teams_broadcast_failed">Not broadcast.</string>
+    <string name="teams_broadcast_hint">Sends « [EQUIPES] … » as an ordinary text message on the chosen channel. Each NetworkTact phone that receives it asks its user before adopting it.</string>
+    <string name="teams_broadcast_send">Broadcast</string>
+    <string name="teams_broadcast_sent">List queued in the %1$s conversation, where its sending status shows. It is now this phone's list.</string>
+    <string name="teams_broadcast_title">Broadcast the list (command post)</string>
     <string name="teams_confirm_names">Long name: %1$s → %2$s</string>
     <string name="teams_confirm_send">Send to my radio</string>
     <string name="teams_confirm_title">Change my radio's name?</string>
