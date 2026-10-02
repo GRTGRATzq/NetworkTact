@@ -41,10 +41,10 @@ import org.meshtastic.core.resources.create_your_own_networks
 import org.meshtastic.core.resources.easily_set_up_private_mesh_networks
 import org.meshtastic.core.resources.get_started
 import org.meshtastic.core.resources.intro_welcome
-import org.meshtastic.core.resources.meshtastic_app_name
 import org.meshtastic.core.resources.share_your_location_in_real_time
 import org.meshtastic.core.resources.stay_connected_anywhere
 import org.meshtastic.core.resources.track_and_share_locations
+import org.meshtastic.core.ui.component.NetworkTactLogo
 import org.meshtastic.core.ui.icon.Antenna
 import org.meshtastic.core.ui.icon.MeshHub
 import org.meshtastic.core.ui.icon.MeshtasticIcons
@@ -100,11 +100,8 @@ internal fun WelcomeScreen(onGetStarted: () -> Unit) {
                 style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
                 textAlign = TextAlign.Center,
             )
-            Text(
-                text = stringResource(Res.string.meshtastic_app_name),
-                style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold),
-                textAlign = TextAlign.Center,
-            )
+            Spacer(modifier = Modifier.height(16.dp))
+            NetworkTactLogo()
             Spacer(modifier = Modifier.height(32.dp))
             features.forEach { feature ->
                 FeatureRow(feature = feature)
