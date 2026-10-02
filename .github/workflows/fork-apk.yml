@@ -24,7 +24,10 @@ jobs:
         run: ./gradlew spotlessCheck detekt --stacktrace
       # allTests = jvmTest (Compose UI tests from commonTest, and node's jvmTest) + testAndroidHostTest where enabled.
       - name: Tests
-        run: ./gradlew :feature:messaging:allTests :feature:node:allTests --stacktrace
+        run: >-
+          ./gradlew :feature:messaging:allTests :feature:node:allTests
+          :feature:settings:allTests :core:model:allTests :core:prefs:allTests :core:service:allTests
+          --stacktrace
       - name: APK fdroid debug
         run: ./gradlew :androidApp:assembleFdroidDebug --stacktrace
       - uses: actions/upload-artifact@v4
