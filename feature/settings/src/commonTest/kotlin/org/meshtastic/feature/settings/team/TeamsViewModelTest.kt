@@ -58,16 +58,22 @@ class TeamsViewModelTest {
 
     private val myNum = 0x0badcafe
 
-    private val owner =
-        User(
-            id = "!0badcafe",
-            long_name = "ALPHA-1",
-            short_name = "A1",
-            hw_model = HardwareModel.TBEAM,
-            is_licensed = false,
-            is_unmessagable = true,
-            public_key = "key".encodeUtf8(),
-        )
+    private val owner: User =
+        User.Builder()
+            .also {
+                it.id = "!0badcafe"
+                it.long_name = "ALPHA-1"
+                it.short_name = "A1"
+                it.hw_model = HardwareModel.TBEAM
+                it.is_licensed = false
+                it.is_unmessagable = true
+                it.public_key = "key".encodeUtf8()
+            }
+            .build()
+
+    private fun User.withLongName(name: String): User = newBuilder().also { it.long_name = name }.build()
+
+    private fun User.licensed(): User = newBuilder().also { it.is_licensed = true }.build()
 
     private val prefs = FakeTeamRosterPrefs()
     private val nodes = FakeNodeRepository()
@@ -105,7 +111,7 @@ class TeamsViewModelTest {
         val (sent, change) = ownerWithTeam(owner, "Alpha")
 
         assertEquals("ALPHA-1 [Alpha]", change.longName)
-        assertEquals(owner.copy(long_name = "ALPHA-1 [Alpha]"), sent)
+        assertEquals(owner.withLongName("ALPHA-1 [Alpha]"), sent)
         assertEquals(owner.short_name, sent.short_name)
         assertEquals(owner.is_licensed, sent.is_licensed)
         assertEquals(owner.is_unmessagable, sent.is_unmessagable)
@@ -122,7 +128,7 @@ class TeamsViewModelTest {
         viewModel.applyTeam("Bravo")
 
         verifySuspend { radioConfigUseCase.setOwner(myNum, any(), any()) }
-        assertEquals(listOf(owner.copy(long_name = "ALPHA-1 [Bravo]")), sent)
+        assertEquals(listOf(owner.withLongName("ALPHA-1 [Bravo]")), sent)
         assertEquals(TeamSendResult.SENT, viewModel.sendResult.value)
     }
 
@@ -139,7 +145,7 @@ class TeamsViewModelTest {
 
     @Test
     fun a_licensed_radio_is_left_alone() = runTest {
-        nodes.setOurNode(Node(num = myNum, user = owner.copy(is_licensed = true)))
+        nodes.setOurNode(Node(num = myNum, user = owner.licensed()))
 
         assertNull(viewModel.previewTeam("Alpha"))
         viewModel.applyTeam("Alpha")
@@ -158,7 +164,7 @@ class TeamsViewModelTest {
 
     @Test
     fun preview_warns_before_truncating() {
-        nodes.setOurNode(Node(num = myNum, user = owner.copy(long_name = "A".repeat(35))))
+        nodes.setOurNode(Node(num = myNum, user = owner.withLongName("A".repeat(35))))
 
         val change = viewModel.previewTeam("Alpha")
 
@@ -174,11 +180,11 @@ class TeamsViewModelTest {
         assertEquals(OwnerWriteBlock.NO_LOCAL_NODE, ownerWriteBlock(ConnectionState.Connected, null))
         assertEquals(
             OwnerWriteBlock.NO_LOCAL_NODE,
-            ownerWriteBlock(ConnectionState.Connected, node.copy(user = owner.copy(long_name = " "))),
+            ownerWriteBlock(ConnectionState.Connected, node.copy(user = owner.withLongName(" "))),
         )
         assertEquals(
             OwnerWriteBlock.LICENSED,
-            ownerWriteBlock(ConnectionState.Connected, node.copy(user = owner.copy(is_licensed = true))),
+            ownerWriteBlock(ConnectionState.Connected, node.copy(user = owner.licensed())),
         )
         assertNull(ownerWriteBlock(ConnectionState.Connected, node))
     }

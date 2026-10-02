@@ -126,7 +126,7 @@ class MessageItemTest {
     @Test
     fun senderTeamIsShownAfterTheNameWithoutTheSuffix() = runComposeUiTest {
         val base = NodePreviewParameterProvider().minnieMouse
-        val sender = base.copy(user = base.user.copy(long_name = "ALPHA-1 [Alpha]"))
+        val sender = base.copy(user = base.user.newBuilder().also { it.long_name = "ALPHA-1 [Alpha]" }.build())
         val message = directMessage(node = sender, snr = 1f)
 
         setContent {

@@ -45,10 +45,11 @@ internal fun ownerWriteBlock(connection: ConnectionState, ourNode: Node?): Owner
 /**
  * The owner to send so that my radio declares [team] (or no team when null), and the name change it makes.
  *
- * The result is a copy of [owner] in which only `long_name` differs: Wire's generated `copy` keeps every other field as
- * it is (`short_name`, `is_licensed`, `is_unmessagable`, `hw_model`, `public_key`, `id`, unknown fields...).
+ * The result is a copy of [owner] in which only `long_name` differs: `newBuilder()` starts from every field of [owner]
+ * (`short_name`, `is_licensed`, `is_unmessagable`, `hw_model`, `public_key`, `id`, unknown fields...) and only
+ * `long_name` is set before `build()`.
  */
 internal fun ownerWithTeam(owner: User, team: String?): Pair<User, TeamNameChange> {
     val change = TeamSuffix.withTeam(owner.long_name, team)
-    return owner.copy(long_name = change.longName) to change
+    return owner.newBuilder().also { it.long_name = change.longName }.build() to change
 }

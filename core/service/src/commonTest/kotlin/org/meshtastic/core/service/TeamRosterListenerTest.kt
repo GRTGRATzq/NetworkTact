@@ -19,6 +19,7 @@ package org.meshtastic.core.service
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
+import okio.ByteString
 import okio.ByteString.Companion.encodeUtf8
 import okio.ByteString.Companion.toByteString
 import org.meshtastic.core.model.team.TeamRosterRecord
@@ -46,8 +47,22 @@ class TeamRosterListenerTest {
         from: Int = pcNum,
         portnum: PortNum = PortNum.TEXT_MESSAGE_APP,
         emoji: Int = 0,
-    ): MeshPacket =
-        MeshPacket(from = from, decoded = Data(portnum = portnum, payload = text.encodeUtf8(), emoji = emoji))
+    ): MeshPacket = meshPacket(from, data(portnum, text.encodeUtf8(), emoji))
+
+    private fun data(portnum: PortNum, payload: ByteString, emoji: Int = 0): Data = Data.Builder()
+        .also {
+            it.portnum = portnum
+            it.payload = payload
+            it.emoji = emoji
+        }
+        .build()
+
+    private fun meshPacket(from: Int, decoded: Data? = null): MeshPacket = MeshPacket.Builder()
+        .also {
+            it.from = from
+            it.decoded = decoded
+        }
+        .build()
 
     private val pc = TestDataFactory.createTestNode(num = pcNum, userId = "!1234abcd", longName = "PC-0")
 
@@ -83,19 +98,15 @@ class TeamRosterListenerTest {
         assertNull(teamRosterRecordOf(packet("[EQUIPES] Alpha", emoji = 1), myNum, pc, 1_000))
         assertNull(teamRosterRecordOf(packet("[EQUIPES] Alpha", from = myNum), myNum, pc, 1_000))
         assertNull(teamRosterRecordOf(packet("[EQUIPES] Alpha"), myNum, pc.copy(isIgnored = true), 1_000))
-        assertNull(teamRosterRecordOf(MeshPacket(from = pcNum), myNum, pc, 1_000))
+        assertNull(teamRosterRecordOf(meshPacket(pcNum), myNum, pc, 1_000))
     }
 
     @Test
     fun invalid_utf8_is_not_a_team_list() {
         val garbage =
-            MeshPacket(
-                from = pcNum,
-                decoded =
-                Data(
-                    portnum = PortNum.TEXT_MESSAGE_APP,
-                    payload = byteArrayOf(0xC3.toByte(), 0x28, 0xFF.toByte()).toByteString(),
-                ),
+            meshPacket(
+                pcNum,
+                data(PortNum.TEXT_MESSAGE_APP, byteArrayOf(0xC3.toByte(), 0x28, 0xFF.toByte()).toByteString()),
             )
         assertNull(teamRosterRecordOf(garbage, myNum, pc, 1_000))
     }
@@ -132,7 +143,7 @@ class TeamRosterListenerTest {
             TeamRosterListener(serviceRepository, FakeNodeRepository(), failingOnce).start(backgroundScope)
 
         serviceRepository.emitMeshPacket(packet("[EQUIPES] Alpha"))
-        serviceRepository.emitMeshPacket(MeshPacket(from = pcNum))
+        serviceRepository.emitMeshPacket(meshPacket(pcNum))
         serviceRepository.emitMeshPacket(packet("[EQUIPES] Bravo"))
 
         // Every emit returned, and the list after the failure still got through.
