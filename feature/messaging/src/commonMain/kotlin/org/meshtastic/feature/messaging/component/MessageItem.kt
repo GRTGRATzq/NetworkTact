@@ -31,11 +31,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -58,6 +56,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
@@ -73,7 +72,6 @@ import androidx.compose.ui.semantics.isSensitiveData
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
@@ -92,6 +90,10 @@ import org.meshtastic.core.resources.reply
 import org.meshtastic.core.resources.rssi
 import org.meshtastic.core.resources.security_signed_verified
 import org.meshtastic.core.resources.snr
+import org.meshtastic.core.resources.tactmsg_direct
+import org.meshtastic.core.resources.tactmsg_header_me_to
+import org.meshtastic.core.resources.tactmsg_header_me_to_direct
+import org.meshtastic.core.resources.unknown_channel
 import org.meshtastic.core.ui.component.AutoLinkText
 import org.meshtastic.core.ui.component.HighlightedText
 import org.meshtastic.core.ui.component.TransportIcon
@@ -162,6 +164,8 @@ fun MessageItem(
     isDirectMessage: Boolean = false,
     /** Name of the addressed node in a direct conversation, for the "acknowledged by" label. */
     recipientName: String? = null,
+    /** The channel's name in a channel conversation, shown on every card; unused in a direct conversation. */
+    conversationName: String = "",
     onTranslate: () -> Unit = {},
     onToggleTranslation: () -> Unit = {},
 ) = Column(
@@ -294,36 +298,28 @@ fun MessageItem(
                     Modifier
                 },
             )
-    val senderName = nameWithTeam(if (message.fromLocal) ourNode.user.long_name else node.user.long_name)
+    val senderName =
+        nameWithTeam(
+            if (message.fromLocal) {
+                ourNode.user.long_name
+            } else {
+                node.user.long_name.ifBlank { node.user.short_name }
+            },
+        )
+    val conversationLabel = conversationName.ifBlank { stringResource(Res.string.unknown_channel) }
+    val headerColor = priorityHeaderColor(priority, containerColor)
     val messageA11yText = stringResource(Res.string.a11y_message_from, senderName, bodyText)
-    // Timestamp lives in the group header (Google Chat pattern) rather than inside every bubble; grouping is
-    // time-windowed upstream, so the header time is always close to every message in the run.
+    // Who wrote it and where now heads every card; the time stays above a run of messages. Grouping is
+    // time-windowed upstream, so that time is always close to every message in the run.
     if (showUserName) {
-        if (message.fromLocal) {
-            Text(
-                text = timestamp,
-                modifier = Modifier.align(Alignment.End).padding(end = 12.dp, bottom = 2.dp),
-                style = metadataStyle,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        } else {
-            Row(
-                modifier = Modifier.padding(start = 12.dp, end = 12.dp, bottom = 2.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-            ) {
-                NeutralNodeChip(node = node, onClick = onClickChip, modifier = Modifier.heightIn(min = 28.dp))
-                Text(
-                    text = senderName,
-                    modifier = Modifier.weight(1f, fill = false),
-                    overflow = TextOverflow.Ellipsis,
-                    maxLines = 1,
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Text(text = timestamp, style = metadataStyle, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-        }
+        Text(
+            text = timestamp,
+            modifier =
+            Modifier.align(if (message.fromLocal) Alignment.End else Alignment.Start)
+                .padding(horizontal = 12.dp, vertical = 2.dp),
+            style = metadataStyle,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
     // Reactions live on the bubble, where the eye already is, instead of behind a modal that covers the
     // conversation.
@@ -451,9 +447,16 @@ fun MessageItem(
                 Column(
                     modifier = if (message.fromLocal) Modifier.width(IntrinsicSize.Max) else Modifier.weight(1f),
                 ) {
-                    PriorityLabel(
+                    MessageCardHeader(
                         priority = priority,
-                        modifier = Modifier.padding(start = 12.dp, end = 12.dp, top = 6.dp),
+                        color = headerColor,
+                        fromLocal = message.fromLocal,
+                        senderName = senderName,
+                        conversationName = conversationLabel,
+                        isDirectMessage = isDirectMessage,
+                        recipientName = recipientName,
+                        onSenderClick = { onClickChip(node) },
+                        modifier = Modifier.fillMaxWidth().padding(start = 12.dp, end = 12.dp, top = 8.dp),
                     )
                     OriginalMessageSnippet(
                         modifier = Modifier.fillMaxWidth(),
@@ -477,8 +480,10 @@ fun MessageItem(
                                         resolveMention(id)?.let { it.user.long_name.ifEmpty { it.user.short_name } }
                                     }
                                 }
+                            // The priority tag already heads the card; the body reads on without it.
+                            val displayedBody = remember(bodyText) { MessagePriority.stripPrefix(bodyText) }
                             AutoLinkText(
-                                text = bodyText,
+                                text = displayedBody,
                                 style = MaterialTheme.typography.bodyLarge,
                                 color = contentColor,
                                 mentionName = mentionDisplayName,
@@ -620,24 +625,61 @@ internal fun NeutralRssi(rssi: Int?, modifier: Modifier = Modifier) {
     )
 }
 
-/** Sender chip without the node's own hue: in these screens colour is reserved for priority. */
+/**
+ * First line of a card, in the priority's text colour: who wrote it and where. Received: `[URG] ALPHA-1 · Team Alpha`
+ * on the start side, the channel's name or `Direct` on the end side. Sent: `[URG] Me → BRAVO-2 · Direct` or `Me →
+ * General`. The team is only what the sender declares in its own name.
+ */
 @Composable
-private fun NeutralNodeChip(node: Node, onClick: (Node) -> Unit, modifier: Modifier = Modifier) {
-    Surface(
-        onClick = { onClick(node) },
-        modifier = modifier.defaultMinSize(minWidth = 48.dp),
-        shape = MaterialTheme.shapes.small,
-        color = MaterialTheme.colorScheme.surfaceContainerHighest,
-        contentColor = MaterialTheme.colorScheme.onSurface,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+private fun MessageCardHeader(
+    priority: MessagePriority,
+    color: Color,
+    fromLocal: Boolean,
+    senderName: String,
+    conversationName: String,
+    isDirectMessage: Boolean,
+    recipientName: String?,
+    onSenderClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val style = MaterialTheme.typography.labelMedium
+    Row(
+        modifier = modifier,
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        Box(modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp), contentAlignment = Alignment.Center) {
+        PriorityTag(priority = priority, color = color)
+        if (fromLocal) {
+            val recipient = recipientName.orEmpty().ifBlank { "?" }
             Text(
-                text = node.user.short_name.ifEmpty { "???" },
-                style = MaterialTheme.typography.labelLarge,
+                text =
+                if (isDirectMessage) {
+                    stringResource(Res.string.tactmsg_header_me_to_direct, recipient)
+                } else {
+                    stringResource(Res.string.tactmsg_header_me_to, conversationName)
+                },
+                style = style,
                 fontWeight = FontWeight.Bold,
-                textDecoration = TextDecoration.LineThrough.takeIf { node.isIgnored },
+                color = color,
                 maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        } else {
+            Text(
+                text = senderName,
+                modifier = Modifier.weight(1f).clickable(role = Role.Button, onClick = onSenderClick),
+                style = style,
+                fontWeight = FontWeight.Bold,
+                color = color,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Text(
+                text = if (isDirectMessage) stringResource(Res.string.tactmsg_direct) else conversationName,
+                style = style,
+                color = color,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
             )
         }
     }

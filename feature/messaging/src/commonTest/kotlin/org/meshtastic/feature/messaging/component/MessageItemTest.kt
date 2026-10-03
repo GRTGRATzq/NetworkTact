@@ -341,7 +341,7 @@ class MessageItemTest {
     }
 
     @Test
-    fun urgentPrefix_isWrittenOutOnTheBubble() = runComposeUiTest {
+    fun urgentPrefix_headsTheCardAndIsNotRepeatedInTheBody() = runComposeUiTest {
         val testNode = NodePreviewParameterProvider().mickeyMouse
         val message = localMessage(node = testNode, status = MessageStatus.ENROUTE).copy(text = "[URG] ALPHA-1 appui")
 
@@ -349,9 +349,99 @@ class MessageItemTest {
             MessageItem(message = message, node = testNode, selected = false, onStatusClick = {}, ourNode = testNode)
         }
 
-        onNodeWithText("URGENT", useUnmergedTree = true).assertIsDisplayed()
+        onNodeWithText("[URG]", useUnmergedTree = true).assertIsDisplayed()
+        onNodeWithContentDescription("Priority: Urgent", useUnmergedTree = true).assertExists()
+        onNodeWithText("ALPHA-1 appui", useUnmergedTree = true).assertIsDisplayed()
+        onNodeWithText("[URG] ALPHA-1 appui", useUnmergedTree = true).assertDoesNotExist()
         onNodeWithTag(PRIORITY_BAR_TEST_TAG, useUnmergedTree = true).assertExists()
     }
+
+    @Test
+    fun receivedChannelCard_namesTheSenderTeamAndTheChannel() = runComposeUiTest {
+        val sender = namedNode(NodePreviewParameterProvider().minnieMouse, "ALPHA-1 [Alpha]")
+        val message = directMessage(node = sender, snr = 1f).copy(text = "[CR] FAIT OBSERVÉ · Lieu 31U DQ 48251 11932")
+
+        setContent {
+            AppTheme {
+                MessageItem(
+                    message = message,
+                    node = sender,
+                    selected = false,
+                    ourNode = NodePreviewParameterProvider().mickeyMouse,
+                    isDirectMessage = false,
+                    conversationName = "Général",
+                )
+            }
+        }
+
+        onNodeWithText("[CR]", useUnmergedTree = true).assertIsDisplayed()
+        onNodeWithText("ALPHA-1 · Team Alpha", useUnmergedTree = true).assertIsDisplayed()
+        onNodeWithText("Général", useUnmergedTree = true).assertIsDisplayed()
+        onNodeWithText("FAIT OBSERVÉ · Lieu 31U DQ 48251 11932", useUnmergedTree = true).assertIsDisplayed()
+    }
+
+    @Test
+    fun receivedDirectCard_readsDirectOnTheEndSide() = runComposeUiTest {
+        val sender = namedNode(NodePreviewParameterProvider().minnieMouse, "BRAVO-2 [Bravo]")
+        val message = directMessage(node = sender, snr = 1f).copy(text = "[POS] BRAVO-2 · MGRS 31U DQ 48251 11932")
+
+        setContent {
+            MessageItem(
+                message = message,
+                node = sender,
+                selected = false,
+                ourNode = NodePreviewParameterProvider().mickeyMouse,
+                isDirectMessage = true,
+            )
+        }
+
+        onNodeWithText("Direct", useUnmergedTree = true).assertIsDisplayed()
+        // [POS] is information: no priority tag, and its own tag stays in the body.
+        onNodeWithContentDescription("Priority:", substring = true, useUnmergedTree = true).assertDoesNotExist()
+        onNodeWithText("[POS] BRAVO-2 · MGRS 31U DQ 48251 11932", useUnmergedTree = true).assertIsDisplayed()
+    }
+
+    @Test
+    fun sentDirectCard_isHeadedMeToTheRecipient() = runComposeUiTest {
+        val me = namedNode(NodePreviewParameterProvider().mickeyMouse, "PC-0")
+        val message = localMessage(node = me, status = MessageStatus.ENROUTE)
+
+        setContent {
+            MessageItem(
+                message = message,
+                node = me,
+                selected = false,
+                ourNode = me,
+                isDirectMessage = true,
+                recipientName = "BRAVO-2",
+            )
+        }
+
+        onNodeWithText("Me → BRAVO-2 · Direct", useUnmergedTree = true).assertIsDisplayed()
+    }
+
+    @Test
+    fun sentChannelCard_isHeadedMeToTheChannel() = runComposeUiTest {
+        val me = namedNode(NodePreviewParameterProvider().mickeyMouse, "PC-0")
+        val message = localMessage(node = me, status = MessageStatus.ENROUTE).copy(text = "[URG] Regroupement")
+
+        setContent {
+            MessageItem(
+                message = message,
+                node = me,
+                selected = false,
+                ourNode = me,
+                isDirectMessage = false,
+                conversationName = "Général",
+            )
+        }
+
+        onNodeWithText("[URG]", useUnmergedTree = true).assertIsDisplayed()
+        onNodeWithText("Me → Général", useUnmergedTree = true).assertIsDisplayed()
+    }
+
+    private fun namedNode(base: Node, longName: String): Node =
+        base.copy(user = base.user.newBuilder().also { it.long_name = longName }.build())
 
     @Test
     fun localDirectMessage_displaysImplicitAckWarningText() = runComposeUiTest {

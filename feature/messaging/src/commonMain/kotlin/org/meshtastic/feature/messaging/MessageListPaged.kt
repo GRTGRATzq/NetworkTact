@@ -115,6 +115,8 @@ internal data class MessageListPagedState(
     val canReact: Boolean = true,
     /** False for an archived conversation: its channel is gone, so nothing can be sent or resent into it. */
     val canSend: Boolean = true,
+    /** The channel's display name in a channel conversation, shown on every card; unused in a direct one. */
+    val channelName: String = "",
 )
 
 /** The addressed node's name in a direct conversation (its id when unknown), or null for a channel. */
@@ -433,6 +435,7 @@ private fun RenderPagedChatMessageRow(
         resolveMention = resolveMention,
         onStatusClick = { onShowStatusDialog(message) },
         recipientName = recipientName,
+        conversationName = state.channelName,
         onReply = { handlers.onReply(message) },
         emojis = message.emojis,
         showUserName = showUserName,

@@ -134,17 +134,20 @@ private fun MessagePriority.selectorRes(): StringResource = when (this) {
     MessagePriority.INFO -> Res.string.tactmsg_priority_info
 }
 
-/** The priority written out, so it reads without colour. */
+/**
+ * The priority's own tag as typed (`[URG]`, `[CR]`), so it reads without colour; info carries none. Screen readers hear
+ * the priority's name instead of the brackets.
+ */
 @Composable
-internal fun PriorityLabel(priority: MessagePriority, modifier: Modifier = Modifier) {
-    val label = stringResource(priority.badgeRes())
-    val a11y = stringResource(Res.string.tactmsg_priority_a11y, label)
+internal fun PriorityTag(priority: MessagePriority, color: Color, modifier: Modifier = Modifier) {
+    val tag = priority.prefix ?: return
+    val a11y = stringResource(Res.string.tactmsg_priority_a11y, stringResource(priority.selectorRes()))
     Text(
-        text = label,
+        text = tag,
         modifier = modifier.semantics { contentDescription = a11y },
-        style = MaterialTheme.typography.labelSmall,
+        style = MaterialTheme.typography.labelMedium,
         fontWeight = FontWeight.Bold,
-        color = MaterialTheme.colorScheme.onSurface,
+        color = color,
     )
 }
 

@@ -570,6 +570,7 @@ fun MessageScreen(
                         showFullMessageTimestamps = showFullMessageTimestamps,
                         canReact = !isRetiredChannel,
                         canSend = !isRetiredChannel,
+                        channelName = channelName,
                     ),
                     handlers =
                     MessageListHandlers(
