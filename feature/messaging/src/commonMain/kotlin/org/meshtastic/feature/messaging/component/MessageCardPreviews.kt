@@ -36,53 +36,56 @@ import org.meshtastic.proto.Routing
 private const val PREVIEW_RECEIVED_AT = 1_790_000_000_000L
 private const val PREVIEW_NOW = PREVIEW_RECEIVED_AT + 2 * 60 * 1000L
 
-private fun previewNode(base: Node, longName: String, shortName: String): Node = base.copy(
-    user =
-    base.user
-        .newBuilder()
-        .also {
-            it.long_name = longName
-            it.short_name = shortName
-        }
-        .build(),
-)
+private fun previewNode(base: Node, longName: String, shortName: String): Node {
+    val user =
+        base.user
+            .newBuilder()
+            .also {
+                it.long_name = longName
+                it.short_name = shortName
+            }
+            .build()
+    return base.copy(user = user)
+}
 
-private fun previewMessage(
-    uuid: Long,
-    text: String,
-    node: Node,
-    fromLocal: Boolean,
-    status: MessageStatus,
-    routingError: Int = 0,
-) = Message(
-    text = text,
-    time = "14:32",
-    fromLocal = fromLocal,
-    status = status,
-    snr = 6.5f,
-    rssi = -95,
-    hopsAway = if (fromLocal) 0 else 1,
-    uuid = uuid,
-    receivedTime = PREVIEW_RECEIVED_AT,
-    node = node,
-    read = true,
-    routingError = routingError,
-    packetId = uuid.toInt(),
-    emojis = listOf(),
-    replyId = null,
-    viaMqtt = false,
-)
+private val previewBase =
+    Message(
+        text = "",
+        time = "14:32",
+        fromLocal = false,
+        status = MessageStatus.RECEIVED,
+        snr = 6.5f,
+        rssi = -95,
+        hopsAway = 1,
+        uuid = 0L,
+        receivedTime = PREVIEW_RECEIVED_AT,
+        node = NodePreviewParameterProvider().minnieMouse,
+        read = true,
+        routingError = 0,
+        packetId = 0,
+        emojis = listOf(),
+        replyId = null,
+        viaMqtt = false,
+    )
+
+private fun previewMessage(uuid: Long, text: String, node: Node, fromLocal: Boolean, status: MessageStatus): Message {
+    val hops = if (fromLocal) 0 else 1
+    return previewBase.copy(
+        uuid = uuid,
+        packetId = uuid.toInt(),
+        text = text,
+        node = node,
+        fromLocal = fromLocal,
+        status = status,
+        hopsAway = hops,
+    )
+}
 
 @Composable
 private fun PreviewThread(content: @Composable () -> Unit) {
     AppTheme {
-        Column(
-            modifier = Modifier.fillMaxWidth().background(
-                MaterialTheme.colorScheme.background,
-            ).padding(vertical = 8.dp),
-        ) {
-            content()
-        }
+        val background = MaterialTheme.colorScheme.background
+        Column(modifier = Modifier.fillMaxWidth().background(background).padding(vertical = 8.dp)) { content() }
     }
 }
 
@@ -142,14 +145,8 @@ private fun SentCardsPreview() {
     val direct =
         listOf(
             previewMessage(14L, "Reçu, je transmets", pc0, true, MessageStatus.RECEIVED),
-            previewMessage(
-                15L,
-                "Confirmez votre position",
-                pc0,
-                true,
-                MessageStatus.ERROR,
-                routingError = Routing.Error.MAX_RETRANSMIT.value,
-            ),
+            previewMessage(15L, "Confirmez votre position", pc0, true, MessageStatus.ERROR)
+                .copy(routingError = Routing.Error.MAX_RETRANSMIT.value),
         )
     PreviewThread {
         onChannel.forEach { message ->
