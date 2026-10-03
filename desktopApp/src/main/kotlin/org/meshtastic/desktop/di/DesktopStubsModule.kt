@@ -33,6 +33,7 @@ import org.meshtastic.desktop.stub.NoopMeshLocationManager
 import org.meshtastic.desktop.stub.NoopMeshWorkerManager
 import org.meshtastic.desktop.stub.NoopPhoneLocationProvider
 import org.meshtastic.desktop.stub.NoopPlatformAnalytics
+import org.meshtastic.feature.messaging.coordinates.PhonePositionSource
 import org.meshtastic.feature.node.compass.CompassHeadingProvider
 import org.meshtastic.feature.node.compass.MagneticFieldProvider
 import org.meshtastic.feature.node.compass.PhoneLocationProvider
@@ -62,4 +63,7 @@ class DesktopStubsModule {
     @Single fun phoneLocationProvider(): PhoneLocationProvider = NoopPhoneLocationProvider()
 
     @Single fun magneticFieldProvider(): MagneticFieldProvider = NoopMagneticFieldProvider()
+
+    /** Desktop has no position of its own: "Ma position" relies on the radio alone. */
+    @Single fun phonePositionSource(): PhonePositionSource = PhonePositionSource { null }
 }
