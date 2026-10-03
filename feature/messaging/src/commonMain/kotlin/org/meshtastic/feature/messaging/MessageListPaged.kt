@@ -70,6 +70,7 @@ import org.meshtastic.feature.messaging.component.MessageItem
 import org.meshtastic.feature.messaging.component.MessageStatusDialog
 import org.meshtastic.feature.messaging.component.ReactionDialog
 import org.meshtastic.feature.messaging.component.UnreadMessagesDivider
+import org.meshtastic.feature.messaging.component.rememberCurrentTimeMillis
 import kotlin.math.abs
 
 private const val HEX_RADIX = 16
@@ -249,6 +250,10 @@ private fun MessageListPagedContent(
     // Disable animations during scroll to prevent jank/stutter
     val enableAnimations by remember { derivedStateOf { !listState.isScrollInProgress } }
 
+    // One clock for the whole list; each card reads it only in its status line, so a tick recomposes just that line.
+    val currentTime = rememberCurrentTimeMillis()
+    val currentTimeMillis = remember(currentTime) { { currentTime.value } }
+
     // One bar at a time, owned above the rows: a row cannot see a tap that lands on another row or on the space
     // between them, and two rows owning their own state could both be open at once.
     var openReactionBarFor by remember { mutableStateOf<Long?>(null) }
@@ -327,6 +332,7 @@ private fun MessageListPagedContent(
                                 quickEmojis = quickEmojis,
                                 openReactionBarFor = openReactionBarFor,
                                 onOpenReactionBarChange = { openReactionBarFor = it },
+                                currentTimeMillis = currentTimeMillis,
                             )
                         }
                     } else {
@@ -349,6 +355,7 @@ private fun MessageListPagedContent(
                             quickEmojis = quickEmojis,
                             openReactionBarFor = openReactionBarFor,
                             onOpenReactionBarChange = { openReactionBarFor = it },
+                            currentTimeMillis = currentTimeMillis,
                         )
                     }
                 }
@@ -394,6 +401,7 @@ private fun RenderPagedChatMessageRow(
     openReactionBarFor: Long?,
     onOpenReactionBarChange: (Long?) -> Unit,
     quickEmojis: List<String>,
+    currentTimeMillis: () -> Long,
 ) {
     val ourNode = state.ourNode ?: return
     val selected by
@@ -436,6 +444,7 @@ private fun RenderPagedChatMessageRow(
         onStatusClick = { onShowStatusDialog(message) },
         recipientName = recipientName,
         conversationName = state.channelName,
+        currentTimeMillis = currentTimeMillis,
         onReply = { handlers.onReply(message) },
         emojis = message.emojis,
         showUserName = showUserName,

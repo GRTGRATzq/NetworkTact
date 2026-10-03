@@ -16,6 +16,9 @@
  */
 package org.meshtastic.feature.messaging.component
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.SemanticsMatcher
@@ -37,6 +40,7 @@ import org.meshtastic.proto.MeshPacket
 import org.meshtastic.proto.Routing
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.time.Duration.Companion.minutes
 
 @OptIn(ExperimentalTestApi::class)
 class MessageItemTest {
@@ -438,6 +442,59 @@ class MessageItemTest {
 
         onNodeWithText("[URG]", useUnmergedTree = true).assertIsDisplayed()
         onNodeWithText("Me → Général", useUnmergedTree = true).assertIsDisplayed()
+    }
+
+    @Test
+    fun receivedCard_readsReceivedWithItsAge() = runComposeUiTest {
+        val sender = namedNode(NodePreviewParameterProvider().minnieMouse, "ALPHA-1 [Alpha]")
+        val message = directMessage(node = sender, snr = 1f)
+
+        setContent {
+            MessageItem(
+                message = message,
+                node = sender,
+                selected = false,
+                ourNode = NodePreviewParameterProvider().mickeyMouse,
+                currentTimeMillis = { message.displayTime + 2.minutes.inWholeMilliseconds },
+            )
+        }
+
+        onNodeWithText("Received · 2 min ago", useUnmergedTree = true).assertIsDisplayed()
+    }
+
+    @Test
+    fun receivedCard_ageFollowsTheClockWithoutANewMessage() = runComposeUiTest {
+        val sender = namedNode(NodePreviewParameterProvider().minnieMouse, "ALPHA-1 [Alpha]")
+        val message = directMessage(node = sender, snr = 1f)
+        var now by mutableStateOf(message.displayTime)
+
+        setContent {
+            MessageItem(
+                message = message,
+                node = sender,
+                selected = false,
+                ourNode = NodePreviewParameterProvider().mickeyMouse,
+                currentTimeMillis = { now },
+            )
+        }
+        onNodeWithText("Received · just now", useUnmergedTree = true).assertIsDisplayed()
+
+        now = message.displayTime + 5.minutes.inWholeMilliseconds
+        waitForIdle()
+
+        onNodeWithText("Received · 5 min ago", useUnmergedTree = true).assertIsDisplayed()
+        onNodeWithText("Received · just now", useUnmergedTree = true).assertDoesNotExist()
+    }
+
+    @Test
+    fun sentCard_hasNoReceivedLine() = runComposeUiTest {
+        val me = namedNode(NodePreviewParameterProvider().mickeyMouse, "PC-0")
+        val message = localMessage(node = me, status = MessageStatus.ENROUTE)
+
+        setContent { MessageItem(message = message, node = me, selected = false, ourNode = me) }
+
+        onNodeWithTag(MESSAGE_RECEIVED_LABEL_TEST_TAG, useUnmergedTree = true).assertDoesNotExist()
+        onNodeWithText("Sent to my radio", useUnmergedTree = true).assertIsDisplayed()
     }
 
     private fun namedNode(base: Node, longName: String): Node =

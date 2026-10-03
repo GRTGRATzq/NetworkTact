@@ -79,6 +79,7 @@ import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import org.meshtastic.core.common.util.DateFormatter
 import org.meshtastic.core.common.util.MetricFormatter
+import org.meshtastic.core.common.util.nowMillis
 import org.meshtastic.core.model.Message
 import org.meshtastic.core.model.Node
 import org.meshtastic.core.model.Reaction
@@ -166,6 +167,8 @@ fun MessageItem(
     recipientName: String? = null,
     /** The channel's name in a channel conversation, shown on every card; unused in a direct conversation. */
     conversationName: String = "",
+    /** Current time for the "received 2 min ago" line; the list passes a ticking clock so the age keeps growing. */
+    currentTimeMillis: () -> Long = { nowMillis },
     onTranslate: () -> Unit = {},
     onToggleTranslation: () -> Unit = {},
 ) = Column(
@@ -497,6 +500,10 @@ fun MessageItem(
                             horizontalArrangement = Arrangement.spacedBy(6.dp),
                         ) {
                             if (!message.fromLocal) {
+                                ReceivedStatusLabel(
+                                    receivedAtMillis = message.displayTime,
+                                    currentTimeMillis = currentTimeMillis,
+                                )
                                 // All mesh diagnostics (signature, signal or hops, transport) grouped in one run.
                                 DiagnosticsRow {
                                     // XEdDSA is only set on verified broadcasts, never DMs.
