@@ -1782,7 +1782,14 @@
     <string name="swipe_action_unmute">Unmute</string>
     <string name="system_settings">System Settings</string>
     <!-- TACTMSG -->
+    <string name="tactmsg_age_days">%1$s d ago</string>
+    <string name="tactmsg_age_hours">%1$s h ago</string>
+    <string name="tactmsg_age_inconsistent">inconsistent time (%1$s min in the future)</string>
+    <string name="tactmsg_age_just_now">just now</string>
+    <string name="tactmsg_age_minutes">%1$s min ago</string>
+    <string name="tactmsg_age_unknown">time unknown</string>
     <string name="tactmsg_alert_icon">Alert</string>
+    <string name="tactmsg_direct">Direct</string>
     <string name="tactmsg_filter_all_channels">All</string>
     <string name="tactmsg_filter_channels">Channels</string>
     <string name="tactmsg_filter_empty">No message matches the filters</string>
@@ -1790,6 +1797,8 @@
     <string name="tactmsg_filter_unacked">Not acknowledged</string>
     <string name="tactmsg_filter_unacked_direct_only">Direct messages only</string>
     <string name="tactmsg_filters">Message filters</string>
+    <string name="tactmsg_header_me_to">Me → %1$s</string>
+    <string name="tactmsg_header_me_to_direct">Me → %1$s · Direct</string>
     <string name="tactmsg_priority_a11y">Priority: %1$s</string>
     <string name="tactmsg_priority_badge_info">INFO</string>
     <string name="tactmsg_priority_badge_report">REPORT</string>
@@ -1809,6 +1818,7 @@
     <string name="tactmsg_reason_rate_limit">sending too fast</string>
     <string name="tactmsg_reason_timeout">no response in time</string>
     <string name="tactmsg_reason_too_large">message too long</string>
+    <string name="tactmsg_received">Received · %1$s</string>
     <string name="tactmsg_status_acked_by">Acknowledged by %1$s</string>
     <string name="tactmsg_status_acked_by_verified">Acknowledged by %1$s (verified)</string>
     <string name="tactmsg_status_awaiting_radio">Waiting for my radio</string>

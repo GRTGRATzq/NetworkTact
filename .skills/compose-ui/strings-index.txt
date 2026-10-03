@@ -1728,7 +1728,14 @@ swipe_action_mute
 swipe_action_unmute
 system_settings
 ### TACTMSG ###
+tactmsg_age_days
+tactmsg_age_hours
+tactmsg_age_inconsistent
+tactmsg_age_just_now
+tactmsg_age_minutes
+tactmsg_age_unknown
 tactmsg_alert_icon
+tactmsg_direct
 tactmsg_filter_all_channels
 tactmsg_filter_channels
 tactmsg_filter_empty
@@ -1736,6 +1743,8 @@ tactmsg_filter_team
 tactmsg_filter_unacked
 tactmsg_filter_unacked_direct_only
 tactmsg_filters
+tactmsg_header_me_to
+tactmsg_header_me_to_direct
 tactmsg_priority_a11y
 tactmsg_priority_badge_info
 tactmsg_priority_badge_report
@@ -1755,6 +1764,7 @@ tactmsg_reason_not_accepted
 tactmsg_reason_rate_limit
 tactmsg_reason_timeout
 tactmsg_reason_too_large
+tactmsg_received
 tactmsg_status_acked_by
 tactmsg_status_acked_by_verified
 tactmsg_status_awaiting_radio

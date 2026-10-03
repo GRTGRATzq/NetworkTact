@@ -1478,7 +1478,14 @@
     <string name="command_post_duration_minutes">%1$s min</string>
     <string name="command_post_duration_hours">%1$s h %2$s</string>
     <string name="command_post_duration_days">%1$s j %2$s h</string>
+    <string name="tactmsg_age_days">il y a %1$s j</string>
+    <string name="tactmsg_age_hours">il y a %1$s h</string>
+    <string name="tactmsg_age_inconsistent">heure incohérente (%1$s min dans le futur)</string>
+    <string name="tactmsg_age_just_now">à l’instant</string>
+    <string name="tactmsg_age_minutes">il y a %1$s min</string>
+    <string name="tactmsg_age_unknown">heure inconnue</string>
     <string name="tactmsg_alert_icon">Alerte</string>
+    <string name="tactmsg_direct">Direct</string>
     <string name="tactmsg_filter_all_channels">Tous</string>
     <string name="tactmsg_filter_channels">Canaux</string>
     <string name="tactmsg_filter_empty">Aucun message ne correspond aux filtres</string>
@@ -1486,6 +1493,8 @@
     <string name="tactmsg_filter_unacked">Sans accusé</string>
     <string name="tactmsg_filter_unacked_direct_only">Messages directs uniquement</string>
     <string name="tactmsg_filters">Filtres des messages</string>
+    <string name="tactmsg_header_me_to">Moi → %1$s</string>
+    <string name="tactmsg_header_me_to_direct">Moi → %1$s · Direct</string>
     <string name="tactmsg_priority_a11y">Priorité : %1$s</string>
     <string name="tactmsg_priority_badge_info">INFO</string>
     <string name="tactmsg_priority_badge_report">COMPTE RENDU</string>
@@ -1505,6 +1514,7 @@
     <string name="tactmsg_reason_rate_limit">envoi trop rapide</string>
     <string name="tactmsg_reason_timeout">aucune réponse dans le délai</string>
     <string name="tactmsg_reason_too_large">message trop long</string>
+    <string name="tactmsg_received">Reçu · %1$s</string>
     <string name="tactmsg_status_acked_by">Accusé par %1$s</string>
     <string name="tactmsg_status_acked_by_verified">Accusé par %1$s (vérifié)</string>
     <string name="tactmsg_status_awaiting_radio">En attente de ma radio</string>
