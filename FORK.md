@@ -1,7 +1,7 @@
 # NetworkTact
 
 NetworkTact est un fork de [Meshtastic-Android](https://github.com/meshtastic/Meshtastic-Android),
-modifié à partir du 26 septembre 2026 (dernière mise à jour de ce fichier : 3 octobre 2026, branche `feat/coordonnees`).
+modifié à partir du 26 septembre 2026 (dernière mise à jour de ce fichier : 3 octobre 2026, branche `feat/conversation-maquette`).
 
 - **Licence** : GPL-3.0-or-later (voir le fichier `LICENSE`, inchangé).
 - **Origine** : code de Meshtastic-Android, © Meshtastic LLC. Les mentions de copyright de
@@ -92,6 +92,23 @@ Le détail de chaque changement est dans l'historique Git de ce dépôt.
   comme compte rendu par son préfixe `[CR]`. Insertion bloquée au-delà de 200 octets.
 - Les mots de ces messages sont une convention française fixe, identique sur tous les
   téléphones. Rien n'est envoyé automatiquement. Aucune photo n'est prise ni transmise.
+
+### 8. Conversations conformes à la maquette (`feat/conversation-maquette`)
+
+- **Carte de message** : barre de priorité de 4 dp sur le bord de début, coins droits de ce
+  côté ; fond légèrement teinté pour urgent et CR, neutre pour info. Les messages envoyés sont
+  alignés à droite (85 % de la largeur au plus), avec une barre neutre.
+- **En-tête** : « [URG] ALPHA-1 · Équipe Alpha » et, à droite, le nom du canal ou « Direct » ;
+  pour un envoi, « Moi → BRAVO-2 · Direct » ou « Moi → Général ». L'étiquette [URG] / [CR]
+  n'est plus répétée dans le corps affiché (le texte copié et la recherche restent complets).
+  Teintes de texte d'en-tête (contraste mesuré sur le fond de la carte, minimum 4,5:1) :
+  urgent #8C1D18 (clair) / #FFB4AB (sombre), CR #6B4100 / #FFD08A, info texte neutre ; repli
+  sur le texte neutre si une palette dynamique du système ne tient pas 4,5:1.
+- **Ligne d'état** : « Reçu · il y a 2 min » pour un message reçu (heure réseau du message,
+  recalculée toutes les 15 s ; « heure inconnue » sans heure, « heure incohérente » au-delà de
+  2 min dans le futur). Les libellés d'envoi ne changent pas : un message de canal n'est jamais
+  « accusé ».
+- La pastille du nom court de l'expéditeur est retirée ; toucher son nom ouvre sa fiche.
 
 ## Marques
 
