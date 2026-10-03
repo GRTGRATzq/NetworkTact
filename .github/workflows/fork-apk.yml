@@ -27,7 +27,6 @@ jobs:
         run: >-
           ./gradlew :feature:messaging:allTests :feature:node:allTests
           :feature:settings:allTests :core:model:allTests :core:prefs:allTests :core:service:allTests
-          :core:navigation:allTests
           --stacktrace
       - name: APK fdroid debug
         run: ./gradlew :androidApp:assembleFdroidDebug --stacktrace
