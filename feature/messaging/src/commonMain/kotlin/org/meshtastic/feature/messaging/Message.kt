@@ -133,7 +133,7 @@ import org.meshtastic.feature.messaging.component.QuickChatRow
 import org.meshtastic.feature.messaging.component.ReplySnippet
 import org.meshtastic.feature.messaging.component.ScrollToBottomFab
 import org.meshtastic.feature.messaging.component.TranslationModelDownloadDialog
-import org.meshtastic.feature.messaging.coordinates.FieldShortcutsRow
+import org.meshtastic.feature.messaging.coordinates.FieldShortcuts
 import org.meshtastic.feature.messaging.priority.MessagePriority
 
 private const val ROUNDED_CORNER_PERCENT = 100
@@ -521,7 +521,11 @@ fun MessageScreen(
                         onClearReply = { replyingToPacketId = null },
                         ourNode = ourNode,
                     )
-                    FieldShortcutsRow(onOpenConverter = navigateToCoordinateConverter)
+                    FieldShortcuts(
+                        messageInputState = messageInputState,
+                        canFill = connectionState is ConnectionState.Connected,
+                        onOpenConverter = navigateToCoordinateConverter,
+                    )
                     MessageInput(
                         isEnabled = connectionState is ConnectionState.Connected,
                         isHomoglyphEncodingEnabled = homoglyphEncodingEnabled,
