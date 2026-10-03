@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SegmentedButton
@@ -33,6 +34,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.compositeOver
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -53,8 +56,10 @@ import org.meshtastic.core.resources.tactmsg_priority_urgent
 import org.meshtastic.core.ui.icon.MeshtasticIcons
 import org.meshtastic.core.ui.icon.Warning
 import org.meshtastic.core.ui.theme.AppTheme
+import org.meshtastic.core.ui.theme.MIN_TEXT_CONTRAST
 import org.meshtastic.core.ui.theme.StatusColors.StatusRed
 import org.meshtastic.core.ui.theme.StatusColors.StatusYellow
+import org.meshtastic.core.ui.theme.pickLegible
 import org.meshtastic.feature.messaging.priority.MessagePriority
 
 /** Alpha of the priority wash laid over a message bubble: light enough to keep body text at full contrast. */
@@ -70,6 +75,52 @@ internal fun priorityAccent(priority: MessagePriority): Color = when (priority) 
     MessagePriority.REPORT -> MaterialTheme.colorScheme.StatusYellow
     MessagePriority.INFO -> MaterialTheme.colorScheme.outlineVariant
 }
+
+/** A message card's background: the card colour, under a light wash of the priority's hue for urgent and report. */
+@Composable
+internal fun priorityCardBackground(priority: MessagePriority): Color {
+    val base = CardDefaults.cardColors().containerColor
+    return if (priority == MessagePriority.INFO) {
+        base
+    } else {
+        priorityAccent(priority).copy(alpha = PRIORITY_WASH_ALPHA).compositeOver(base)
+    }
+}
+
+/**
+ * Text colour of a card's header line: the text shade of the priority's hue (red for urgent, amber for report, the
+ * neutral text colour for info), checked against [background]. A shade that would read under 4.5:1 there, as a
+ * system-derived palette could make it, falls back to the neutral text colour.
+ */
+@Composable
+internal fun priorityHeaderColor(priority: MessagePriority, background: Color): Color {
+    val scheme = MaterialTheme.colorScheme
+    val shade = priorityHeaderShade(priority, darkSurface = scheme.surface.luminance() < DARK_SURFACE_LUMINANCE)
+    return pickLegible(
+        candidates = listOfNotNull(shade),
+        background = background,
+        fallback = scheme.onSurface,
+        minRatio = MIN_TEXT_CONTRAST,
+    )
+}
+
+/**
+ * The text shade of [priority]'s hue: dark on a light scheme, light on a dark one. Null for info, which keeps the
+ * neutral text colour.
+ */
+internal fun priorityHeaderShade(priority: MessagePriority, darkSurface: Boolean): Color? = when (priority) {
+    MessagePriority.URGENT -> if (darkSurface) UrgentTextOnDark else UrgentTextOnLight
+    MessagePriority.REPORT -> if (darkSurface) ReportTextOnDark else ReportTextOnLight
+    MessagePriority.INFO -> null
+}
+
+private val UrgentTextOnLight = Color(0xFF8C1D18)
+private val UrgentTextOnDark = Color(0xFFFFB4AB)
+private val ReportTextOnLight = Color(0xFF6B4100)
+private val ReportTextOnDark = Color(0xFFFFD08A)
+
+/** Luminance below which a scheme's surface is dark; the static schemes sit near the extremes. */
+private const val DARK_SURFACE_LUMINANCE = 0.5f
 
 internal fun MessagePriority.badgeRes(): StringResource = when (this) {
     MessagePriority.URGENT -> Res.string.tactmsg_priority_badge_urgent
