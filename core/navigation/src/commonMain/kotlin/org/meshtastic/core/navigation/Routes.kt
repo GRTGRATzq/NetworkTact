@@ -50,6 +50,9 @@ sealed interface ContactsRoute : Route {
     @Serializable data class Share(val message: String) : ContactsRoute
 
     @Serializable data object QuickChat : ContactsRoute
+
+    /** Offline MGRS / UTM / DMS converter, opened from a conversation. */
+    @Serializable data object CoordinateConverter : ContactsRoute
 }
 
 @Serializable

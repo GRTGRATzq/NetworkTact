@@ -48,6 +48,7 @@ class NavigationConfigTest {
             ContactsRoute.Messages(contactKey = "test-contact"),
             ContactsRoute.Share(message = "share-text"),
             ContactsRoute.QuickChat,
+            ContactsRoute.CoordinateConverter,
             // MapRoute
             MapRoute.Map(),
             MapRoute.Map(waypointId = 42),

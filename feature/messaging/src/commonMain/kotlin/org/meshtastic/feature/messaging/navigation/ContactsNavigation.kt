@@ -34,6 +34,7 @@ import org.meshtastic.core.navigation.replaceLast
 import org.meshtastic.core.ui.component.ScrollToTopEvent
 import org.meshtastic.feature.messaging.QuickChatScreen
 import org.meshtastic.feature.messaging.QuickChatViewModel
+import org.meshtastic.feature.messaging.coordinates.CoordinateConverterScreen
 import org.meshtastic.feature.messaging.ui.contact.AdaptiveContactsScreen
 import org.meshtastic.feature.messaging.ui.contact.ContactsViewModel
 import org.meshtastic.feature.messaging.ui.sharing.ShareScreen
@@ -74,6 +75,7 @@ fun EntryProviderScope<NavKey>.contactsGraph(
             dropUnlessResumed { backStack.add(org.meshtastic.core.navigation.ContactsRoute.QuickChat) },
             navigateToFilterSettings = dropUnlessResumed { backStack.add(SettingsRoute.FilterSettings) },
             onNavigateBack = dropUnlessResumed { backStack.removeLastOrNull() },
+            navigateToCoordinateConverter = dropUnlessResumed { backStack.add(ContactsRoute.CoordinateConverter) },
         )
     }
 
@@ -85,6 +87,10 @@ fun EntryProviderScope<NavKey>.contactsGraph(
             onConfirm = { contactKey -> backStack.replaceLast(ContactsRoute.Messages(contactKey, message)) },
             onNavigateUp = dropUnlessResumed { backStack.removeLastOrNull() },
         )
+    }
+
+    entry<ContactsRoute.CoordinateConverter>(metadata = { ListDetailSceneStrategy.extraPane() }) {
+        CoordinateConverterScreen(onNavigateUp = dropUnlessResumed { backStack.removeLastOrNull() })
     }
 
     entry<ContactsRoute.QuickChat>(metadata = { ListDetailSceneStrategy.extraPane() }) {

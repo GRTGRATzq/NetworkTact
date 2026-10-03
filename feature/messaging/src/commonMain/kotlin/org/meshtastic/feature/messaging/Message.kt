@@ -133,6 +133,7 @@ import org.meshtastic.feature.messaging.component.QuickChatRow
 import org.meshtastic.feature.messaging.component.ReplySnippet
 import org.meshtastic.feature.messaging.component.ScrollToBottomFab
 import org.meshtastic.feature.messaging.component.TranslationModelDownloadDialog
+import org.meshtastic.feature.messaging.coordinates.FieldShortcutsRow
 import org.meshtastic.feature.messaging.priority.MessagePriority
 
 private const val ROUNDED_CORNER_PERCENT = 100
@@ -154,6 +155,7 @@ private const val COUNTER_VISIBLE_WITHIN_BYTES = 20
  * @param navigateToQuickChatOptions Callback to navigate to the quick chat options screen.
  * @param navigateToFilterSettings Callback to navigate to the message filter settings screen.
  * @param onNavigateBack Callback to navigate back from this screen.
+ * @param navigateToCoordinateConverter Opens the coordinate converter; null hides the shortcut (conversation bubble).
  */
 @Suppress("LongMethod", "CyclomaticComplexMethod")
 @OptIn(ExperimentalFoundationApi::class)
@@ -166,6 +168,7 @@ fun MessageScreen(
     navigateToQuickChatOptions: () -> Unit,
     navigateToFilterSettings: () -> Unit,
     onNavigateBack: () -> Unit,
+    navigateToCoordinateConverter: (() -> Unit)? = null,
 ) {
     val coroutineScope = rememberCoroutineScope()
     val clipboardManager = LocalClipboard.current
@@ -518,6 +521,7 @@ fun MessageScreen(
                         onClearReply = { replyingToPacketId = null },
                         ourNode = ourNode,
                     )
+                    FieldShortcutsRow(onOpenConverter = navigateToCoordinateConverter)
                     MessageInput(
                         isEnabled = connectionState is ConnectionState.Connected,
                         isHomoglyphEncodingEnabled = homoglyphEncodingEnabled,
