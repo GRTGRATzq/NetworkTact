@@ -22,42 +22,25 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 /**
- * Returns a [CornerBasedShape] for a message bubble based on its position in a sequence.
+ * Returns the [CornerBasedShape] of a message card based on its position in a sequence.
  *
- * Standalone bubbles are fully rounded; consecutive bubbles from the same sender flatten only the corners facing each
- * other (to [groupedCornerRadius]) so a run reads as one visual group, matching the M3 conversation pattern.
+ * The priority bar runs down the start edge of every card, sent or received, so those corners stay square. The end
+ * corners are rounded; consecutive cards from the same sender flatten the end corners facing each other (to
+ * [groupedCornerRadius]) so a run reads as one visual group.
  *
- * @param cornerRadius The base corner radius for the bubble.
- * @param isSender Whether the message was sent by the local user.
+ * @param cornerRadius The base corner radius of the end edge.
  * @param hasSamePrev Whether the previous message in the list is from the same sender.
  * @param hasSameNext Whether the next message in the list is from the same sender.
  * @param groupedCornerRadius The reduced radius used on corners adjacent to a same-sender neighbor.
  */
-fun getMessageBubbleShape(
+fun getMessageCardShape(
     cornerRadius: Dp,
-    isSender: Boolean,
     hasSamePrev: Boolean = false,
     hasSameNext: Boolean = false,
     groupedCornerRadius: Dp = 4.dp,
-): CornerBasedShape {
-    val round = cornerRadius
-    val grouped = groupedCornerRadius
-
-    return if (isSender) {
-        // Sent messages are on the right; grouped corners flatten along the end edge.
-        RoundedCornerShape(
-            topStart = round,
-            topEnd = if (hasSamePrev) grouped else round,
-            bottomStart = round,
-            bottomEnd = if (hasSameNext) grouped else round,
-        )
-    } else {
-        // Received messages are on the left; grouped corners flatten along the start edge.
-        RoundedCornerShape(
-            topStart = if (hasSamePrev) grouped else round,
-            topEnd = round,
-            bottomStart = if (hasSameNext) grouped else round,
-            bottomEnd = round,
-        )
-    }
-}
+): CornerBasedShape = RoundedCornerShape(
+    topStart = 0.dp,
+    topEnd = if (hasSamePrev) groupedCornerRadius else cornerRadius,
+    bottomStart = 0.dp,
+    bottomEnd = if (hasSameNext) groupedCornerRadius else cornerRadius,
+)

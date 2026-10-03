@@ -26,6 +26,7 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
@@ -40,7 +41,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -59,7 +59,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
@@ -271,15 +270,10 @@ fun MessageItem(
 
     // Colour codes the priority only: a light priority wash over the neutral card and a side bar.
     // Selection and filtering are carried by the outline and opacity, never by a hue.
+    // A sent card keeps a neutral bar, as in the validated mockup; its wash still carries the priority.
     val priority = remember(message.text) { MessagePriority.of(message.text) }
-    val accent = priorityAccent(priority)
-    val baseContainer = CardDefaults.cardColors().containerColor
-    val containerColor =
-        if (priority == MessagePriority.INFO) {
-            baseContainer
-        } else {
-            accent.copy(alpha = PRIORITY_WASH_ALPHA).compositeOver(baseContainer)
-        }
+    val barColor = priorityAccent(if (message.fromLocal) MessagePriority.INFO else priority)
+    val containerColor = priorityCardBackground(priority)
     val cardBorder =
         if (selected) {
             BorderStroke(2.dp, MaterialTheme.colorScheme.onSurface)
@@ -290,12 +284,7 @@ fun MessageItem(
     val contentColor = MaterialTheme.colorScheme.onSurface
     val metadataStyle = MaterialTheme.typography.labelSmall
     val messageShape =
-        getMessageBubbleShape(
-            cornerRadius = 18.dp,
-            isSender = message.fromLocal,
-            hasSamePrev = hasSamePrev,
-            hasSameNext = hasSameNext,
-        )
+        getMessageCardShape(cornerRadius = 12.dp, hasSamePrev = hasSamePrev, hasSameNext = hasSameNext)
     val messageModifier =
         Modifier.padding(horizontal = 12.dp)
             .then(
@@ -378,7 +367,8 @@ fun MessageItem(
     val swipeOffset = remember(message.uuid) { Animatable(0f) }
     var swipeArmed by remember(message.uuid) { mutableStateOf(false) }
 
-    Box(modifier = Modifier.fillMaxWidth()) {
+    BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+        val sentMaxWidth = maxWidth * SENT_MAX_WIDTH_FRACTION
         // An archived conversation cannot send, so the swipe neither renders nor arms. Left in place it would buzz
         // at the threshold and then drop the reply silently.
         if (canReply) {
@@ -422,13 +412,9 @@ fun MessageItem(
                         }
                     }
                 }
-                // Reserve space on the opposite side and cap the width so bubbles never span the
-                // whole screen (keeps sender sides scannable on phones and wide layouts alike).
-                .padding(
-                    start = if (!message.fromLocal) 0.dp else 36.dp,
-                    end = if (message.fromLocal) 0.dp else 36.dp,
-                )
-                .widthIn(max = 480.dp)
+                // A received card spans the row; a sent one sits on the end side, at most 85% of the row
+                // wide, so the two sides stay scannable.
+                .then(if (message.fromLocal) Modifier.widthIn(max = sentMaxWidth) else Modifier.fillMaxWidth())
                 .combinedClickable(
                     onClick = { if (quickReactionsOpen) onQuickReactionsOpenChange(false) else onClick() },
                     onLongClick = {
@@ -459,10 +445,12 @@ fun MessageItem(
                     modifier =
                     Modifier.width(PRIORITY_BAR_WIDTH)
                         .fillMaxHeight()
-                        .background(accent)
+                        .background(barColor)
                         .testTag(PRIORITY_BAR_TEST_TAG),
                 )
-                Column(modifier = Modifier.width(IntrinsicSize.Max)) {
+                Column(
+                    modifier = if (message.fromLocal) Modifier.width(IntrinsicSize.Max) else Modifier.weight(1f),
+                ) {
                     PriorityLabel(
                         priority = priority,
                         modifier = Modifier.padding(start = 12.dp, end = 12.dp, top = 6.dp),
@@ -595,7 +583,10 @@ private const val REPLY_SWIPE_OVERDRAG = 1.5f
 
 private val QUICK_REACTION_BAR_CORNER = 20.dp
 
-private val PRIORITY_BAR_WIDTH = 5.dp
+private val PRIORITY_BAR_WIDTH = 4.dp
+
+/** Widest a sent card may be, as a fraction of the row. */
+private const val SENT_MAX_WIDTH_FRACTION = 0.85f
 
 /** Opacity of a filtered bubble, or of an unselected one while selecting. */
 private const val MUTED_BUBBLE_ALPHA = 0.6f
