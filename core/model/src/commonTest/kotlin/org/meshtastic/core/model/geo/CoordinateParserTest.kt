@@ -58,6 +58,15 @@ class CoordinateParserTest {
     }
 
     @Test
+    fun dms_symbols_may_be_replaced_by_spaces() {
+        val expected = valid("48°51'24\"N 002°21'03\"E", CoordinateFormat.DMS)
+        assertEquals(expected, valid("48 51 24 N 2 21 3 E", CoordinateFormat.DMS))
+        assertEquals(expected, valid("48 51 24N, 002 21 03E", CoordinateFormat.DMS))
+        assertEquals(CoordinateError.SYNTAX, error("48 51 N 2 21 E", CoordinateFormat.DMS))
+        assertEquals(CoordinateError.SYNTAX, error("48 51 24 2 21 3", CoordinateFormat.DMS))
+    }
+
+    @Test
     fun dms_rejections() {
         assertEquals(CoordinateError.EMPTY, error("   ", CoordinateFormat.DMS))
         assertEquals(CoordinateError.SYNTAX, error("48.8566 2.3522", CoordinateFormat.DMS))

@@ -87,7 +87,8 @@ data class FormattedCoordinates(val point: LatLon, val mgrs: String?, val utm: S
  * - MGRS `31U DQ 48251 11932` (or `31UDQ4825111932`), exactly ten digits;
  * - UTM `31U 448251 5411932`: zone and latitude band (not a hemisphere letter), easting, northing in metres;
  * - DMS `48°51'24"N 002°21'03"E`: degrees, minutes and seconds all present, hemisphere after each; ′ and ″ are
- *   accepted, so are decimal seconds and O for west (ouest).
+ *   accepted, so are decimal seconds and O for west (ouest). The symbols may be replaced by spaces, `48 51 24 N 2 21 3
+ *   E`, since ° is hard to reach on a phone keyboard.
  */
 object CoordinateParser {
     private const val MAX_EASTING = 900_000.0
@@ -103,8 +104,8 @@ object CoordinateParser {
         Regex("""^(?<zone>\d{1,2}) ?(?<band>[A-Z]) (?<easting>\d+(?:[.,]\d+)?) (?<northing>\d+(?:[.,]\d+)?)$""")
     private val DMS = Regex("""^${dmsAxis("lat")}(?<latH>[NS])[ ,;]+${dmsAxis("lon")}(?<lonH>[EWO])$""")
 
-    private fun dmsAxis(name: String) =
-        """(?<${name}D>\d{1,3}) ?° ?(?<${name}M>\d{1,2}) ?['′] ?(?<${name}S>\d{1,2}(?:[.,]\d+)?) ?(?:"|″|'') ?"""
+    private fun dmsAxis(name: String) = """(?<${name}D>\d{1,3})(?: ?° ?| )(?<${name}M>\d{1,2})(?: ?['′] ?| )""" +
+        """(?<${name}S>\d{1,2}(?:[.,]\d+)?) ?(?:"|″|'')? ?"""
 
     fun parse(text: String, format: CoordinateFormat): CoordinateInput {
         val normalized = text.trim().uppercase().replace(Regex("""\s+"""), " ")
