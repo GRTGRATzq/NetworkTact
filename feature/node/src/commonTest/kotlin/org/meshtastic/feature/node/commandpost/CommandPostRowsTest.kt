@@ -19,6 +19,8 @@ package org.meshtastic.feature.node.commandpost
 import okio.ByteString.Companion.toByteString
 import org.meshtastic.core.model.Node
 import org.meshtastic.core.model.NodeAddress
+import org.meshtastic.core.model.freshness.ContactState
+import org.meshtastic.core.model.freshness.PositionState
 import org.meshtastic.proto.Position
 import org.meshtastic.proto.User
 import kotlin.test.Test

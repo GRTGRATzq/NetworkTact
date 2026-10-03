@@ -43,6 +43,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.jetbrains.compose.resources.stringResource
 import org.meshtastic.core.common.util.NumberFormatter
+import org.meshtastic.core.model.freshness.ContactState
+import org.meshtastic.core.model.freshness.PositionState
 import org.meshtastic.core.resources.Res
 import org.meshtastic.core.resources.command_post_contact_inconsistent
 import org.meshtastic.core.resources.command_post_contact_never

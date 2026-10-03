@@ -26,6 +26,10 @@ import org.koin.core.annotation.KoinViewModel
 import org.meshtastic.core.common.util.nowSeconds
 import org.meshtastic.core.model.Node
 import org.meshtastic.core.model.NodeAddress
+import org.meshtastic.core.model.freshness.ContactState
+import org.meshtastic.core.model.freshness.FreshnessThresholds
+import org.meshtastic.core.model.freshness.NodeFreshness
+import org.meshtastic.core.model.freshness.PositionState
 import org.meshtastic.core.repository.NodeRepository
 import org.meshtastic.core.ui.viewmodel.stateInWhileSubscribed
 import org.meshtastic.feature.node.model.canDirectMessage

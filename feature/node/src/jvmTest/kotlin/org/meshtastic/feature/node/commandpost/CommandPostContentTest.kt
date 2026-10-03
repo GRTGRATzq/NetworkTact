@@ -24,6 +24,8 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.v2.runComposeUiTest
+import org.meshtastic.core.model.freshness.ContactState
+import org.meshtastic.core.model.freshness.PositionState
 import org.meshtastic.core.resources.Res
 import org.meshtastic.core.resources.command_post_contact_never
 import org.meshtastic.core.resources.command_post_contact_recent
