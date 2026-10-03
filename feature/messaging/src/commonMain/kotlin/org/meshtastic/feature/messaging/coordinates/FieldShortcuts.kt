@@ -47,6 +47,7 @@ import org.koin.compose.viewmodel.koinViewModel
 import org.meshtastic.core.resources.Res
 import org.meshtastic.core.resources.cancel
 import org.meshtastic.core.resources.coords_converter_title
+import org.meshtastic.core.resources.coords_fact_title
 import org.meshtastic.core.resources.coords_my_position
 import org.meshtastic.core.resources.coords_my_position_none
 import org.meshtastic.core.resources.coords_my_position_phone
@@ -56,6 +57,7 @@ import org.meshtastic.core.resources.replace
 import org.meshtastic.core.ui.icon.Map
 import org.meshtastic.core.ui.icon.MeshtasticIcons
 import org.meshtastic.core.ui.icon.MyLocation
+import org.meshtastic.core.ui.icon.Visibility
 import org.meshtastic.core.ui.util.SnackbarManager
 
 /**
@@ -76,6 +78,7 @@ internal fun FieldShortcuts(
     val snackbarManager = koinInject<SnackbarManager>()
     val coroutineScope = rememberCoroutineScope()
     var pendingText by remember { mutableStateOf<String?>(null) }
+    var showObservedFact by remember { mutableStateOf(false) }
 
     val noPosition = stringResource(Res.string.coords_my_position_none)
     val phoneNote = stringResource(Res.string.coords_my_position_phone)
@@ -108,9 +111,20 @@ internal fun FieldShortcuts(
                 }
             }
         },
+        onObservedFact = { showObservedFact = true },
         onOpenConverter = onOpenConverter,
         modifier = modifier,
     )
+
+    if (showObservedFact) {
+        ObservedFactDialog(
+            onInsert = { text ->
+                showObservedFact = false
+                fill(text)
+            },
+            onDismiss = { showObservedFact = false },
+        )
+    }
 
     pendingText?.let { text ->
         ReplaceTextDialog(
@@ -127,6 +141,7 @@ internal fun FieldShortcuts(
 internal fun FieldShortcutsRow(
     canFill: Boolean,
     onMyPosition: () -> Unit,
+    onObservedFact: () -> Unit,
     onOpenConverter: (() -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
@@ -138,6 +153,12 @@ internal fun FieldShortcutsRow(
             label = stringResource(Res.string.coords_my_position),
             icon = MeshtasticIcons.MyLocation,
             onClick = onMyPosition,
+            enabled = canFill,
+        )
+        ShortcutChip(
+            label = stringResource(Res.string.coords_fact_title),
+            icon = MeshtasticIcons.Visibility,
+            onClick = onObservedFact,
             enabled = canFill,
         )
         if (onOpenConverter != null) {
