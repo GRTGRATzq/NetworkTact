@@ -49,6 +49,12 @@ object Mgrs {
     private const val ROW_CYCLE = 2_000_000
     private const val MAX_NORTHING = 10_000_000
 
+    /**
+     * One micrometre added before truncating: a whole-metre reference converted to latitude/longitude and back comes
+     * out a hair under its value (448250.9999999), which plain truncation would turn into the metre below.
+     */
+    private const val ROUND_TRIP_SLACK = 1e-6
+
     /** Column letters for zones 1, 4, 7…; 2, 5, 8…; 3, 6, 9…. */
     private val COLUMN_SETS = listOf("ABCDEFGH", "JKLMNPQR", "STUVWXYZ")
 
@@ -60,8 +66,8 @@ object Mgrs {
 
     fun fromUtm(utm: UtmCoordinate): MgrsCoordinate {
         val columns = COLUMN_SETS[(utm.zone - 1) % COLUMN_SETS.size]
-        val eastingMetres = floor(utm.easting).toLong()
-        val northingMetres = floor(utm.northing).toLong()
+        val eastingMetres = floor(utm.easting + ROUND_TRIP_SLACK).toLong()
+        val northingMetres = floor(utm.northing + ROUND_TRIP_SLACK).toLong()
         val columnIndex = (eastingMetres / SQUARE - 1).toInt().coerceIn(0, columns.length - 1)
         val rowIndex = ((northingMetres / SQUARE).toInt() + rowOffset(utm.zone)) % ROWS.length
         return MgrsCoordinate(

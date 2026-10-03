@@ -98,6 +98,19 @@ class CoordinateParserTest {
     }
 
     @Test
+    fun a_typed_reference_reads_back_unchanged() {
+        val references = listOf("31U DQ 48251 11932", "30M YD 22561 89402", "32V KN 97508 00645", "57X VF 50793 86116")
+        for (reference in references) {
+            assertEquals(reference, FormattedCoordinates.of(valid(reference, CoordinateFormat.MGRS)).mgrs)
+        }
+        for (reference in listOf("31U 448251 5411932", "56H 334873 6252266", "18S 323394 4307395")) {
+            assertEquals(reference, FormattedCoordinates.of(valid(reference, CoordinateFormat.UTM)).utm)
+        }
+        val dms = "48°51'24\"N 002°21'03\"E"
+        assertEquals(dms, FormattedCoordinates.of(valid(dms, CoordinateFormat.DMS)).dms)
+    }
+
+    @Test
     fun utm_parsing() {
         assertNear(LatLon(48.8583, 2.2945), valid("31U 448251.898 5411943.794", CoordinateFormat.UTM), 1e-7)
         assertNear(LatLon(-33.857, 151.215), valid("56h 334873,199 6252266,092", CoordinateFormat.UTM), 1e-7)
