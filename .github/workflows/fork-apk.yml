@@ -26,8 +26,12 @@ jobs:
       - name: Tests
         run: >-
           ./gradlew --init-script .github/ci/test-started.init.gradle.kts :feature:messaging:allTests :feature:node:allTests
-          :feature:settings:allTests :core:model:allTests :core:prefs:allTests :core:service:allTests :core:demo:allTests
+          :feature:settings:allTests :core:model:allTests :core:prefs:allTests :core:service:allTests
           --stacktrace
+      # Own step, after the others: run in the same invocation, its JVM and Kotlin/Native compilations overlapped the
+      # Robolectric host tests and froze the runner (runs 28 and 33).
+      - name: Tests core:demo
+        run: ./gradlew --init-script .github/ci/test-started.init.gradle.kts :core:demo:allTests --stacktrace
       - name: APK fdroid debug
         run: ./gradlew :androidApp:assembleFdroidDebug --stacktrace
       - uses: actions/upload-artifact@v4
