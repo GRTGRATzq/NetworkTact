@@ -25,7 +25,7 @@ jobs:
       # allTests = jvmTest (Compose UI tests from commonTest, and node's jvmTest) + testAndroidHostTest where enabled.
       - name: Tests
         run: >-
-          ./gradlew :feature:messaging:allTests :feature:node:allTests
+          ./gradlew --init-script .github/ci/test-started.init.gradle.kts :feature:messaging:allTests :feature:node:allTests
           :feature:settings:allTests :core:model:allTests :core:prefs:allTests :core:service:allTests :core:demo:allTests
           --stacktrace
       - name: APK fdroid debug
