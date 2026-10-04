@@ -16,9 +16,58 @@
  */
 package org.meshtastic.core.demo.di
 
-import org.koin.core.annotation.ComponentScan
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
 import org.koin.core.annotation.Module
+import org.koin.core.annotation.Provided
+import org.koin.core.annotation.Single
+import org.meshtastic.core.demo.DemoModeController
+import org.meshtastic.core.demo.repository.DemoNodeRepository
+import org.meshtastic.core.demo.repository.DemoPacketRepository
+import org.meshtastic.core.demo.repository.DemoRadioConfigRepository
+import org.meshtastic.core.demo.repository.DemoTeamRosterPrefs
+import org.meshtastic.core.demo.send.DemoMessagingController
+import org.meshtastic.core.demo.send.DemoSendMessageUseCase
+import org.meshtastic.core.demo.store.DemoStore
+import org.meshtastic.core.di.CoroutineDispatchers
+import org.meshtastic.core.repository.DemoMode
+import org.meshtastic.core.repository.PacketRepository
+import org.meshtastic.core.repository.SCREEN_DATA
+import org.meshtastic.core.repository.UiPrefs
 
-@Module
-@ComponentScan("org.meshtastic.core.demo")
-class CoreDemoModule
+/**
+ * Demo mode's bindings. The demo implementations are bound under their own class only, never under the interfaces, so
+ * nothing outside this module can get them by accident. The screens' sources are bound under [SCREEN_DATA]; every
+ * unqualified binding (the one the radio service uses) stays the real implementation.
+ */
+@Module(includes = [ScreenDataModule::class])
+class CoreDemoModule {
+    @Single fun demoStore(): DemoStore = DemoStore()
+
+    @Single
+    fun demoMode(
+        store: DemoStore,
+        @Provided realPackets: PacketRepository,
+        @Provided realUiPrefs: UiPrefs,
+        @Provided dispatchers: CoroutineDispatchers,
+    ): DemoMode = DemoModeController(store, realPackets, realUiPrefs, dispatchers)
+
+    @Single fun demoNodeRepository(store: DemoStore): DemoNodeRepository = DemoNodeRepository(store)
+
+    @Single fun demoPacketRepository(store: DemoStore): DemoPacketRepository = DemoPacketRepository(store)
+
+    @Single
+    fun demoRadioConfigRepository(store: DemoStore): DemoRadioConfigRepository = DemoRadioConfigRepository(store)
+
+    @Single fun demoTeamRosterPrefs(store: DemoStore): DemoTeamRosterPrefs = DemoTeamRosterPrefs(store)
+
+    @Single
+    fun demoSendMessageUseCase(
+        store: DemoStore,
+        packets: DemoPacketRepository,
+        @Provided dispatchers: CoroutineDispatchers,
+    ): DemoSendMessageUseCase =
+        DemoSendMessageUseCase(store, packets, CoroutineScope(SupervisorJob() + dispatchers.default))
+
+    @Single fun demoMessagingController(): DemoMessagingController = DemoMessagingController()
+}
