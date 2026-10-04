@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flow
 import org.koin.core.annotation.KoinViewModel
+import org.koin.core.annotation.Named
 import org.meshtastic.core.common.util.nowSeconds
 import org.meshtastic.core.model.Node
 import org.meshtastic.core.model.NodeAddress
@@ -31,6 +32,7 @@ import org.meshtastic.core.model.freshness.FreshnessThresholds
 import org.meshtastic.core.model.freshness.NodeFreshness
 import org.meshtastic.core.model.freshness.PositionState
 import org.meshtastic.core.repository.NodeRepository
+import org.meshtastic.core.repository.SCREEN_DATA
 import org.meshtastic.core.ui.viewmodel.stateInWhileSubscribed
 import org.meshtastic.feature.node.model.canDirectMessage
 
@@ -55,7 +57,7 @@ data class CommandPostRow(
  * arrives: a position must never look current just because nothing new was heard.
  */
 @KoinViewModel
-class CommandPostViewModel(nodeRepository: NodeRepository) : ViewModel() {
+class CommandPostViewModel(@Named(SCREEN_DATA) nodeRepository: NodeRepository) : ViewModel() {
 
     val thresholds: FreshnessThresholds = FreshnessThresholds.Default
 

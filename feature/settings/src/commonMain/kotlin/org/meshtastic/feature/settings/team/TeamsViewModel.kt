@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import org.koin.core.annotation.KoinViewModel
+import org.koin.core.annotation.Named
 import org.meshtastic.core.common.util.nowSeconds
 import org.meshtastic.core.common.util.safeCatching
 import org.meshtastic.core.domain.usecase.settings.RadioConfigUseCase
@@ -34,9 +35,10 @@ import org.meshtastic.core.model.team.TeamRoster
 import org.meshtastic.core.model.team.TeamRosterRecord
 import org.meshtastic.core.model.team.TeamSuffix
 import org.meshtastic.core.model.util.getChannel
+import org.meshtastic.core.repository.ConnectionStateProvider
 import org.meshtastic.core.repository.NodeRepository
 import org.meshtastic.core.repository.RadioConfigRepository
-import org.meshtastic.core.repository.ServiceRepository
+import org.meshtastic.core.repository.SCREEN_DATA
 import org.meshtastic.core.repository.TeamRosterPrefs
 import org.meshtastic.core.repository.UiPrefs
 import org.meshtastic.core.repository.usecase.SendMessageUseCase
@@ -82,21 +84,21 @@ sealed interface BroadcastResult {
  */
 @KoinViewModel
 class TeamsViewModel(
-    private val teamRosterPrefs: TeamRosterPrefs,
-    private val nodeRepository: NodeRepository,
-    private val serviceRepository: ServiceRepository,
-    private val radioConfigUseCase: RadioConfigUseCase,
-    private val sendMessageUseCase: SendMessageUseCase,
-    radioConfigRepository: RadioConfigRepository,
-    uiPrefs: UiPrefs,
+    @Named(SCREEN_DATA) private val teamRosterPrefs: TeamRosterPrefs,
+    @Named(SCREEN_DATA) private val nodeRepository: NodeRepository,
+    @Named(SCREEN_DATA) private val connectionStateProvider: ConnectionStateProvider,
+    @Named(SCREEN_DATA) private val radioConfigUseCase: RadioConfigUseCase,
+    @Named(SCREEN_DATA) private val sendMessageUseCase: SendMessageUseCase,
+    @Named(SCREEN_DATA) radioConfigRepository: RadioConfigRepository,
+    @Named(SCREEN_DATA) uiPrefs: UiPrefs,
 ) : ViewModel() {
 
     private val radioState =
-        combine(nodeRepository.ourNodeInfo, serviceRepository.connectionState, radioConfigRepository.channelSetFlow) {
-                ourNode,
-                connection,
-                channelSet,
-            ->
+        combine(
+            nodeRepository.ourNodeInfo,
+            connectionStateProvider.connectionState,
+            radioConfigRepository.channelSetFlow,
+        ) { ourNode, connection, channelSet ->
             Triple(ourNode, connection, channelSet.channelNames())
         }
 
@@ -163,7 +165,7 @@ class TeamsViewModel(
      * connected. [roster] comes from [TeamRoster.parseInput], so the message already fits in one text message.
      */
     fun broadcast(roster: TeamRoster, channelIndex: Int) {
-        if (serviceRepository.connectionState.value != ConnectionState.Connected) return
+        if (connectionStateProvider.connectionState.value != ConnectionState.Connected) return
         val channelName = uiState.value.channels.getOrNull(channelIndex) ?: channelIndex.toString()
         _broadcastResult.value = null
         viewModelScope.launch {
@@ -188,7 +190,7 @@ class TeamsViewModel(
     }
 
     private fun writableOwner() = nodeRepository.ourNodeInfo.value
-        ?.takeIf { ownerWriteBlock(serviceRepository.connectionState.value, it) == null }
+        ?.takeIf { ownerWriteBlock(connectionStateProvider.connectionState.value, it) == null }
         ?.let { it.num to it.user }
 }
 

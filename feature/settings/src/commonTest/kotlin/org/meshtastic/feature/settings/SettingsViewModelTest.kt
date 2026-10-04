@@ -113,6 +113,7 @@ class SettingsViewModelTest {
             SettingsViewModel(
                 radioConfigRepository = radioConfigRepository,
                 radioController = radioController,
+                connectionStateProvider = radioController,
                 nodeRepository = nodeRepository,
                 uiPrefs = uiPrefs,
                 buildConfigProvider = buildConfigProvider,

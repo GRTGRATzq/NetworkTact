@@ -93,7 +93,7 @@ class TeamsViewModelTest {
             TeamsViewModel(
                 teamRosterPrefs = prefs,
                 nodeRepository = nodes,
-                serviceRepository = service,
+                connectionStateProvider = service,
                 radioConfigUseCase = radioConfigUseCase,
                 sendMessageUseCase = sendMessageUseCase,
                 radioConfigRepository = FakeRadioConfigRepository(),

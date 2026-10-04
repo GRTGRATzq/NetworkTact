@@ -26,6 +26,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import okio.BufferedSink
 import org.koin.core.annotation.KoinViewModel
+import org.koin.core.annotation.Named
 import org.meshtastic.core.common.BuildConfigProvider
 import org.meshtastic.core.common.database.DatabaseManager
 import org.meshtastic.core.common.state.HiddenFeaturesUnlock
@@ -39,12 +40,14 @@ import org.meshtastic.core.model.ConnectionState
 import org.meshtastic.core.model.MyNodeInfo
 import org.meshtastic.core.model.Node
 import org.meshtastic.core.model.NodeListDensity
+import org.meshtastic.core.repository.ConnectionStateProvider
 import org.meshtastic.core.repository.FileService
 import org.meshtastic.core.repository.MeshLogPrefs
 import org.meshtastic.core.repository.NodeRepository
 import org.meshtastic.core.repository.NotificationPrefs
 import org.meshtastic.core.repository.RadioConfigRepository
 import org.meshtastic.core.repository.RadioController
+import org.meshtastic.core.repository.SCREEN_DATA
 import org.meshtastic.core.repository.UiPrefs
 import org.meshtastic.core.ui.viewmodel.safeLaunch
 import org.meshtastic.core.ui.viewmodel.stateInWhileSubscribed
@@ -53,10 +56,11 @@ import org.meshtastic.proto.LocalConfig
 @KoinViewModel
 @Suppress("LongParameterList", "TooManyFunctions")
 class SettingsViewModel(
-    radioConfigRepository: RadioConfigRepository,
+    @Named(SCREEN_DATA) radioConfigRepository: RadioConfigRepository,
     private val radioController: RadioController,
-    private val nodeRepository: NodeRepository,
-    private val uiPrefs: UiPrefs,
+    @Named(SCREEN_DATA) connectionStateProvider: ConnectionStateProvider,
+    @Named(SCREEN_DATA) private val nodeRepository: NodeRepository,
+    @Named(SCREEN_DATA) private val uiPrefs: UiPrefs,
     private val buildConfigProvider: BuildConfigProvider,
     private val databaseManager: DatabaseManager,
     private val meshLogPrefs: MeshLogPrefs,
@@ -76,7 +80,7 @@ class SettingsViewModel(
     val ourNodeInfo: StateFlow<Node?> = nodeRepository.ourNodeInfo
 
     val isConnected =
-        radioController.connectionState
+        connectionStateProvider.connectionState
             .map { it is ConnectionState.Connected }
             .stateInWhileSubscribed(initialValue = false)
 

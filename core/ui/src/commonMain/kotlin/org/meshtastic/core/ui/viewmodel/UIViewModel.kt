@@ -41,6 +41,7 @@ import kotlinx.coroutines.flow.onEach
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.getString
 import org.koin.core.annotation.KoinViewModel
+import org.koin.core.annotation.Named
 import org.meshtastic.core.common.util.CommonUri
 import org.meshtastic.core.database.entity.asDeviceVersion
 import org.meshtastic.core.model.ConnectionState
@@ -65,6 +66,7 @@ import org.meshtastic.core.repository.NotificationManager
 import org.meshtastic.core.repository.PacketRepository
 import org.meshtastic.core.repository.RadioController
 import org.meshtastic.core.repository.RadioInterfaceService
+import org.meshtastic.core.repository.SCREEN_DATA
 import org.meshtastic.core.repository.ServiceRepository
 import org.meshtastic.core.repository.UiPrefs
 import org.meshtastic.core.repository.notificationId
@@ -103,7 +105,9 @@ class UIViewModel(
     private val firmwareUpdateStatusRepository: FirmwareUpdateStatusRepository,
     private val uiPrefs: UiPrefs,
     private val notificationManager: NotificationManager,
-    packetRepository: PacketRepository,
+    // The unread badge follows the screens: demo conversations while demo mode is on. Everything else here concerns
+    // the real radio (its node info for the version check, lockdown, firmware) and stays real during a demo.
+    @Named(SCREEN_DATA) packetRepository: PacketRepository,
     val alertManager: AlertManager,
     val snackbarManager: SnackbarManager,
     nodeRestartTracker: NodeRestartTracker,
