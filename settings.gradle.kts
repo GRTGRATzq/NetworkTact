@@ -93,6 +93,7 @@ include(
     ":core:data",
     ":core:database",
     ":core:datastore",
+    ":core:demo",
     ":core:di",
     ":core:domain",
     ":core:konsist",
