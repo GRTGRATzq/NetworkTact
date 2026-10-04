@@ -110,6 +110,63 @@ Le détail de chaque changement est dans l'historique Git de ce dépôt.
   « accusé ».
 - La pastille du nom court de l'expéditeur est retirée ; toucher son nom ouvre sa fiche.
 
+### 9. Mode démo (`feat/mode-demo`)
+
+Réglages → « Mode démo ». Le mode montre l'application sur des données fictives, sans radio et
+sans rien envoyer. Il est désactivé à chaque lancement : l'état n'est gardé qu'en mémoire, et
+quitter l'écran de l'application y met fin. La version bureau n'a pas d'interrupteur.
+
+- **Données fictives** : PC-0 (ce téléphone), ALPHA-1 [Alpha], BRAVO-2 [Bravo] et
+  CHARLIE-3 [Alpha] ; équipes Alpha;Bravo ; canaux Général, Équipe Alpha et PC. Les positions
+  sont récente, ancienne (25 min) et sans heure. Il y a des messages Info, CR et Urgent, un
+  [POS] et un [CR] FAIT OBSERVÉ, et des envois dans chaque état (en file, en route, relayé,
+  accusé, échec).
+- **Envois simulés** : un message envoyé passe « en file » → « en route » (1,5 s) → « relayé »
+  (3 s), puis « accusé » à 5 s pour un message direct à BRAVO-2, ou « échec » à 8 s pour
+  CHARLIE-3. Rien n'est transmis à la radio, et aucun réglage radio n'est modifié (choix
+  d'équipe compris).
+- **Bandeau permanent** : « MODE DÉMO, données fictives · envois simulés », le nombre de vrais
+  messages reçus depuis l'activation, et un bouton Quitter. Dans la barre de navigation,
+  l'onglet Connexions montre « Radio de démo : rien n'est envoyé ».
+- **La vraie radio continue** : les paquets reçus sont enregistrés et notifiés comme
+  d'habitude, et les alertes de sécurité restent affichées. Une liste [EQUIPES] reçue pendant
+  la démo est proposée à la sortie. Ouvrir une notification, ou tout autre lien, quitte la
+  démo puis affiche les vraies données.
+
+| Écran | En mode démo |
+|---|---|
+| Conversations, une conversation, convertisseur de coordonnées | données fictives |
+| Vue PC (l'onglet Nœuds s'ouvre dessus), Équipes | données fictives |
+| Réglages du téléphone | fictifs. Réglages directs grisés « Indisponible en mode démo », sauf Terrain/PC (gardé en mémoire, le vrai choix est rétabli à la sortie) |
+| À propos, Remerciements, Aide | inchangés |
+| Liste des nœuds, fiche d'un nœud, carte, connexions, configuration radio et modules, administration à distance, et tout autre écran | « Indisponible en mode démo » |
+
+La liste des écrans permis est fermée (`core/demo/.../DemoRoutes.kt`) : un écran ajouté plus
+tard est indisponible tant qu'il n'y est pas inscrit.
+
+**Réalisation.** Le module `core:demo` contient les données, un magasin en mémoire et des
+façades. Chaque façade sert le vrai dépôt hors démo et le dépôt de démo pendant la démo, et
+bascule en direct un écran déjà ouvert. Les écrans permis en démo reçoivent ces façades par le
+qualificatif Koin `@Named(SCREEN_DATA)`. Les liaisons sans qualificatif, celles du service
+radio, restent les vraies : le code d'envoi réel n'est pas modifié, et rien de la démo n'est
+écrit dans les vrais dépôts (testé dans `ScreenFacadesTest`).
+
+Liaisons Koin ajoutées (`CoreDemoModule`, `ScreenDataModule`) :
+
+- sans qualificatif : `DemoMode` (`DemoModeController`), et sous leur seule classe
+  `DemoStore`, `DemoNodeRepository`, `DemoPacketRepository`, `DemoRadioConfigRepository`,
+  `DemoTeamRosterPrefs`, `DemoSendMessageUseCase`, `DemoMessagingController` ;
+- sous `@Named(SCREEN_DATA)` : `NodeRepository`, `PacketRepository`,
+  `RadioConfigRepository`, `TeamRosterPrefs`, `SendMessageUseCase`, `MessagingController`,
+  `ConnectionStateProvider`, `UiPrefs`, `RadioConfigUseCase`.
+
+Exceptions detekt `@Suppress("TooManyFunctions")`, au niveau de la classe, avec le commentaire
+« Tous les membres sont imposés par l'interface » : `DemoNodeRepository`,
+`ScreenNodeRepository`, `DemoPacketRepository`, `ScreenPacketRepository`,
+`DemoRadioConfigRepository`, `ScreenRadioConfigRepository`, `ScreenUiPrefs`. Ces sept classes
+implémentent des interfaces amont de plus de 11 membres. Il n'y a aucune autre exception ni
+ligne de référence (baseline) ajoutée.
+
 ## Marques
 
 Fonctionne avec les nœuds Meshtastic®. Meshtastic® est une marque déposée de Meshtastic LLC.
