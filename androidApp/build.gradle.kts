@@ -221,6 +221,7 @@ dependencies {
     implementation(projects.core.data)
     implementation(projects.core.database)
     implementation(projects.core.datastore)
+    implementation(projects.core.demo)
     implementation(projects.core.di)
     implementation(projects.core.domain)
     implementation(projects.core.model)

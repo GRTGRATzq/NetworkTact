@@ -353,6 +353,7 @@ dependencies {
     implementation(projects.core.data)
     implementation(projects.core.database)
     implementation(projects.core.datastore)
+    implementation(projects.core.demo)
     implementation(projects.core.prefs)
     implementation(projects.core.network)
     implementation(projects.core.takserver)
