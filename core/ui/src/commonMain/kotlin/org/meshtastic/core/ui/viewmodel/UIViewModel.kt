@@ -163,13 +163,11 @@ class UIViewModel(
      *    [dispatchMeshtasticUri]. This triggers import dialogs for shared nodes or channel configurations.
      *
      * A link always concerns real data (a notification's conversation, a shared channel, a contact), so one opened
-     * during a demo first switches demo mode off, then [onDemoExited] tells the caller.
+     * during a demo first switches demo mode off. The signature is unchanged on purpose: screens pass this function by
+     * reference as `(CommonUri, onInvalid)`, so a parameter inserted before [onInvalid] would silently take its place.
      */
-    fun handleDeepLink(uri: CommonUri, onDemoExited: () -> Unit = {}, onInvalid: () -> Unit = {}) {
-        if (demoMode.isActive.value) {
-            demoMode.deactivate()
-            onDemoExited()
-        }
+    fun handleDeepLink(uri: CommonUri, onInvalid: () -> Unit = {}) {
+        if (demoMode.isActive.value) demoMode.deactivate()
         // Try navigation routing first
         val navKeys = DeepLinkRouter.route(uri)
         if (navKeys != null) {

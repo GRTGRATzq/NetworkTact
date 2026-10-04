@@ -53,16 +53,7 @@ fun DemoLocked(
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val caption = stringResource(Res.string.tactdemo_unavailable)
-    val lockedModifier =
-        if (locked) {
-            Modifier.clearAndSetSemantics {
-                contentDescription = caption
-                disabled()
-            }
-                .focusProperties { onEnter = { cancelFocusChange() } }
-        } else {
-            Modifier
-        }
+    val lockedModifier = if (locked) Modifier.lockedForDemo(caption) else Modifier
     Box(modifier = modifier.then(lockedModifier).focusGroup()) {
         Column(verticalArrangement = verticalArrangement) {
             if (locked) {
@@ -82,15 +73,23 @@ fun DemoLocked(
         if (locked) {
             // The topmost sibling takes the pointer, so nothing underneath sees a tap; the event is left unconsumed
             // so that the scrolling container around still scrolls.
-            Box(
-                modifier =
-                Modifier.matchParentSize().pointerInput(Unit) {
-                    awaitPointerEventScope { while (true) awaitPointerEvent() }
-                },
-            )
+            Box(modifier = Modifier.matchParentSize().takePointer())
         }
     }
 }
+
+/** Out of reach of accessibility services, announced as [caption], and closed to keyboard focus. */
+private fun Modifier.lockedForDemo(caption: String): Modifier {
+    val silent = clearAndSetSemantics {
+        contentDescription = caption
+        disabled()
+    }
+    return silent.focusProperties { onEnter = { cancelFocusChange() } }
+}
+
+/** Receives every pointer event without consuming it. */
+private fun Modifier.takePointer(): Modifier =
+    pointerInput(Unit) { awaitPointerEventScope { while (true) awaitPointerEvent() } }
 
 /** Material's opacity for disabled content. */
 private const val DISABLED_ALPHA = 0.38f

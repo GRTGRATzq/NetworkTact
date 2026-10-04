@@ -122,6 +122,7 @@ fun SettingsScreen(
     val showFullMessageTimestamps by settingsViewModel.showFullMessageTimestamps.collectAsStateWithLifecycle()
     val commandPostMode by settingsViewModel.commandPostMode.collectAsStateWithLifecycle()
     val demoActive by settingsViewModel.demoActive.collectAsStateWithLifecycle()
+    val homoglyphEnabled by viewModel.homoglyphEncodingEnabledFlow.collectAsStateWithLifecycle(false)
     val destNode by viewModel.destNode.collectAsStateWithLifecycle()
     val state by viewModel.radioConfigState.collectAsStateWithLifecycle()
 
@@ -305,8 +306,7 @@ fun SettingsScreen(
                             onToggleAnalytics = { viewModel.toggleAnalyticsAllowed() },
                             provideLocation = settingsViewModel.provideLocation.collectAsStateWithLifecycle().value,
                             onToggleLocation = { settingsViewModel.setProvideLocation(it) },
-                            homoglyphEnabled =
-                            viewModel.homoglyphEncodingEnabledFlow.collectAsStateWithLifecycle(false).value,
+                            homoglyphEnabled = homoglyphEnabled,
                             onToggleHomoglyph = { viewModel.toggleHomoglyphCharactersEncodingEnabled() },
                             startProvideLocation = { settingsViewModel.startProvidingLocation() },
                             stopProvideLocation = { settingsViewModel.stopProvidingLocation() },

@@ -18,6 +18,7 @@ package org.meshtastic.core.ui.component
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -59,16 +60,11 @@ fun DemoBanner(realMessages: Int, onExit: () -> Unit, modifier: Modifier = Modif
         contentColor = MaterialTheme.colorScheme.inverseOnSurface,
     ) {
         Row(
-            modifier =
-            Modifier.windowInsetsPadding(WindowInsets.statusBars).padding(start = 16.dp, end = 4.dp, top = 4.dp),
+            modifier = Modifier.windowInsetsPadding(WindowInsets.statusBars).padding(BannerPadding),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            Column(
-                modifier = Modifier.weight(1f).padding(vertical = 4.dp).semantics {
-                    liveRegion = LiveRegionMode.Polite
-                },
-            ) {
+            Column(modifier = Modifier.weight(1f).padding(vertical = 4.dp).then(AnnouncedChanges)) {
                 Text(
                     text = stringResource(Res.string.tactdemo_banner),
                     style = MaterialTheme.typography.labelLarge,
@@ -89,6 +85,11 @@ fun DemoBanner(realMessages: Int, onExit: () -> Unit, modifier: Modifier = Modif
         }
     }
 }
+
+private val BannerPadding = PaddingValues(start = 16.dp, end = 4.dp, top = 4.dp)
+
+/** The count of real messages is read out when it changes. */
+private val AnnouncedChanges = Modifier.semantics { liveRegion = LiveRegionMode.Polite }
 
 @PreviewLightDark
 @Composable

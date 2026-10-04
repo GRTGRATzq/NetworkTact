@@ -122,6 +122,12 @@ class MainActivity : AppCompatActivity() {
     private val mapLayersManager: MapLayersManager by inject()
     private val launchOptions: LaunchOptions by inject()
 
+    // Demo mode lasts as long as the app's screen: leaving it ends the demo, a rotation does not. The process can
+    // outlive the screen (the mesh service keeps it), so a restart from the launcher would otherwise reopen it.
+    private val endDemoOnFinish = LifecycleEventObserver { _, event ->
+        if (event == Lifecycle.Event.ON_DESTROY && isFinishing) model.exitDemo()
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
 
@@ -194,13 +200,7 @@ class MainActivity : AppCompatActivity() {
 
         handleIntent(intent)
 
-        // Demo mode lasts as long as the app's screen: leaving it ends the demo, a rotation does not. The process
-        // can outlive the screen (the mesh service keeps it), so a restart from the launcher would otherwise reopen it.
-        lifecycle.addObserver(
-            LifecycleEventObserver { _, event ->
-                if (event == Lifecycle.Event.ON_DESTROY && isFinishing) model.exitDemo()
-            },
-        )
+        lifecycle.addObserver(endDemoOnFinish)
     }
 
     override fun onStart() {
@@ -396,16 +396,12 @@ class MainActivity : AppCompatActivity() {
     private fun handleMeshtasticUri(uri: Uri) {
         Logger.d { "Handling Meshtastic URI: $uri" }
 
-        model.handleDeepLink(
-            uri.toKmpUri(),
-            onInvalid = { lifecycleScope.launch { showToast(Res.string.channel_invalid) } },
-            onDemoExited = {
-                // A notification's link: the banner going away is not enough to say why the screen changed.
-                if (uri.pathSegments.firstOrNull() == "messages") {
-                    lifecycleScope.launch { showToast(Res.string.tactdemo_exited_for_notification) }
-                }
-            },
-        )
+        // A link ends a demo (UIViewModel.handleDeepLink). For a notification's link, the banner going away is not
+        // enough to say why the screen changed.
+        if (model.demoActive.value && uri.pathSegments.firstOrNull() == "messages") {
+            lifecycleScope.launch { showToast(Res.string.tactdemo_exited_for_notification) }
+        }
+        model.handleDeepLink(uri.toKmpUri()) { lifecycleScope.launch { showToast(Res.string.channel_invalid) } }
     }
 
     /**

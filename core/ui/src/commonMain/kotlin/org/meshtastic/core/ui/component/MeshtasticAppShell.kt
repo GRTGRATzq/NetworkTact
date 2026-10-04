@@ -65,8 +65,7 @@ fun MeshtasticAppShell(
             TabsResetOnSwitch(
                 multiBackstack = multiBackstack,
                 shownFor = uiViewModel.demoActive.value,
-                startPathsWhenOn =
-                mapOf<NavKey, List<NavKey>>(NodesRoute.Nodes to listOf(NodesRoute.Nodes, NodesRoute.CommandPost)),
+                startPathsWhenOn = DemoStartPaths,
             )
         }
     LaunchedEffect(uiViewModel) {
@@ -122,15 +121,14 @@ fun MeshtasticAppShell(
         ) {
             Column(modifier = Modifier.fillMaxSize()) {
                 if (demoActive) DemoBanner(realMessages = realMessagesSinceDemo, onExit = uiViewModel::exitDemo)
-                Box(
-                    // The banner already sits under the status bar: the screens below must not pad for it again.
-                    modifier =
-                    Modifier.weight(1f)
-                        .then(if (demoActive) Modifier.consumeWindowInsets(WindowInsets.statusBars) else Modifier),
-                ) {
-                    content()
-                }
+                // The banner already sits under the status bar: the screens below must not pad for it again.
+                val belowBanner = if (demoActive) Modifier.consumeWindowInsets(WindowInsets.statusBars) else Modifier
+                Box(modifier = Modifier.weight(1f).then(belowBanner)) { content() }
             }
         }
     }
 }
+
+/** In demo mode the node list is unavailable, so the Nodes tab starts on the command post view. */
+private val DemoStartPaths: Map<NavKey, List<NavKey>> =
+    mapOf(NodesRoute.Nodes to listOf(NodesRoute.Nodes, NodesRoute.CommandPost))
