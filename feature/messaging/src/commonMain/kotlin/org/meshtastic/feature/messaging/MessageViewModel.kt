@@ -42,6 +42,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.koin.core.annotation.KoinViewModel
+import org.koin.core.annotation.Named
 import org.meshtastic.core.common.util.currentLocaleCode
 import org.meshtastic.core.common.util.ioDispatcher
 import org.meshtastic.core.model.ContactKey
@@ -52,6 +53,7 @@ import org.meshtastic.core.model.NodeAddress
 import org.meshtastic.core.repository.ActiveConversationTracker
 import org.meshtastic.core.repository.ConnectionStateProvider
 import org.meshtastic.core.repository.CustomEmojiPrefs
+import org.meshtastic.core.repository.DemoMode
 import org.meshtastic.core.repository.FilterPrefs
 import org.meshtastic.core.repository.HomoglyphPrefs
 import org.meshtastic.core.repository.MeshNotificationManager
@@ -60,6 +62,7 @@ import org.meshtastic.core.repository.NodeRepository
 import org.meshtastic.core.repository.PacketRepository
 import org.meshtastic.core.repository.QuickChatActionRepository
 import org.meshtastic.core.repository.RadioConfigRepository
+import org.meshtastic.core.repository.SCREEN_DATA
 import org.meshtastic.core.repository.UiPrefs
 import org.meshtastic.core.repository.usecase.SendMessageUseCase
 import org.meshtastic.core.resources.Res
@@ -101,19 +104,20 @@ sealed interface TranslationDialogState {
 @KoinViewModel
 class MessageViewModel(
     private val savedStateHandle: SavedStateHandle,
-    private val nodeRepository: NodeRepository,
-    radioConfigRepository: RadioConfigRepository,
+    @Named(SCREEN_DATA) private val nodeRepository: NodeRepository,
+    @Named(SCREEN_DATA) radioConfigRepository: RadioConfigRepository,
     quickChatActionRepository: QuickChatActionRepository,
-    private val connectionStateProvider: ConnectionStateProvider,
-    private val messagingController: MessagingController,
-    private val packetRepository: PacketRepository,
-    private val uiPrefs: UiPrefs,
+    @Named(SCREEN_DATA) private val connectionStateProvider: ConnectionStateProvider,
+    @Named(SCREEN_DATA) private val messagingController: MessagingController,
+    @Named(SCREEN_DATA) private val packetRepository: PacketRepository,
+    @Named(SCREEN_DATA) private val uiPrefs: UiPrefs,
     private val customEmojiPrefs: CustomEmojiPrefs,
     private val homoglyphEncodingPrefs: HomoglyphPrefs,
     filterPrefs: FilterPrefs,
     private val meshNotificationManager: MeshNotificationManager,
     private val activeConversationTracker: ActiveConversationTracker,
-    private val sendMessageUseCase: SendMessageUseCase,
+    @Named(SCREEN_DATA) private val sendMessageUseCase: SendMessageUseCase,
+    private val demoMode: DemoMode,
     private val messageTranslationService: MessageTranslationService,
     private val snackbarManager: SnackbarManager,
 ) : ViewModel() {
@@ -507,7 +511,11 @@ class MessageViewModel(
      * notification. Paired with [onConversationHidden] on pause — backgrounding the app hides the screen, which is what
      * makes a single signal enough.
      */
-    fun onConversationVisible(contactKey: String) = activeConversationTracker.setActive(contactKey)
+    fun onConversationVisible(contactKey: String) {
+        // A demo conversation shares its key with a real one ("0^all" is both demo and real General): marking it on
+        // screen would silence the real notifications. During a demo nothing real is on screen, so nothing is marked.
+        if (!demoMode.isActive.value) activeConversationTracker.setActive(contactKey)
+    }
 
     fun onConversationHidden(contactKey: String) = activeConversationTracker.clearActive(contactKey)
 

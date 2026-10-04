@@ -53,6 +53,7 @@ import org.meshtastic.core.resources.UiText
 import org.meshtastic.core.resources.translation_failed
 import org.meshtastic.core.resources.translation_model_download_failed
 import org.meshtastic.core.resources.translation_not_required
+import org.meshtastic.core.testing.FakeDemoMode
 import org.meshtastic.core.testing.FakeFilterPrefs
 import org.meshtastic.core.testing.FakeNodeRepository
 import org.meshtastic.core.testing.TestDataFactory
@@ -187,6 +188,7 @@ class MessageViewModelTranslationTest {
                 messagingController = messagingController,
                 packetRepository = packetRepository,
                 sendMessageUseCase = sendMessageUseCase,
+                demoMode = FakeDemoMode(),
                 customEmojiPrefs = customEmojiPrefs,
                 homoglyphEncodingPrefs = homoglyphPrefs,
                 filterPrefs = FakeFilterPrefs(),

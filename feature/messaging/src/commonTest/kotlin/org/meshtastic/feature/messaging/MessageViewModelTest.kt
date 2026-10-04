@@ -48,6 +48,7 @@ import org.meshtastic.core.repository.QuickChatActionRepository
 import org.meshtastic.core.repository.RadioConfigRepository
 import org.meshtastic.core.repository.UiPrefs
 import org.meshtastic.core.repository.usecase.SendMessageUseCase
+import org.meshtastic.core.testing.FakeDemoMode
 import org.meshtastic.core.testing.FakeFilterPrefs
 import org.meshtastic.core.testing.FakeNodeRepository
 import org.meshtastic.core.testing.TestDataFactory
@@ -86,6 +87,7 @@ class MessageViewModelTest {
     private val meshNotificationManager: org.meshtastic.core.repository.MeshNotificationManager =
         mock(MockMode.autofill)
     private val activeConversationTracker = ActiveConversationTracker()
+    private val demoMode = FakeDemoMode()
     private val messageTranslationService: MessageTranslationService = mock(MockMode.autofill)
     private val snackbarManager: SnackbarManager = SnackbarManager()
 
@@ -142,6 +144,7 @@ class MessageViewModelTest {
                 messagingController = messagingController,
                 packetRepository = packetRepository,
                 sendMessageUseCase = sendMessageUseCase,
+                demoMode = demoMode,
                 customEmojiPrefs = customEmojiPrefs,
                 homoglyphEncodingPrefs = homoglyphPrefs,
                 filterPrefs = filterPrefs,
@@ -183,6 +186,17 @@ class MessageViewModelTest {
     }
 
     @Test fun testInitialization() = runTest { assertNotNull(viewModel) }
+
+    @Test
+    fun aDemoConversationOnScreenNeverSilencesTheRealOne() = runTest {
+        demoMode.activate()
+        viewModel.onConversationVisible("0^all")
+        assertNull(activeConversationTracker.activeContactKey.value)
+
+        demoMode.deactivate()
+        viewModel.onConversationVisible("0^all")
+        assertEquals("0^all", activeConversationTracker.activeContactKey.value)
+    }
 
     @Test
     fun testMessageFilterEnabledFollowsTheGlobalSetting() = runTest {

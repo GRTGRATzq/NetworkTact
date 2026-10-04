@@ -18,21 +18,27 @@ package org.meshtastic.feature.messaging.coordinates
 
 import androidx.lifecycle.ViewModel
 import org.koin.core.annotation.KoinViewModel
+import org.koin.core.annotation.Named
 import org.meshtastic.core.common.util.nowSeconds
 import org.meshtastic.core.common.util.systemTimeZone
+import org.meshtastic.core.repository.DemoMode
 import org.meshtastic.core.repository.NodeRepository
+import org.meshtastic.core.repository.SCREEN_DATA
 
 /** Reads what the field shortcuts need. Builds text only: sending stays with the user. */
 @KoinViewModel
 class FieldShortcutsViewModel(
-    private val nodeRepository: NodeRepository,
+    @Named(SCREEN_DATA) private val nodeRepository: NodeRepository,
     private val phonePositionSource: PhonePositionSource,
+    private val demoMode: DemoMode,
 ) : ViewModel() {
 
     /** The `[POS]` message for my radio, or for the phone when the radio has no position. */
     suspend fun myPosition(): MyPositionResult {
         val ourNode = nodeRepository.ourNodeInfo.value
-        val phone = if (ourNode != null && ourNode.validPosition == null) phonePositionSource.lastFix() else null
+        // The phone's own fix is real data: a demo position message never uses it.
+        val usePhone = ourNode != null && ourNode.validPosition == null && !demoMode.isActive.value
+        val phone = if (usePhone) phonePositionSource.lastFix() else null
         return myPositionMessage(ourNode, phone, nowSeconds, systemTimeZone)
     }
 }

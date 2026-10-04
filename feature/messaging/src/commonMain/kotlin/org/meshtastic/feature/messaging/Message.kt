@@ -93,6 +93,7 @@ import kotlinx.collections.immutable.toPersistentMap
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
+import org.koin.core.qualifier.named
 import org.meshtastic.core.common.util.HomoglyphCharacterStringTransformer
 import org.meshtastic.core.database.entity.QuickChatAction
 import org.meshtastic.core.model.ConnectionState
@@ -101,6 +102,7 @@ import org.meshtastic.core.model.MENTION_TOKEN_REGEX
 import org.meshtastic.core.model.Node
 import org.meshtastic.core.model.NodeAddress
 import org.meshtastic.core.model.util.getChannel
+import org.meshtastic.core.repository.SCREEN_DATA
 import org.meshtastic.core.repository.TeamRosterPrefs
 import org.meshtastic.core.resources.Res
 import org.meshtastic.core.resources.archived_channel_read_only
@@ -211,7 +213,7 @@ fun MessageScreen(
     val translationDialogState by viewModel.translationDialogState.collectAsStateWithLifecycle()
     val threadFilter by viewModel.threadFilter.collectAsStateWithLifecycle()
     // The adopted team list, for the team filter. Read-only here.
-    val teamRoster by koinInject<TeamRosterPrefs>().roster.collectAsStateWithLifecycle()
+    val teamRoster by koinInject<TeamRosterPrefs>(named(SCREEN_DATA)).roster.collectAsStateWithLifecycle()
     val isDirectConversation = remember(contactKey) { ContactKey(contactKey).addressString != NodeAddress.ID_BROADCAST }
 
     // Read the stored draft before wiring the composer up, so its initial empty value cannot erase one.

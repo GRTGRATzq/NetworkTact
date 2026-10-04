@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import org.koin.core.annotation.KoinViewModel
+import org.koin.core.annotation.Named
 import org.meshtastic.core.common.util.ioDispatcher
 import org.meshtastic.core.model.Contact
 import org.meshtastic.core.model.ContactKey
@@ -37,6 +38,7 @@ import org.meshtastic.core.repository.ConnectionStateProvider
 import org.meshtastic.core.repository.NodeRepository
 import org.meshtastic.core.repository.PacketRepository
 import org.meshtastic.core.repository.RadioConfigRepository
+import org.meshtastic.core.repository.SCREEN_DATA
 import org.meshtastic.core.ui.util.SnackbarManager
 import org.meshtastic.core.ui.viewmodel.safeLaunch
 import org.meshtastic.core.ui.viewmodel.stateInWhileSubscribed
@@ -46,11 +48,11 @@ import kotlin.collections.map as collectionsMap
 @KoinViewModel
 class ContactsViewModel(
     private val savedStateHandle: SavedStateHandle,
-    private val nodeRepository: NodeRepository,
-    private val packetRepository: PacketRepository,
+    @Named(SCREEN_DATA) private val nodeRepository: NodeRepository,
+    @Named(SCREEN_DATA) private val packetRepository: PacketRepository,
     private val snackbarManager: SnackbarManager,
-    radioConfigRepository: RadioConfigRepository,
-    connectionStateProvider: ConnectionStateProvider,
+    @Named(SCREEN_DATA) radioConfigRepository: RadioConfigRepository,
+    @Named(SCREEN_DATA) connectionStateProvider: ConnectionStateProvider,
 ) : ViewModel() {
     val ourNodeInfo = nodeRepository.ourNodeInfo
 
