@@ -43,10 +43,18 @@ class DemoStore {
     val packets = MutableStateFlow<List<DemoPacket>>(emptyList())
     val contactSettings = MutableStateFlow<Map<String, ContactSettings>>(emptyMap())
 
+    /**
+     * Changes at every load and every clear. A simulated send started in one demo session checks it before each step,
+     * so it never touches the data set of a later one.
+     */
+    var session: Long = 0L
+        private set
+
     /** The Terrain/PC choice while the demo runs, seeded from the real one and never written back. */
     val commandPostMode = MutableStateFlow(false)
 
     fun load(data: DemoData, commandPostMode: Boolean) {
+        session++
         myNodeInfo.value = data.myNodeInfo
         nodes.value = data.nodes.associateBy { it.num }
         refreshOurNode()
@@ -59,6 +67,7 @@ class DemoStore {
     }
 
     fun clear() {
+        session++
         myNodeInfo.value = null
         nodes.value = emptyMap()
         refreshOurNode()
