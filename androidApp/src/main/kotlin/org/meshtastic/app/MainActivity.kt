@@ -396,12 +396,13 @@ class MainActivity : AppCompatActivity() {
     private fun handleMeshtasticUri(uri: Uri) {
         Logger.d { "Handling Meshtastic URI: $uri" }
 
-        // A link ends a demo (UIViewModel.handleDeepLink). For a notification's link, the banner going away is not
-        // enough to say why the screen changed.
-        if (model.demoActive.value && uri.pathSegments.firstOrNull() == "messages") {
+        val inDemo = model.demoActive.value
+        model.handleDeepLink(uri.toKmpUri()) { lifecycleScope.launch { showToast(Res.string.channel_invalid) } }
+        // A valid link ends a demo (UIViewModel.handleDeepLink). For a notification's link, the banner going away is
+        // not enough to say why the screen changed.
+        if (inDemo && !model.demoActive.value && uri.pathSegments.firstOrNull() == "messages") {
             lifecycleScope.launch { showToast(Res.string.tactdemo_exited_for_notification) }
         }
-        model.handleDeepLink(uri.toKmpUri()) { lifecycleScope.launch { showToast(Res.string.channel_invalid) } }
     }
 
     /**

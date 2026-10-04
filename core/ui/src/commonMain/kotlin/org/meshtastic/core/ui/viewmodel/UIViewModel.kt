@@ -162,28 +162,39 @@ class UIViewModel(
      * 2. **Data Import:** If navigation fails, falls back to legacy contact/channel parsing via
      *    [dispatchMeshtasticUri]. This triggers import dialogs for shared nodes or channel configurations.
      *
-     * A link always concerns real data (a notification's conversation, a shared channel, a contact), so one opened
-     * during a demo first switches demo mode off. The signature is unchanged on purpose: screens pass this function by
-     * reference as `(CommonUri, onInvalid)`, so a parameter inserted before [onInvalid] would silently take its place.
+     * A valid link opens real data (a notification's conversation, a shared channel, a contact), so one opened during a
+     * demo first switches demo mode off; an invalid one only reports [onInvalid] and leaves the demo on. The signature
+     * is unchanged on purpose: screens pass this function by reference as `(CommonUri, onInvalid)`, so a parameter
+     * inserted before [onInvalid] would silently take its place.
      */
     fun handleDeepLink(uri: CommonUri, onInvalid: () -> Unit = {}) {
-        if (demoMode.isActive.value) demoMode.deactivate()
         // Try navigation routing first
         val navKeys = DeepLinkRouter.route(uri)
         if (navKeys != null) {
+            endDemoForRealData()
             _navigationDeepLink.tryEmit(navKeys)
             return
         }
 
         // Fallback to channel/contact importing
         uri.dispatchMeshtasticUri(
-            onContact = { setSharedContactRequested(it) },
-            onChannel = { setRequestChannelSet(it) },
+            onContact = {
+                endDemoForRealData()
+                setSharedContactRequested(it)
+            },
+            onChannel = {
+                endDemoForRealData()
+                setRequestChannelSet(it)
+            },
             onInvalid = {
                 Logger.w { "Import URI rejected: ${uri.toSanitizedImportSummary()}" }
                 onInvalid()
             },
         )
+    }
+
+    private fun endDemoForRealData() {
+        if (demoMode.isActive.value) demoMode.deactivate()
     }
 
     val theme: StateFlow<Int> = uiPrefs.theme
