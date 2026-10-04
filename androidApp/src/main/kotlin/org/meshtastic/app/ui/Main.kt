@@ -92,19 +92,13 @@ fun MainScreen() {
     PendingTeamRosterPrompt()
 
     val lockdownState by viewModel.lockdownState.collectAsStateWithLifecycle()
-    LockdownDialog(
+    LockdownHost(
         lockdownState = lockdownState,
         onSubmit = { passphrase, boots, hours, sessionMinutes ->
             viewModel.sendLockdownUnlock(passphrase, boots, hours, sessionMinutes * SECONDS_PER_MINUTE)
         },
         onDisconnect = { viewModel.setDeviceAddress("n") },
     )
-    // Auto-disconnect when firmware acknowledges Lock Now
-    LaunchedEffect(lockdownState) {
-        if (lockdownState is LockdownState.LockNowAcknowledged) {
-            viewModel.setDeviceAddress("n")
-        }
-    }
 
     MeshtasticAppShell(multiBackstack = multiBackstack, uiViewModel = viewModel, hostModifier = Modifier) {
         MeshtasticNavigationSuite(
@@ -141,6 +135,19 @@ fun MainScreen() {
             )
         }
     }
+}
+
+/** The lockdown prompt, and the disconnect once the firmware acknowledges Lock Now. */
+@Composable
+private fun LockdownHost(
+    lockdownState: LockdownState,
+    onSubmit: (passphrase: String, boots: Int, hours: Int, sessionMinutes: Int) -> Unit,
+    onDisconnect: () -> Unit,
+) {
+    LockdownDialog(lockdownState = lockdownState, onSubmit = onSubmit, onDisconnect = onDisconnect)
+    val currentOnDisconnect by rememberUpdatedState(onDisconnect)
+    // Auto-disconnect when firmware acknowledges Lock Now
+    LaunchedEffect(lockdownState) { if (lockdownState is LockdownState.LockNowAcknowledged) currentOnDisconnect() }
 }
 
 /**
