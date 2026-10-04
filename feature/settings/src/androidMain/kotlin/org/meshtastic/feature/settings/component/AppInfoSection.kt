@@ -21,6 +21,7 @@ import android.net.Uri
 import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -42,6 +43,7 @@ import org.meshtastic.core.resources.intro_show
 import org.meshtastic.core.resources.modules_already_unlocked
 import org.meshtastic.core.resources.modules_unlocked
 import org.meshtastic.core.resources.system_settings
+import org.meshtastic.core.ui.component.DemoLocked
 import org.meshtastic.core.ui.component.ListItem
 import org.meshtastic.core.ui.icon.AppSettingsAlt
 import org.meshtastic.core.ui.icon.ChevronRight
@@ -54,7 +56,10 @@ import org.meshtastic.core.ui.theme.AppTheme
 import org.meshtastic.core.ui.util.showToast
 import kotlin.time.Duration.Companion.seconds
 
-/** Section displaying application information and related actions. */
+/**
+ * Section displaying application information and related actions. In demo mode ([demoActive]) only About stays usable:
+ * the other rows change the real app or open its real system settings.
+ */
 @Composable
 fun AppInfoSection(
     appVersionName: String,
@@ -62,41 +67,10 @@ fun AppInfoSection(
     onUnlockHiddenFeatures: () -> Unit,
     onShowAppIntro: () -> Unit,
     onNavigateToAbout: () -> Unit,
+    demoActive: Boolean = false,
 ) {
-    val context = LocalContext.current
-    val settingsLauncher =
-        rememberLauncherForActivityResult(contract = ActivityResultContracts.StartActivityForResult()) {}
-
     ExpressiveSection(title = stringResource(Res.string.info)) {
-        ListItem(
-            text = stringResource(Res.string.intro_show),
-            leadingIcon = MeshtasticIcons.WavingHand,
-            trailingIcon = null,
-        ) {
-            onShowAppIntro()
-        }
-
-        ListItem(
-            text = stringResource(Res.string.app_notifications),
-            leadingIcon = MeshtasticIcons.Notifications,
-            trailingIcon = null,
-        ) {
-            val intent =
-                Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
-                    putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
-                }
-            settingsLauncher.launch(intent)
-        }
-
-        ListItem(
-            text = stringResource(Res.string.system_settings),
-            leadingIcon = MeshtasticIcons.AppSettingsAlt,
-            trailingIcon = null,
-        ) {
-            val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
-            intent.data = Uri.fromParts("package", context.packageName, null)
-            settingsLauncher.launch(intent)
-        }
+        DemoLocked(locked = demoActive) { AppSystemItems(onShowAppIntro) }
 
         ListItem(
             text = stringResource(Res.string.about),
@@ -106,11 +80,51 @@ fun AppInfoSection(
             onNavigateToAbout()
         }
 
-        AppVersionButton(
-            hiddenFeaturesUnlocked = hiddenFeaturesUnlocked,
-            appVersionName = appVersionName,
-            onUnlockHiddenFeatures = onUnlockHiddenFeatures,
-        )
+        DemoLocked(locked = demoActive) {
+            AppVersionButton(
+                hiddenFeaturesUnlocked = hiddenFeaturesUnlocked,
+                appVersionName = appVersionName,
+                onUnlockHiddenFeatures = onUnlockHiddenFeatures,
+            )
+        }
+    }
+}
+
+/** The rows that change the real app or open its system settings. */
+@Composable
+private fun ColumnScope.AppSystemItems(onShowAppIntro: () -> Unit) {
+    val context = LocalContext.current
+    val settingsLauncher =
+        rememberLauncherForActivityResult(contract = ActivityResultContracts.StartActivityForResult()) {}
+
+    ListItem(
+        text = stringResource(Res.string.intro_show),
+        leadingIcon = MeshtasticIcons.WavingHand,
+        trailingIcon = null,
+    ) {
+        onShowAppIntro()
+    }
+
+    ListItem(
+        text = stringResource(Res.string.app_notifications),
+        leadingIcon = MeshtasticIcons.Notifications,
+        trailingIcon = null,
+    ) {
+        val intent =
+            Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
+                putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
+            }
+        settingsLauncher.launch(intent)
+    }
+
+    ListItem(
+        text = stringResource(Res.string.system_settings),
+        leadingIcon = MeshtasticIcons.AppSettingsAlt,
+        trailingIcon = null,
+    ) {
+        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+        intent.data = Uri.fromParts("package", context.packageName, null)
+        settingsLauncher.launch(intent)
     }
 }
 

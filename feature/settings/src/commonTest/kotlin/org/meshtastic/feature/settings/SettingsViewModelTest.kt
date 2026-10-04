@@ -55,6 +55,7 @@ import org.meshtastic.core.repository.FileService
 import org.meshtastic.core.repository.RadioConfigRepository
 import org.meshtastic.core.testing.FakeAppPreferences
 import org.meshtastic.core.testing.FakeDatabaseManager
+import org.meshtastic.core.testing.FakeDemoMode
 import org.meshtastic.core.testing.FakeMeshLogRepository
 import org.meshtastic.core.testing.FakeNodeRepository
 import org.meshtastic.core.testing.FakeNotificationPrefs
@@ -87,6 +88,7 @@ class SettingsViewModelTest {
     private val radioConfigRepository: RadioConfigRepository = mock(MockMode.autofill)
     private val buildConfigProvider: BuildConfigProvider = mock(MockMode.autofill)
     private val fileService: FileService = mock(MockMode.autofill)
+    private val demoMode = FakeDemoMode()
 
     @BeforeTest
     fun setUp() {
@@ -126,6 +128,7 @@ class SettingsViewModelTest {
                 isOtaCapableUseCase = isOtaCapableUseCase,
                 fileService = fileService,
                 hiddenFeaturesUnlock = HiddenFeaturesUnlock(),
+                demoMode = demoMode,
             )
     }
 
@@ -401,5 +404,28 @@ class SettingsViewModelTest {
     fun `cachedDeviceCountExceeding counts devices past the new limit`() = runTest {
         databaseManager.existingDatabases.addAll(listOf("a", "b", "c", "d", "e"))
         viewModel.cachedDeviceCountExceeding(2) shouldBe 3
+    }
+
+    @Test
+    fun theDemoSwitchTurnsDemoModeOnAndOff() {
+        assertFalse(viewModel.demoActive.value)
+
+        viewModel.setDemoMode(true)
+        assertTrue(demoMode.isActive.value)
+        assertTrue(viewModel.demoActive.value)
+
+        viewModel.setDemoMode(false)
+        assertFalse(demoMode.isActive.value)
+    }
+
+    @Test
+    fun locationSharingNeverReachesTheRealRadioDuringADemo() {
+        demoMode.activate()
+
+        viewModel.startProvidingLocation()
+        viewModel.stopProvidingLocation()
+
+        assertFalse(radioController.startProvideLocationCalled)
+        assertFalse(radioController.stopProvideLocationCalled)
     }
 }

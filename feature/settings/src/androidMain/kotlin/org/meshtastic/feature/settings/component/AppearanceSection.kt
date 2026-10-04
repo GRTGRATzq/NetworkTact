@@ -32,6 +32,7 @@ import org.meshtastic.core.resources.app_settings
 import org.meshtastic.core.resources.preferences_language
 import org.meshtastic.core.resources.theme
 import org.meshtastic.core.resources.units
+import org.meshtastic.core.ui.component.DemoLocked
 import org.meshtastic.core.ui.component.ListItem
 import org.meshtastic.core.ui.icon.ChevronRight
 import org.meshtastic.core.ui.icon.Distance
@@ -40,13 +41,40 @@ import org.meshtastic.core.ui.icon.Language
 import org.meshtastic.core.ui.icon.MeshtasticIcons
 import org.meshtastic.core.ui.theme.AppTheme
 
-/** Section for app appearance settings like language and theme. */
+/**
+ * Section for app appearance settings like language and theme. In demo mode ([demoActive]) only the Terrain/PC switch
+ * stays usable, and the demo keeps its choice in memory; the other settings would change the real app.
+ */
 @Composable
 internal fun ColumnScope.AppearanceSettingsContent(
     showFullMessageTimestamps: Boolean,
     onShowFullMessageTimestampsChange: (Boolean) -> Unit,
     commandPostMode: Boolean,
     onCommandPostModeChange: (Boolean) -> Unit,
+    onShowLanguagePicker: () -> Unit,
+    onShowThemePicker: () -> Unit,
+    unitsSummary: String,
+    onShowUnitsPicker: () -> Unit,
+    demoActive: Boolean = false,
+) {
+    DemoLocked(locked = demoActive) {
+        AppAppearanceItems(
+            showFullMessageTimestamps = showFullMessageTimestamps,
+            onShowFullMessageTimestampsChange = onShowFullMessageTimestampsChange,
+            onShowLanguagePicker = onShowLanguagePicker,
+            onShowThemePicker = onShowThemePicker,
+            unitsSummary = unitsSummary,
+            onShowUnitsPicker = onShowUnitsPicker,
+        )
+    }
+
+    CommandPostModeSetting(checked = commandPostMode, onCheckedChange = onCommandPostModeChange)
+}
+
+@Composable
+private fun ColumnScope.AppAppearanceItems(
+    showFullMessageTimestamps: Boolean,
+    onShowFullMessageTimestampsChange: (Boolean) -> Unit,
     onShowLanguagePicker: () -> Unit,
     onShowThemePicker: () -> Unit,
     unitsSummary: String,
@@ -95,8 +123,6 @@ internal fun ColumnScope.AppearanceSettingsContent(
         checked = showFullMessageTimestamps,
         onCheckedChange = onShowFullMessageTimestampsChange,
     )
-
-    CommandPostModeSetting(checked = commandPostMode, onCheckedChange = onCommandPostModeChange)
 }
 
 @Preview(showBackground = true)

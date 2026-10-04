@@ -41,6 +41,7 @@ import org.meshtastic.core.model.MyNodeInfo
 import org.meshtastic.core.model.Node
 import org.meshtastic.core.model.NodeListDensity
 import org.meshtastic.core.repository.ConnectionStateProvider
+import org.meshtastic.core.repository.DemoMode
 import org.meshtastic.core.repository.FileService
 import org.meshtastic.core.repository.MeshLogPrefs
 import org.meshtastic.core.repository.NodeRepository
@@ -71,6 +72,7 @@ class SettingsViewModel(
     private val isOtaCapableUseCase: IsOtaCapableUseCase,
     private val fileService: FileService,
     private val hiddenFeaturesUnlock: HiddenFeaturesUnlock,
+    private val demoMode: DemoMode,
 ) : ViewModel() {
     val myNodeInfo: StateFlow<MyNodeInfo?> = nodeRepository.myNodeInfo
 
@@ -99,12 +101,20 @@ class SettingsViewModel(
             }
             .stateInWhileSubscribed(initialValue = false)
 
+    // Both act on the real radio: a demo leaves them as they are (the screen greys them out too).
     fun startProvidingLocation() {
-        radioController.startProvideLocation()
+        if (!demoMode.isActive.value) radioController.startProvideLocation()
     }
 
     fun stopProvidingLocation() {
-        radioController.stopProvideLocation()
+        if (!demoMode.isActive.value) radioController.stopProvideLocation()
+    }
+
+    /** On while the app shows fictitious data; never kept across a restart. */
+    val demoActive: StateFlow<Boolean> = demoMode.isActive
+
+    fun setDemoMode(enabled: Boolean) {
+        if (enabled) demoMode.activate() else demoMode.deactivate()
     }
 
     // Process-scoped shared state so other features (e.g. the nightly firmware channel) see the same unlock.

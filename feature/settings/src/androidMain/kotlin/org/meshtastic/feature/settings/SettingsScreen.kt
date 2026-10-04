@@ -63,12 +63,16 @@ import org.meshtastic.core.resources.import_configuration
 import org.meshtastic.core.resources.node_layout_section_title
 import org.meshtastic.core.resources.preferences_language
 import org.meshtastic.core.resources.remotely_administrating
+import org.meshtastic.core.resources.tactdemo_setting
+import org.meshtastic.core.resources.tactdemo_setting_summary
 import org.meshtastic.core.resources.teams_summary
 import org.meshtastic.core.resources.teams_title
 import org.meshtastic.core.resources.wifi_devices
+import org.meshtastic.core.ui.component.DemoLocked
 import org.meshtastic.core.ui.component.ListItem
 import org.meshtastic.core.ui.component.MainAppBar
 import org.meshtastic.core.ui.component.MeshtasticDialog
+import org.meshtastic.core.ui.component.SwitchPreference
 import org.meshtastic.core.ui.icon.Device
 import org.meshtastic.core.ui.icon.FilterList
 import org.meshtastic.core.ui.icon.Groups
@@ -117,6 +121,7 @@ fun SettingsScreen(
     val isOtaCapable by settingsViewModel.isOtaCapable.collectAsStateWithLifecycle()
     val showFullMessageTimestamps by settingsViewModel.showFullMessageTimestamps.collectAsStateWithLifecycle()
     val commandPostMode by settingsViewModel.commandPostMode.collectAsStateWithLifecycle()
+    val demoActive by settingsViewModel.demoActive.collectAsStateWithLifecycle()
     val destNode by viewModel.destNode.collectAsStateWithLifecycle()
     val state by viewModel.radioConfigState.collectAsStateWithLifecycle()
 
@@ -240,56 +245,73 @@ fun SettingsScreen(
                 includeAppLocal = state.isLocal,
             )
 
-            RadioConfigItemList(
-                state = state,
-                isManaged = localConfig.security?.is_managed ?: false,
-                isOtaCapable = isOtaCapable,
-                onRouteClick = { route ->
-                    val navRoute =
-                        when (route) {
-                            is ConfigRoute -> route.route
-                            is ModuleRoute -> route.route
-                            else -> null
-                        }
-                    navRoute?.let { onNavigate(it) }
-                },
-                onImport = {
-                    viewModel.clearPacketResponse()
-                    deviceProfile = null
-                    val intent =
-                        Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
-                            addCategory(Intent.CATEGORY_OPENABLE)
-                            type = "application/*"
-                        }
-                    importConfigLauncher.launch(intent)
-                },
-                onExport = {
-                    viewModel.clearPacketResponse()
-                    deviceProfile = null
-                    showEditDeviceProfileDialog = true
-                },
-                onNavigate = onNavigate,
-            )
+            // In a demo, the radio's settings, profile import and export included, are left alone.
+            DemoLocked(locked = demoActive, verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                RadioConfigItemList(
+                    state = state,
+                    isManaged = localConfig.security?.is_managed ?: false,
+                    isOtaCapable = isOtaCapable,
+                    onRouteClick = { route ->
+                        val navRoute =
+                            when (route) {
+                                is ConfigRoute -> route.route
+                                is ModuleRoute -> route.route
+                                else -> null
+                            }
+                        navRoute?.let { onNavigate(it) }
+                    },
+                    onImport = {
+                        viewModel.clearPacketResponse()
+                        deviceProfile = null
+                        val intent =
+                            Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+                                addCategory(Intent.CATEGORY_OPENABLE)
+                                type = "application/*"
+                            }
+                        importConfigLauncher.launch(intent)
+                    },
+                    onExport = {
+                        viewModel.clearPacketResponse()
+                        deviceProfile = null
+                        showEditDeviceProfileDialog = true
+                    },
+                    onNavigate = onNavigate,
+                )
+            }
 
             // App-local settings are only relevant when configuring the local node
             if (state.isLocal) {
+                ExpressiveSection(title = stringResource(Res.string.tactdemo_setting)) {
+                    SwitchPreference(
+                        title = stringResource(Res.string.tactdemo_setting),
+                        summary = stringResource(Res.string.tactdemo_setting_summary),
+                        checked = demoActive,
+                        enabled = true,
+                        onCheckedChange = settingsViewModel::setDemoMode,
+                    )
+                }
+
                 // Ahead of the app settings block: onboarding runs once, so this is the only place a user who skipped
                 // or declined a permission can find their way back to it.
-                PermissionsSettingsContent()
+                DemoLocked(locked = demoActive, verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    PermissionsSettingsContent()
+                }
 
                 ExpressiveSection(title = stringResource(Res.string.app_settings)) {
-                    PrivacySettingsContent(
-                        analyticsAvailable = appFunctionsAvailable,
-                        analyticsEnabled = viewModel.analyticsAllowedFlow.collectAsStateWithLifecycle(true).value,
-                        onToggleAnalytics = { viewModel.toggleAnalyticsAllowed() },
-                        provideLocation = settingsViewModel.provideLocation.collectAsStateWithLifecycle().value,
-                        onToggleLocation = { settingsViewModel.setProvideLocation(it) },
-                        homoglyphEnabled =
-                        viewModel.homoglyphEncodingEnabledFlow.collectAsStateWithLifecycle(false).value,
-                        onToggleHomoglyph = { viewModel.toggleHomoglyphCharactersEncodingEnabled() },
-                        startProvideLocation = { settingsViewModel.startProvidingLocation() },
-                        stopProvideLocation = { settingsViewModel.stopProvidingLocation() },
-                    )
+                    DemoLocked(locked = demoActive) {
+                        PrivacySettingsContent(
+                            analyticsAvailable = appFunctionsAvailable,
+                            analyticsEnabled = viewModel.analyticsAllowedFlow.collectAsStateWithLifecycle(true).value,
+                            onToggleAnalytics = { viewModel.toggleAnalyticsAllowed() },
+                            provideLocation = settingsViewModel.provideLocation.collectAsStateWithLifecycle().value,
+                            onToggleLocation = { settingsViewModel.setProvideLocation(it) },
+                            homoglyphEnabled =
+                            viewModel.homoglyphEncodingEnabledFlow.collectAsStateWithLifecycle(false).value,
+                            onToggleHomoglyph = { viewModel.toggleHomoglyphCharactersEncodingEnabled() },
+                            startProvideLocation = { settingsViewModel.startProvidingLocation() },
+                            stopProvideLocation = { settingsViewModel.stopProvidingLocation() },
+                        )
+                    }
                     AppearanceSettingsContent(
                         showFullMessageTimestamps = showFullMessageTimestamps,
                         onShowFullMessageTimestampsChange = settingsViewModel::setShowFullMessageTimestamps,
@@ -299,15 +321,18 @@ fun SettingsScreen(
                         onShowThemePicker = { showThemePickerDialog = true },
                         unitsSummary = stringResource(UnitsOption.entries.first { it.override == unitsOverride }.label),
                         onShowUnitsPicker = { showUnitsPickerDialog = true },
+                        demoActive = demoActive,
                     )
-                    PersistenceSettingsContent(
-                        cacheLimit = settingsViewModel.dbCacheLimit.collectAsStateWithLifecycle().value,
-                        onCheckCacheLimitEvictionCount = { settingsViewModel.cachedDeviceCountExceeding(it) },
-                        onSetCacheLimit = { settingsViewModel.setDbCacheLimit(it) },
-                        nodeShortName = ourNode?.user?.short_name ?: "",
-                        onExportData = { settingsViewModel.saveDataCsv(it.toKmpUri()) },
-                        onExportNodeDb = { settingsViewModel.saveNodeDbJson(it) },
-                    )
+                    DemoLocked(locked = demoActive) {
+                        PersistenceSettingsContent(
+                            cacheLimit = settingsViewModel.dbCacheLimit.collectAsStateWithLifecycle().value,
+                            onCheckCacheLimitEvictionCount = { settingsViewModel.cachedDeviceCountExceeding(it) },
+                            onSetCacheLimit = { settingsViewModel.setDbCacheLimit(it) },
+                            nodeShortName = ourNode?.user?.short_name ?: "",
+                            onExportData = { settingsViewModel.saveDataCsv(it.toKmpUri()) },
+                            onExportNodeDb = { settingsViewModel.saveNodeDbJson(it) },
+                        )
+                    }
                     ListItem(
                         text = stringResource(Res.string.node_layout_section_title),
                         leadingIcon = MeshtasticIcons.List,
@@ -350,6 +375,7 @@ fun SettingsScreen(
                     onUnlockHiddenFeatures = { settingsViewModel.unlockHiddenFeatures() },
                     onShowAppIntro = { settingsViewModel.showAppIntro() },
                     onNavigateToAbout = { onNavigate(SettingsRoute.About) },
+                    demoActive = demoActive,
                 )
             }
 
