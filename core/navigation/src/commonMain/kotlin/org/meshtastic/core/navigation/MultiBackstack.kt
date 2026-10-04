@@ -61,6 +61,14 @@ class MultiBackstack(val startTab: NavKey, private val currentTabState: MutableS
         }
     }
 
+    /**
+     * Puts every tab back on its root, or on the path [startPaths] gives it (root first). Used when demo mode is
+     * switched on or off, so that no screen opened on one side stays on screen on the other.
+     */
+    fun resetAllTabs(startPaths: Map<NavKey, List<NavKey>> = emptyMap()) {
+        backStacks.forEach { (tab, stack) -> stack.replaceAll(startPaths[tab] ?: listOf(tab)) }
+    }
+
     /** Handles back navigation according to the "exit through home" pattern. */
     fun goBack() {
         val currentStack = activeBackStack

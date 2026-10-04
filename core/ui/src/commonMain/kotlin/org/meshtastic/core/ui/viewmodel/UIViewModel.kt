@@ -54,6 +54,7 @@ import org.meshtastic.core.model.service.TracerouteResponse
 import org.meshtastic.core.model.util.dispatchMeshtasticUri
 import org.meshtastic.core.model.util.isOtaStatusNotification
 import org.meshtastic.core.navigation.DeepLinkRouter
+import org.meshtastic.core.repository.DemoMode
 import org.meshtastic.core.repository.EventFirmwareRepository
 import org.meshtastic.core.repository.FirmwareReleaseRepository
 import org.meshtastic.core.repository.FirmwareUpdateStatusRepository
@@ -111,7 +112,16 @@ class UIViewModel(
     val alertManager: AlertManager,
     val snackbarManager: SnackbarManager,
     nodeRestartTracker: NodeRestartTracker,
+    private val demoMode: DemoMode,
 ) : ViewModel() {
+
+    /** Demo mode, for the app's frame: its banner, the demo radio indicator and the reset of the tabs. */
+    val demoActive: StateFlow<Boolean> = demoMode.isActive
+
+    /** Real messages received since demo mode was switched on, shown in its banner. */
+    val realMessagesSinceDemo: StateFlow<Int> = demoMode.realMessagesSinceActivation
+
+    fun exitDemo() = demoMode.deactivate()
 
     /** True while the connected node is expected to be mid-restart (reboot-applying config save or reboot command). */
     val nodeRestartExpected: StateFlow<Boolean> = nodeRestartTracker.restartExpected

@@ -63,6 +63,7 @@ import org.meshtastic.core.resources.device_sleeping
 import org.meshtastic.core.resources.disconnected
 import org.meshtastic.core.resources.node_restarting
 import org.meshtastic.core.resources.reconnecting
+import org.meshtastic.core.resources.tactdemo_connection
 import org.meshtastic.core.ui.navigation.icon
 import org.meshtastic.core.ui.viewmodel.UIViewModel
 
@@ -85,6 +86,7 @@ fun MeshtasticNavigationSuite(
     val watchdogReconnectInFlight by uiViewModel.watchdogReconnectInFlight.collectAsStateWithLifecycle()
     val unreadMessageCount by uiViewModel.unreadMessageCount.collectAsStateWithLifecycle()
     val selectedDevice by uiViewModel.currentDeviceAddressFlow.collectAsStateWithLifecycle()
+    val demoActive by uiViewModel.demoActive.collectAsStateWithLifecycle()
 
     val adaptiveInfo = currentWindowAdaptiveInfoV2()
 
@@ -113,6 +115,7 @@ fun MeshtasticNavigationSuite(
                             unreadMessageCount = unreadMessageCount,
                             selectedDevice = selectedDevice,
                             meshActivityFlow = uiViewModel.meshActivity,
+                            demoActive = demoActive,
                         )
                     },
                     label =
@@ -188,8 +191,11 @@ private fun NavigationIconContent(
     meshActivityFlow: Flow<MeshActivity>,
     nodeRestartExpected: Boolean = false,
     watchdogReconnectInFlight: Boolean = false,
+    demoActive: Boolean = false,
 ) {
     val isConnectionsRoute = destination == TopLevelDestination.Connect
+    // During a demo the screens run on a demo radio: the tab shows a neutral icon, not the real radio's state.
+    val demoRadio = isConnectionsRoute && demoActive
     // An expected node restart (reboot-applying config save) presents as an in-progress state, not a scary
     // red disconnect: the icon borrows the Connecting treatment and the tooltip says "Restarting". A
     // watchdog-forced handshake recovery gets the same treatment with a "Reconnecting…" tooltip.
@@ -207,7 +213,9 @@ private fun NavigationIconContent(
         tooltip = {
             PlainTooltip {
                 Text(
-                    if (isConnectionsRoute) {
+                    if (demoRadio) {
+                        stringResource(Res.string.tactdemo_connection)
+                    } else if (isConnectionsRoute) {
                         connectionTooltipLabel(restarting, reconnecting, connectionState)
                     } else {
                         stringResource(destination.label)
@@ -217,7 +225,12 @@ private fun NavigationIconContent(
         },
         state = rememberTooltipState(),
     ) {
-        if (isConnectionsRoute) {
+        if (demoRadio) {
+            Icon(
+                imageVector = vectorResource(destination.icon),
+                contentDescription = stringResource(Res.string.tactdemo_connection),
+            )
+        } else if (isConnectionsRoute) {
             AnimatedConnectionsNavIcon(
                 connectionState = presentedState,
                 deviceType = DeviceType.fromAddress(selectedDevice ?: "NoDevice"),

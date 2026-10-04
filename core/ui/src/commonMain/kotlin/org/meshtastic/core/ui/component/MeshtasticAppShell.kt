@@ -16,13 +16,22 @@
  */
 package org.meshtastic.core.ui.component
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation3.runtime.NavKey
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import org.koin.compose.koinInject
@@ -86,6 +95,10 @@ fun MeshtasticAppShell(
         remember(nodeRepository) { nodeRepository.localStats.map { it.noiseFloorOrNull }.distinctUntilChanged() }
             .collectAsStateWithLifecycle(initialValue = null)
 
+    val demoActive by uiViewModel.demoActive.collectAsStateWithLifecycle()
+    val realMessagesSinceDemo by uiViewModel.realMessagesSinceDemo.collectAsStateWithLifecycle()
+    DemoTabsReset(multiBackstack = multiBackstack, demoActive = demoActive)
+
     MeshtasticSnackbarProvider(snackbarManager = uiViewModel.snackbarManager, hostModifier = hostModifier) {
         // Provide the activity FLOW (stable ref) — not a collected value — so it costs no recomposition; only the
         // local-node connection badge collects it, animating in the draw phase. See LocalMeshActivity.
@@ -94,7 +107,37 @@ fun MeshtasticAppShell(
             LocalNoiseFloor provides noiseFloor,
             LocalMeshActivity provides uiViewModel.meshActivity,
         ) {
-            content()
+            Column(modifier = Modifier.fillMaxSize()) {
+                if (demoActive) DemoBanner(realMessages = realMessagesSinceDemo, onExit = uiViewModel::exitDemo)
+                Box(
+                    // The banner already sits under the status bar: the screens below must not pad for it again.
+                    modifier =
+                    Modifier.weight(1f)
+                        .then(if (demoActive) Modifier.consumeWindowInsets(WindowInsets.statusBars) else Modifier),
+                ) {
+                    content()
+                }
+            }
         }
+    }
+}
+
+/**
+ * Switching demo mode on or off puts every tab back on its root, so that no screen opened on one side stays on screen
+ * on the other. In demo mode the node list is unavailable, so the Nodes tab starts on the command post view.
+ */
+@Composable
+private fun DemoTabsReset(multiBackstack: MultiBackstack, demoActive: Boolean) {
+    var shownFor by remember { mutableStateOf(demoActive) }
+    LaunchedEffect(demoActive) {
+        if (demoActive == shownFor) return@LaunchedEffect
+        shownFor = demoActive
+        val startPaths =
+            if (demoActive) {
+                mapOf<NavKey, List<NavKey>>(NodesRoute.Nodes to listOf(NodesRoute.Nodes, NodesRoute.CommandPost))
+            } else {
+                emptyMap()
+            }
+        multiBackstack.resetAllTabs(startPaths)
     }
 }
