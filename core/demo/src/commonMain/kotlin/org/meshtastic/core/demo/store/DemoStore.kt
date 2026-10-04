@@ -39,6 +39,7 @@ class DemoStore {
     val myId = MutableStateFlow<String?>(null)
     val channelSet = MutableStateFlow(ChannelSet.Builder().build())
     val roster = MutableStateFlow<TeamRosterRecord?>(null)
+    val pendingRoster = MutableStateFlow<TeamRosterRecord?>(null)
     val packets = MutableStateFlow<List<DemoPacket>>(emptyList())
     val contactSettings = MutableStateFlow<Map<String, ContactSettings>>(emptyMap())
 
@@ -51,6 +52,7 @@ class DemoStore {
         refreshOurNode()
         channelSet.value = data.channelSet
         roster.value = data.roster
+        pendingRoster.value = null
         packets.value = data.packets
         contactSettings.value = emptyMap()
         this.commandPostMode.value = commandPostMode
@@ -62,6 +64,7 @@ class DemoStore {
         refreshOurNode()
         channelSet.value = ChannelSet.Builder().build()
         roster.value = null
+        pendingRoster.value = null
         packets.value = emptyList()
         contactSettings.value = emptyMap()
         commandPostMode.value = false
