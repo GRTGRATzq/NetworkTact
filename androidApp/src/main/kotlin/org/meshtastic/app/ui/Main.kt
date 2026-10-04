@@ -78,6 +78,7 @@ fun MainScreen() {
     val backStack = multiBackstack.activeBackStack
     val scrollToTopEvents = viewModel.scrollToTopEventFlow
     val settingsRadioConfigViewModelProvider = rememberSettingsRadioConfigViewModelProvider(backStack)
+    val demoUi = rememberDemoUi()
 
     OpenCommandPostOnLaunch(
         radioSelected = initialTab == NodesRoute.Nodes,
@@ -114,25 +115,27 @@ fun MainScreen() {
             MeshtasticNavDisplay(
                 multiBackstack = multiBackstack,
                 entryProvider =
-                entryProvider<NavKey> {
-                    contactsGraph(backStack, scrollToTopEvents, onHandleDeepLink = viewModel::handleDeepLink)
-                    nodesGraph(
-                        backStack = backStack,
-                        scrollToTopEvents = scrollToTopEvents,
-                        onHandleDeepLink = viewModel::handleDeepLink,
-                        onNavigateToConnections = {
-                            multiBackstack.navigateTopLevel(TopLevelDestination.Connect.route)
-                        },
-                    )
-                    mapGraph(backStack)
-                    channelsGraph(backStack)
-                    connectionsGraph(backStack)
-                    discoveryGraph(backStack)
-                    settingsGraph(backStack, settingsRadioConfigViewModelProvider)
-                    docsEntries(backStack)
-                    firmwareGraph(backStack)
-                    wifiProvisionGraph(backStack)
-                },
+                demoUi.gate(
+                    entryProvider<NavKey> {
+                        contactsGraph(backStack, scrollToTopEvents, onHandleDeepLink = viewModel::handleDeepLink)
+                        nodesGraph(
+                            backStack = backStack,
+                            scrollToTopEvents = scrollToTopEvents,
+                            onHandleDeepLink = viewModel::handleDeepLink,
+                            onNavigateToConnections = {
+                                multiBackstack.navigateTopLevel(TopLevelDestination.Connect.route)
+                            },
+                        )
+                        mapGraph(backStack)
+                        channelsGraph(backStack)
+                        connectionsGraph(backStack)
+                        discoveryGraph(backStack)
+                        settingsGraph(backStack, settingsRadioConfigViewModelProvider)
+                        docsEntries(backStack)
+                        firmwareGraph(backStack)
+                        wifiProvisionGraph(backStack)
+                    },
+                ),
                 modifier = Modifier.fillMaxSize().recalculateWindowInsets().safeDrawingPadding(),
                 analytics = koinInject<PlatformAnalytics>(),
             )

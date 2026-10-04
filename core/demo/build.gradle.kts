@@ -27,8 +27,10 @@ kotlin {
             implementation(projects.core.di)
             implementation(projects.core.domain)
             implementation(projects.core.model)
+            implementation(projects.core.navigation)
             implementation(projects.core.repository)
 
+            implementation(libs.androidx.navigation3.runtime)
             implementation(libs.androidx.paging.common)
             implementation(libs.kotlinx.coroutines.core)
         }
