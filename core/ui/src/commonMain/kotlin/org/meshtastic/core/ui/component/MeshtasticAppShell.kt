@@ -26,9 +26,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavKey
@@ -39,6 +37,7 @@ import org.meshtastic.core.model.noiseFloorOrNull
 import org.meshtastic.core.navigation.MultiBackstack
 import org.meshtastic.core.navigation.NodeDetailRoute
 import org.meshtastic.core.navigation.NodesRoute
+import org.meshtastic.core.navigation.TabsResetOnSwitch
 import org.meshtastic.core.repository.NodeRepository
 import org.meshtastic.core.repository.RadioConfigRepository
 import org.meshtastic.core.ui.util.LocalMeshActivity
@@ -59,8 +58,22 @@ fun MeshtasticAppShell(
     hostModifier: Modifier = Modifier,
     content: @Composable () -> Unit,
 ) {
+    // Switching demo mode on or off puts every tab back on its root, so that no screen opened on one side stays on
+    // screen on the other. In demo mode the node list is unavailable, so the Nodes tab starts on the command post view.
+    val demoTabs =
+        remember(multiBackstack) {
+            TabsResetOnSwitch(
+                multiBackstack = multiBackstack,
+                shownFor = uiViewModel.demoActive.value,
+                startPathsWhenOn =
+                mapOf<NavKey, List<NavKey>>(NodesRoute.Nodes to listOf(NodesRoute.Nodes, NodesRoute.CommandPost)),
+            )
+        }
     LaunchedEffect(uiViewModel) {
         uiViewModel.navigationDeepLink.collect { navKeys ->
+            // A link opened during a demo has just switched it off (UIViewModel.handleDeepLink): reset the tabs now,
+            // not on the next frame, or the reset would undo the navigation to the link.
+            demoTabs.sync(uiViewModel.demoActive.value)
             multiBackstack.handleDeepLink(navKeys)
             uiViewModel.onDeepLinkHandled()
         }
@@ -97,7 +110,7 @@ fun MeshtasticAppShell(
 
     val demoActive by uiViewModel.demoActive.collectAsStateWithLifecycle()
     val realMessagesSinceDemo by uiViewModel.realMessagesSinceDemo.collectAsStateWithLifecycle()
-    DemoTabsReset(multiBackstack = multiBackstack, demoActive = demoActive)
+    LaunchedEffect(demoActive) { demoTabs.sync(demoActive) }
 
     MeshtasticSnackbarProvider(snackbarManager = uiViewModel.snackbarManager, hostModifier = hostModifier) {
         // Provide the activity FLOW (stable ref) — not a collected value — so it costs no recomposition; only the
@@ -119,25 +132,5 @@ fun MeshtasticAppShell(
                 }
             }
         }
-    }
-}
-
-/**
- * Switching demo mode on or off puts every tab back on its root, so that no screen opened on one side stays on screen
- * on the other. In demo mode the node list is unavailable, so the Nodes tab starts on the command post view.
- */
-@Composable
-private fun DemoTabsReset(multiBackstack: MultiBackstack, demoActive: Boolean) {
-    var shownFor by remember { mutableStateOf(demoActive) }
-    LaunchedEffect(demoActive) {
-        if (demoActive == shownFor) return@LaunchedEffect
-        shownFor = demoActive
-        val startPaths =
-            if (demoActive) {
-                mapOf<NavKey, List<NavKey>>(NodesRoute.Nodes to listOf(NodesRoute.Nodes, NodesRoute.CommandPost))
-            } else {
-                emptyMap()
-            }
-        multiBackstack.resetAllTabs(startPaths)
     }
 }

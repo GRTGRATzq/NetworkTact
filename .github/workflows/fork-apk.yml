@@ -35,8 +35,11 @@ jobs:
           --stacktrace
       # Own step, after the others: run in the same invocation, its JVM and Kotlin/Native compilations overlapped the
       # Robolectric host tests and froze the runner (runs 28 and 33).
+      # core:navigation is light (no Robolectric): it carries the demo's tab reset test.
       - name: Tests core:demo
-        run: ./gradlew --init-script .github/ci/test-started.init.gradle.kts :core:demo:allTests --stacktrace
+        run: >-
+          ./gradlew --init-script .github/ci/test-started.init.gradle.kts :core:demo:allTests :core:navigation:allTests
+          --stacktrace
       - name: APK fdroid debug
         run: ./gradlew :androidApp:assembleFdroidDebug --stacktrace
       - uses: actions/upload-artifact@v4

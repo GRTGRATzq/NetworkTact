@@ -69,6 +69,7 @@ import org.meshtastic.core.nfc.NfcScannerEffect
 import org.meshtastic.core.nfc.NfcWriterEffect
 import org.meshtastic.core.resources.Res
 import org.meshtastic.core.resources.channel_invalid
+import org.meshtastic.core.resources.tactdemo_exited_for_notification
 import org.meshtastic.core.service.MeshService
 import org.meshtastic.core.service.ServiceStartTrigger
 import org.meshtastic.core.service.startService
@@ -386,7 +387,16 @@ class MainActivity : AppCompatActivity() {
     private fun handleMeshtasticUri(uri: Uri) {
         Logger.d { "Handling Meshtastic URI: $uri" }
 
-        model.handleDeepLink(uri.toKmpUri()) { lifecycleScope.launch { showToast(Res.string.channel_invalid) } }
+        model.handleDeepLink(
+            uri.toKmpUri(),
+            onInvalid = { lifecycleScope.launch { showToast(Res.string.channel_invalid) } },
+            onDemoExited = {
+                // A notification's link: the banner going away is not enough to say why the screen changed.
+                if (uri.pathSegments.firstOrNull() == "messages") {
+                    lifecycleScope.launch { showToast(Res.string.tactdemo_exited_for_notification) }
+                }
+            },
+        )
     }
 
     /**

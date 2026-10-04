@@ -161,8 +161,15 @@ class UIViewModel(
      *    successful, navigates the user to the target screen.
      * 2. **Data Import:** If navigation fails, falls back to legacy contact/channel parsing via
      *    [dispatchMeshtasticUri]. This triggers import dialogs for shared nodes or channel configurations.
+     *
+     * A link always concerns real data (a notification's conversation, a shared channel, a contact), so one opened
+     * during a demo first switches demo mode off, then [onDemoExited] tells the caller.
      */
-    fun handleDeepLink(uri: CommonUri, onInvalid: () -> Unit = {}) {
+    fun handleDeepLink(uri: CommonUri, onDemoExited: () -> Unit = {}, onInvalid: () -> Unit = {}) {
+        if (demoMode.isActive.value) {
+            demoMode.deactivate()
+            onDemoExited()
+        }
         // Try navigation routing first
         val navKeys = DeepLinkRouter.route(uri)
         if (navKeys != null) {
