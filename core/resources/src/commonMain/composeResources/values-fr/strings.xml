@@ -1478,6 +1478,15 @@
     <string name="command_post_duration_minutes">%1$s min</string>
     <string name="command_post_duration_hours">%1$s h %2$s</string>
     <string name="command_post_duration_days">%1$s j %2$s h</string>
+    <string name="tactdemo_banner">MODE DÉMO, données fictives · envois simulés</string>
+    <string name="tactdemo_banner_real_messages">Messages réels reçus : %1$s</string>
+    <string name="tactdemo_connection">Radio de démo : rien n’est envoyé</string>
+    <string name="tactdemo_exit">Quitter</string>
+    <string name="tactdemo_exited_for_notification">Mode démo désactivé pour afficher un message réel</string>
+    <string name="tactdemo_setting">Mode démo</string>
+    <string name="tactdemo_setting_summary">Données fictives sur les écrans de l’application. Rien n’est envoyé à la radio et aucun réglage de la radio n’est modifié. Désactivé à chaque lancement.</string>
+    <string name="tactdemo_unavailable">Indisponible en mode démo</string>
+    <string name="tactdemo_unavailable_body">Cet écran affiche ou modifie des données réelles ou les réglages de la radio. Quittez le mode démo pour l’utiliser.</string>
     <string name="tactmsg_age_days">il y a %1$s j</string>
     <string name="tactmsg_age_hours">il y a %1$s h</string>
     <string name="tactmsg_age_inconsistent">heure incohérente (%1$s min dans le futur)</string>

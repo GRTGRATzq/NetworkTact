@@ -1727,6 +1727,16 @@ swipe_action_delete
 swipe_action_mute
 swipe_action_unmute
 system_settings
+### TACTDEMO ###
+tactdemo_banner
+tactdemo_banner_real_messages
+tactdemo_connection
+tactdemo_exit
+tactdemo_exited_for_notification
+tactdemo_setting
+tactdemo_setting_summary
+tactdemo_unavailable
+tactdemo_unavailable_body
 ### TACTMSG ###
 tactmsg_age_days
 tactmsg_age_hours

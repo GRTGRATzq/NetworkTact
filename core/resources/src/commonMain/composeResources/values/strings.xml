@@ -1781,6 +1781,16 @@
     <string name="swipe_action_mute">Mute</string>
     <string name="swipe_action_unmute">Unmute</string>
     <string name="system_settings">System Settings</string>
+    <!-- TACTDEMO -->
+    <string name="tactdemo_banner">DEMO MODE, fictitious data · sends are simulated</string>
+    <string name="tactdemo_banner_real_messages">Real messages received: %1$s</string>
+    <string name="tactdemo_connection">Demo radio: nothing is sent</string>
+    <string name="tactdemo_exit">Exit</string>
+    <string name="tactdemo_exited_for_notification">Demo mode switched off to show a real message</string>
+    <string name="tactdemo_setting">Demo mode</string>
+    <string name="tactdemo_setting_summary">Fictitious data on the app’s own screens. Nothing is sent to the radio and no radio setting is changed. Off at every launch.</string>
+    <string name="tactdemo_unavailable">Unavailable in demo mode</string>
+    <string name="tactdemo_unavailable_body">This screen shows or changes real data or the radio’s settings. Exit demo mode to use it.</string>
     <!-- TACTMSG -->
     <string name="tactmsg_age_days">%1$s d ago</string>
     <string name="tactmsg_age_hours">%1$s h ago</string>
