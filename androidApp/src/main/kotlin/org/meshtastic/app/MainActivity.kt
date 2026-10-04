@@ -43,6 +43,7 @@ import androidx.core.content.IntentCompat
 import androidx.core.net.toUri
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.compose.currentStateAsState
 import androidx.lifecycle.lifecycleScope
@@ -192,6 +193,14 @@ class MainActivity : AppCompatActivity() {
         }
 
         handleIntent(intent)
+
+        // Demo mode lasts as long as the app's screen: leaving it ends the demo, a rotation does not. The process
+        // can outlive the screen (the mesh service keeps it), so a restart from the launcher would otherwise reopen it.
+        lifecycle.addObserver(
+            LifecycleEventObserver { _, event ->
+                if (event == Lifecycle.Event.ON_DESTROY && isFinishing) model.exitDemo()
+            },
+        )
     }
 
     override fun onStart() {
