@@ -17,6 +17,7 @@
 package org.meshtastic.core.demo.screen
 
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.ExperimentalForInheritanceCoroutinesApi
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
@@ -44,6 +45,7 @@ internal class ScreenSwitch(private val demoMode: DemoMode) {
 }
 
 /** A [StateFlow] whose [value] is read from the side in use at that very moment, so a read is never stale. */
+@OptIn(ExperimentalForInheritanceCoroutinesApi::class)
 internal class SwitchingStateFlow<T>(
     private val demoActive: StateFlow<Boolean>,
     private val real: StateFlow<T>,
