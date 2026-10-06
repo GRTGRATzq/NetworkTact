@@ -55,6 +55,11 @@ jobs:
         run: >-
           ./gradlew --init-script .github/ci/test-started.init.gradle.kts :core:demo:allTests :core:navigation:allTests
           --stacktrace
+      # Own step too: feature:map carries the shared-point dialog test (feat/fait-observe-carte).
+      - name: Tests feature:map
+        run: >-
+          ./gradlew --init-script .github/ci/test-started.init.gradle.kts :feature:map:allTests
+          --stacktrace
       - name: APK fdroid debug
         run: ./gradlew :androidApp:assembleFdroidDebug --stacktrace
       - uses: actions/upload-artifact@v4
