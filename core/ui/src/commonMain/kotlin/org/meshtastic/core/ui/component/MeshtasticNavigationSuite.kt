@@ -96,7 +96,6 @@ fun MeshtasticNavigationSuite(
     val topLevelDestination = TopLevelDestination.fromNavKey(currentTabRoute)
 
     val layoutType = NavigationSuiteScaffoldDefaults.calculateFromAdaptiveInfo(adaptiveInfo).coerceNavigationType()
-    val showLabels = layoutType == NavigationSuiteType.NavigationRail
 
     NavigationSuiteScaffold(
         modifier = modifier,
@@ -120,12 +119,8 @@ fun MeshtasticNavigationSuite(
                             demoActive = demoActive,
                         )
                     },
-                    label =
-                    if (showLabels) {
-                        { Text(stringResource(destination.label)) }
-                    } else {
-                        null
-                    },
+                    // Labelled on the bottom bar too, not only on the rail: read at a glance in the field.
+                    label = { Text(stringResource(destination.label)) },
                 )
             }
         },
