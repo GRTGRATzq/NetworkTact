@@ -33,6 +33,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.stringResource
+import org.meshtastic.core.common.util.DateFormatter
 import org.meshtastic.core.common.util.MeasurementSystem
 import org.meshtastic.core.model.util.PUSHPIN_CODE_POINT
 import org.meshtastic.core.model.util.toCodePointString
@@ -46,6 +47,9 @@ import org.meshtastic.core.resources.geofence_alerts_opt_in
 import org.meshtastic.core.resources.geofence_alerts_opt_in_desc
 import org.meshtastic.core.resources.geofence_radius
 import org.meshtastic.core.resources.geofence_set_area
+import org.meshtastic.core.resources.waypoint_origin
+import org.meshtastic.core.resources.waypoint_origin_me
+import org.meshtastic.core.resources.waypoint_origin_time_unknown
 import org.meshtastic.core.ui.component.BasicListItem
 import org.meshtastic.proto.Waypoint
 
@@ -56,7 +60,7 @@ import org.meshtastic.proto.Waypoint
  * [org.meshtastic.core.data.manager .GeofenceMonitor]). Reached for both locked and unlocked foreign geofences, so the
  * locked case gets a view at all. Unlocked foreign geofences are still editable — [onEdit], when non-null, opens the
  * full editor. [onDeleteForMe] drops only our local copy, so it needs no mesh-wide permission and is offered even when
- * the geofence is locked to its creator.
+ * the geofence is locked to its creator. [origin], when given, says who sent the waypoint and when it was received.
  */
 @Composable
 fun WaypointInfoDialog(
@@ -65,6 +69,7 @@ fun WaypointInfoDialog(
     alertsEnabled: Boolean,
     onToggleAlerts: (Boolean) -> Unit,
     onDismissRequest: () -> Unit,
+    origin: WaypointOrigin? = null,
     onEdit: (() -> Unit)? = null,
     onDeleteForMe: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
@@ -78,6 +83,14 @@ fun WaypointInfoDialog(
         title = { Text(text = "$emoji  $title", fontWeight = FontWeight.Bold) },
         text = {
             Column(modifier = Modifier.fillMaxWidth()) {
+                origin?.let {
+                    Text(
+                        it.label(),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Spacer(modifier = Modifier.size(8.dp))
+                }
                 if (waypoint.description.isNotBlank()) {
                     Text(waypoint.description, style = MaterialTheme.typography.bodyMedium)
                     Spacer(modifier = Modifier.size(8.dp))
@@ -130,4 +143,23 @@ fun WaypointInfoDialog(
         },
         modifier = modifier,
     )
+}
+
+/**
+ * Who sent a waypoint and when this phone received it, from the packet that carried it: [sender] is the sender's name
+ * (or its `!xxxxxxxx` id), [isMine] a waypoint this radio sent, [receivedAtMillis] 0 when the time is unknown.
+ */
+data class WaypointOrigin(val sender: String, val isMine: Boolean, val receivedAtMillis: Long)
+
+/** `De ALPHA-1 · reçu le 06/10 14:05`, `De moi · …`, or `heure inconnue` without a time. */
+@Composable
+private fun WaypointOrigin.label(): String {
+    val who = if (isMine) stringResource(Res.string.waypoint_origin_me) else sender
+    val time =
+        if (receivedAtMillis > 0) {
+            DateFormatter.formatDateTimeShort(receivedAtMillis)
+        } else {
+            stringResource(Res.string.waypoint_origin_time_unknown)
+        }
+    return stringResource(Res.string.waypoint_origin, who, time)
 }

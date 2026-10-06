@@ -27,11 +27,16 @@ import org.koin.compose.viewmodel.koinViewModel
 import org.maplibre.spatialk.geojson.BoundingBox
 import org.maplibre.spatialk.geojson.Position
 import org.meshtastic.core.common.util.MeasurementSystem
+import org.meshtastic.core.model.DataPacket
+import org.meshtastic.core.model.NodeAddress
+import org.meshtastic.core.model.isFromLocal
 import org.meshtastic.core.model.isModifiableBy
+import org.meshtastic.core.model.team.TeamSuffix
 import org.meshtastic.core.model.util.waypointIconOrDefault
 import org.meshtastic.feature.map.SharedMapViewModel
 import org.meshtastic.feature.map.component.DeleteWaypointDialog
 import org.meshtastic.feature.map.component.WaypointInfoDialog
+import org.meshtastic.feature.map.component.WaypointOrigin
 import org.meshtastic.feature.map.maplibre.WaypointEditRequest
 import org.meshtastic.proto.Waypoint
 import kotlin.math.abs
@@ -58,9 +63,11 @@ internal fun WaypointDialogs(
     var deletingId by remember { mutableStateOf<Int?>(null) }
 
     selectedId?.let { id ->
-        waypoints[id]?.waypoint?.let { waypoint ->
+        val packet = waypoints[id]
+        packet?.waypoint?.let { waypoint ->
             WaypointInfoSlot(
                 waypoint = waypoint,
+                origin = packet.waypointOrigin(viewModel),
                 myNodeNum = viewModel.myNodeNum,
                 isConnected = isConnected,
                 displayUnits = displayUnits,
@@ -115,6 +122,7 @@ internal fun WaypointDialogs(
 @Composable
 internal fun WaypointInfoSlot(
     waypoint: Waypoint,
+    origin: WaypointOrigin?,
     myNodeNum: Int?,
     isConnected: Boolean,
     displayUnits: MeasurementSystem,
@@ -135,7 +143,15 @@ internal fun WaypointInfoSlot(
         onEdit = if (waypoint.isModifiableBy(myNodeNum) && isConnected) onEdit else null,
         // Dropping our local copy is not a mesh operation, so a foreign lock does not withhold it.
         onDeleteForMe = onDeleteForMe,
+        origin = origin,
     )
+}
+
+/** The sender, named without its team suffix, and the time this phone received the waypoint. */
+private fun DataPacket.waypointOrigin(viewModel: SharedMapViewModel): WaypointOrigin {
+    val sender = from ?: NodeAddress.ID_BROADCAST
+    val name = TeamSuffix.displayName(viewModel.getUser(sender).long_name).ifBlank { sender }
+    return WaypointOrigin(sender = name, isMine = isFromLocal(viewModel.myNodeNum), receivedAtMillis = time)
 }
 
 /** Delete confirmation, wrapped so dismissing and acting both clear the pending waypoint. */

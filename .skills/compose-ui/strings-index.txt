@@ -2017,9 +2017,13 @@ view_release
 voltage
 warning
 water_ph
+### WAYPOINT ###
 waypoint_delete
 waypoint_edit
 waypoint_new
+waypoint_origin
+waypoint_origin_me
+waypoint_origin_time_unknown
 waypoint_received
 website
 weight

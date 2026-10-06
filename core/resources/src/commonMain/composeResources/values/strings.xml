@@ -2077,9 +2077,13 @@
     <string name="voltage">Voltage</string>
     <string name="warning">Warning</string>
     <string name="water_ph">Water pH</string>
+    <!-- WAYPOINT -->
     <string name="waypoint_delete">Delete waypoint?</string>
     <string name="waypoint_edit">Edit waypoint</string>
     <string name="waypoint_new">New waypoint</string>
+    <string name="waypoint_origin">From %1$s · received %2$s</string>
+    <string name="waypoint_origin_me">me</string>
+    <string name="waypoint_origin_time_unknown">time unknown</string>
     <string name="waypoint_received">Received waypoint: %1$s</string>
     <string name="website">Website</string>
     <string name="weight">Weight</string>

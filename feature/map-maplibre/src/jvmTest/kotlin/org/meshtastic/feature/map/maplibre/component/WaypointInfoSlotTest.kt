@@ -42,6 +42,7 @@ class WaypointInfoSlotTest {
     @Composable
     private fun InfoSlot(waypoint: Waypoint, isConnected: Boolean) = WaypointInfoSlot(
         waypoint = waypoint,
+        origin = null,
         myNodeNum = myNodeNum,
         isConnected = isConnected,
         displayUnits = MeasurementSystem.METRIC,
