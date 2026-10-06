@@ -1,7 +1,7 @@
 # NetworkTact
 
 NetworkTact est un fork de [Meshtastic-Android](https://github.com/meshtastic/Meshtastic-Android),
-modifié à partir du 26 septembre 2026 (dernière mise à jour de ce fichier : 3 octobre 2026, branche `feat/conversation-maquette`).
+modifié à partir du 26 septembre 2026 (dernière mise à jour de ce fichier : 6 octobre 2026, branche `feat/theme`).
 
 - **Licence** : GPL-3.0-or-later (voir le fichier `LICENSE`, inchangé).
 - **Origine** : code de Meshtastic-Android, © Meshtastic LLC. Les mentions de copyright de
@@ -166,6 +166,42 @@ Exceptions detekt `@Suppress("TooManyFunctions")`, au niveau de la classe, avec 
 `DemoRadioConfigRepository`, `ScreenRadioConfigRepository`, `ScreenUiPrefs`. Ces sept classes
 implémentent des interfaces amont de plus de 11 membres. Il n'y a aucune autre exception ni
 ligne de référence (baseline) ajoutée.
+
+### 10. Thème clair / sombre (`feat/theme`)
+
+Le choix du thème existait déjà (Réglages → Thème : Clair, Sombre, Valeur par défaut du système,
+Dynamique), traduit en français ; il n'est pas modifié. Les couleurs ajoutées par NetworkTact
+ont été mesurées dans les deux thèmes (contraste WCAG, 4,5:1 pour le texte, 3:1 pour une barre)
+et corrigées :
+
+- **Teintes propres à chaque thème** (`core/ui/.../theme/TactColors.kt`) : rouge (urgent), ambre
+  (compte rendu), vert (position fraîche), un ton pour le clair et un pour le sombre. Le thème
+  est déduit de la palette affichée, pas du système. Avec la palette « Dynamique », le ton est
+  vérifié sur le vrai fond et, s'il ne tient pas le seuil, remplacé par le ton fixe de la même
+  teinte le plus contrasté.
+- **Couleurs d'état d'origine** (`StatusGreen`, `StatusYellow`, `StatusOrange`, `StatusRed`,
+  `StatusBlue`) : elles suivaient le thème du système au lieu de celui choisi dans
+  l'application. Elles suivent désormais la palette affichée ; valeurs et usages inchangés.
+- **Messagerie** : barre de priorité urgent `#B3261E` / `#FF8A80` et compte rendu `#8A5300` /
+  `#F2B33D` (clair / sombre), au lieu de `#E05252` et `#E8A33E` (ambre à 1,49:1 en clair).
+  Le texte secondaire d'une carte passe au texte principal quand il lirait moins de 4,5:1 sur
+  le fond teinté.
+- **Texte secondaire en thème clair** : `onSurfaceVariant` passe de `#5C5E78` à `#54566F`
+  (4,94:1 sur une carte au lieu de 4,37:1), pour toute l'application.
+- **Vue PC** : position ANCIENNE ou incohérente et contact à l'heure incohérente en pastille
+  inversée avec icône d'alerte, au lieu du rouge ; position fraîche en vert `#1E6B3C` /
+  `#67EA94` (4,51:1 et 6,88:1 sur une carte).
+- **Puce de nœud** : 16 couleurs fixes (bleus, cyans, sarcelles, verts, violets, ardoise), sans
+  rouge, rose, orange, ambre, jaune ni brun, choisies par le numéro du nœud ; texte noir ou
+  blanc à 4,64:1 au moins. Elle remplace la couleur tirée des octets du numéro. Les marqueurs de
+  carte et les raccourcis de conversation suivent.
+- Déjà conformes, inchangés : en-têtes des cartes de message, alertes et bandeau du mode démo en
+  couleurs inversées (8,97:1 et 11,61:1), écran « Indisponible en mode démo », logo.
+
+Les captures d'écran Compose (`screenshot-tests`) ne sont pas utilisées : elles demandent le SDK
+Android et des images de référence, et ne tournent pas dans `fork-apk`. Les contrastes sont
+vérifiés par des tests (`PriorityBarContrastTest`, `FreshnessToneTest`, `NodeColorsTest`), et des
+aperçus clair / sombre existent pour les cartes de message, la vue PC, les Équipes et le mode démo.
 
 ## Marques
 
