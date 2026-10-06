@@ -25,6 +25,21 @@ jobs:
           distribution: temurin
           java-version: "21"
       - uses: gradle/actions/setup-gradle@v4
+      # The runner has 4 CPUs and 16 GB. The repository's gradle.properties sizes the daemons for a workstation
+      # (Gradle 8 GB, Kotlin 6 GB) and Gradle runs 4 workers, each test task forking 2 JVMs of 2 GB: far above 16 GB.
+      # The runner then swaps and is shut down mid-tests with no test failing (runs 37 and 38, different last tests).
+      # The user-home gradle.properties overrides the project one for CI only; every step uses the same values, so
+      # one Gradle daemon and one Kotlin daemon serve the whole job. Worst case: 5 + 4 + 2 x 2 = 13 GB.
+      - name: Limit Gradle memory
+        run: |
+          mkdir -p "${GRADLE_USER_HOME:-$HOME/.gradle}"
+          cat >> "${GRADLE_USER_HOME:-$HOME/.gradle}/gradle.properties" <<'EOF'
+          org.gradle.jvmargs=-Xmx5g -XX:+UseG1GC -XX:MaxMetaspaceSize=1g -XX:ReservedCodeCacheSize=256m -Xss2m -Dfile.encoding=UTF-8 -Djava.awt.headless=true
+          org.gradle.workers.max=2
+          kotlin.daemon.jvmargs=-Xmx4g -XX:+UseG1GC -XX:ReservedCodeCacheSize=256m
+          kotlin.native.jvmArgs=-Xmx3g -XX:+UseG1GC
+          EOF
+          cat "${GRADLE_USER_HOME:-$HOME/.gradle}/gradle.properties"
       - name: Lint
         run: ./gradlew spotlessCheck detekt --stacktrace
       # allTests = jvmTest (Compose UI tests from commonTest, and node's jvmTest) + testAndroidHostTest where enabled.
