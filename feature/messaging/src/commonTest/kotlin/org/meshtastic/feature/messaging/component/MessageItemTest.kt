@@ -36,10 +36,13 @@ import org.meshtastic.core.model.MessageStatus
 import org.meshtastic.core.model.Node
 import org.meshtastic.core.ui.component.preview.NodePreviewParameterProvider
 import org.meshtastic.core.ui.theme.AppTheme
+import org.meshtastic.core.ui.util.MapFocusPoint
 import org.meshtastic.proto.MeshPacket
 import org.meshtastic.proto.Routing
+import kotlin.math.abs
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.minutes
 
 @OptIn(ExperimentalTestApi::class)
@@ -403,6 +406,46 @@ class MessageItemTest {
         // [POS] is information: no priority tag, and its own tag stays in the body.
         onNodeWithContentDescription("Priority:", substring = true, useUnmergedTree = true).assertDoesNotExist()
         onNodeWithText("[POS] BRAVO-2 · MGRS 31U DQ 48251 11932", useUnmergedTree = true).assertIsDisplayed()
+    }
+
+    @Test
+    fun receivedCoordinateOffersToShowItOnTheMap() = runComposeUiTest {
+        val sender = namedNode(NodePreviewParameterProvider().minnieMouse, "BRAVO-2 [Bravo]")
+        val message = directMessage(node = sender, snr = 1f).copy(text = "[POS] BRAVO-2 · MGRS 31U DQ 48251 11932")
+        var shown: MapFocusPoint? = null
+
+        setContent {
+            MessageItem(
+                message = message,
+                node = sender,
+                selected = false,
+                ourNode = NodePreviewParameterProvider().mickeyMouse,
+                onShowOnMap = { shown = it },
+            )
+        }
+
+        onNodeWithText("Show on map", useUnmergedTree = true).assertIsDisplayed().performClick()
+        val point = checkNotNull(shown)
+        // 31U DQ 48251 11932 is 48.858 19° N, 2.294 49° E.
+        assertTrue(abs(point.latitude - 48.858_19) < 0.000_1 && abs(point.longitude - 2.294_49) < 0.000_1, "$point")
+    }
+
+    @Test
+    fun receivedTextWithoutCoordinateHasNoMapButton() = runComposeUiTest {
+        val sender = namedNode(NodePreviewParameterProvider().minnieMouse, "BRAVO-2 [Bravo]")
+        val message = directMessage(node = sender, snr = 1f).copy(text = "Appelez le 06 12 34 56 78 à 14:05")
+
+        setContent {
+            MessageItem(
+                message = message,
+                node = sender,
+                selected = false,
+                ourNode = NodePreviewParameterProvider().mickeyMouse,
+                onShowOnMap = {},
+            )
+        }
+
+        onNodeWithText("Show on map", useUnmergedTree = true).assertDoesNotExist()
     }
 
     @Test

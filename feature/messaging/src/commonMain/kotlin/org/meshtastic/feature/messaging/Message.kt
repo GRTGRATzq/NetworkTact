@@ -106,6 +106,7 @@ import org.meshtastic.core.repository.SCREEN_DATA
 import org.meshtastic.core.repository.TeamRosterPrefs
 import org.meshtastic.core.resources.Res
 import org.meshtastic.core.resources.archived_channel_read_only
+import org.meshtastic.core.resources.coords_map_unavailable_demo
 import org.meshtastic.core.resources.send
 import org.meshtastic.core.resources.tactmsg_too_long
 import org.meshtastic.core.resources.type_a_message
@@ -117,6 +118,8 @@ import org.meshtastic.core.ui.icon.History
 import org.meshtastic.core.ui.icon.MeshtasticIcons
 import org.meshtastic.core.ui.icon.Send
 import org.meshtastic.core.ui.theme.AppTheme
+import org.meshtastic.core.ui.util.MapFocusRequests
+import org.meshtastic.core.ui.util.SnackbarManager
 import org.meshtastic.core.ui.util.createClipEntry
 import org.meshtastic.core.ui.util.isFromSoftKeyboard
 import org.meshtastic.core.ui.util.nameWithTeam
@@ -159,6 +162,8 @@ private const val COUNTER_VISIBLE_WITHIN_BYTES = 20
  * @param navigateToFilterSettings Callback to navigate to the message filter settings screen.
  * @param onNavigateBack Callback to navigate back from this screen.
  * @param navigateToCoordinateConverter Opens the coordinate converter; null hides the shortcut (conversation bubble).
+ * @param navigateToMap Opens the map, after it has been asked to centre on a message's coordinate; null hides "Show on
+ *   map".
  */
 @Suppress("LongMethod", "CyclomaticComplexMethod")
 @OptIn(ExperimentalFoundationApi::class)
@@ -172,6 +177,7 @@ fun MessageScreen(
     navigateToFilterSettings: () -> Unit,
     onNavigateBack: () -> Unit,
     navigateToCoordinateConverter: (() -> Unit)? = null,
+    navigateToMap: (() -> Unit)? = null,
 ) {
     val coroutineScope = rememberCoroutineScope()
     val clipboardManager = LocalClipboard.current
@@ -223,6 +229,9 @@ fun MessageScreen(
     val storedDraft by viewModel.draftMessage.collectAsStateWithLifecycle()
     val sharePointOffer by viewModel.sharePointOffer.collectAsStateWithLifecycle()
     val isDemoActive by viewModel.isDemoActive.collectAsStateWithLifecycle()
+    val mapFocusRequests = koinInject<MapFocusRequests>()
+    val snackbarManager = koinInject<SnackbarManager>()
+    val mapUnavailableInDemo = stringResource(Res.string.coords_map_unavailable_demo)
 
     // Seed the composer once the draft arrives, unless the screen was opened with a message to prefill.
     LaunchedEffect(storedDraft) {
@@ -605,6 +614,19 @@ fun MessageScreen(
                         onReply = { message -> if (!isRetiredChannel) replyingToPacketId = message?.packetId },
                         onTranslate = { onEvent(MessageScreenEvent.TranslateMessage(it)) },
                         onToggleTranslation = { onEvent(MessageScreenEvent.ToggleShowTranslated(it)) },
+                        onShowOnMap =
+                        navigateToMap?.let { openMap ->
+                            { point ->
+                                // The map is unavailable in a demo: nothing is opened, and nothing is ever
+                                // sent.
+                                if (isDemoActive) {
+                                    coroutineScope.launch { snackbarManager.showSnackbar(mapUnavailableInDemo) }
+                                } else {
+                                    mapFocusRequests.request(point)
+                                    openMap()
+                                }
+                            }
+                        },
                     ),
                     quickEmojis = viewModel.frequentEmojis,
                 )

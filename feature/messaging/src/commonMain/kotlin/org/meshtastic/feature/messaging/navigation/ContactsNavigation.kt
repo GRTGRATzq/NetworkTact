@@ -28,6 +28,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import org.koin.compose.viewmodel.koinViewModel
 import org.meshtastic.core.common.util.CommonUri
 import org.meshtastic.core.navigation.ContactsRoute
+import org.meshtastic.core.navigation.MapRoute
 import org.meshtastic.core.navigation.NodesRoute
 import org.meshtastic.core.navigation.SettingsRoute
 import org.meshtastic.core.navigation.replaceLast
@@ -76,6 +77,7 @@ fun EntryProviderScope<NavKey>.contactsGraph(
             navigateToFilterSettings = dropUnlessResumed { backStack.add(SettingsRoute.FilterSettings) },
             onNavigateBack = dropUnlessResumed { backStack.removeLastOrNull() },
             navigateToCoordinateConverter = dropUnlessResumed { backStack.add(ContactsRoute.CoordinateConverter) },
+            navigateToMap = dropUnlessResumed { backStack.add(MapRoute.Map()) },
         )
     }
 

@@ -319,6 +319,7 @@ coords_fact_too_long
 coords_hint
 coords_input_format
 coords_input_label
+coords_map_unavailable_demo
 coords_my_position
 coords_my_position_none
 coords_my_position_phone
@@ -332,6 +333,7 @@ coords_share_dismiss
 coords_share_done
 coords_share_done_demo
 coords_share_title
+coords_show_on_map
 copy
 copyright_notice
 create_your_own_networks

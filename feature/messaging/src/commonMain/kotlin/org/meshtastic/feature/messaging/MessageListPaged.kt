@@ -65,6 +65,7 @@ import org.meshtastic.core.model.Node
 import org.meshtastic.core.model.NodeAddress
 import org.meshtastic.core.model.Reaction
 import org.meshtastic.core.model.team.TeamSuffix
+import org.meshtastic.core.ui.util.MapFocusPoint
 import org.meshtastic.feature.messaging.component.DateSeparator
 import org.meshtastic.feature.messaging.component.MessageItem
 import org.meshtastic.feature.messaging.component.MessageStatusDialog
@@ -96,6 +97,8 @@ internal data class MessageListHandlers(
     val onReply: (Message?) -> Unit,
     val onTranslate: (Message) -> Unit = {},
     val onToggleTranslation: (Message) -> Unit = {},
+    /** Opens the map on a coordinate of a received message; null hides "Show on map". */
+    val onShowOnMap: ((MapFocusPoint) -> Unit)? = null,
 )
 
 internal data class MessageListPagedState(
@@ -440,6 +443,7 @@ private fun RenderPagedChatMessageRow(
         onSelect = { state.selectedIds.toggle(message.uuid) },
         onDelete = { handlers.onDeleteMessages(listOf(message.uuid)) },
         onClickChip = handlers.onClickChip,
+        onShowOnMap = handlers.onShowOnMap,
         resolveMention = resolveMention,
         onStatusClick = { onShowStatusDialog(message) },
         recipientName = recipientName,

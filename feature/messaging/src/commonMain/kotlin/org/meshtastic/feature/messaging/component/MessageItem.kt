@@ -46,6 +46,7 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -83,8 +84,10 @@ import org.meshtastic.core.common.util.nowMillis
 import org.meshtastic.core.model.Message
 import org.meshtastic.core.model.Node
 import org.meshtastic.core.model.Reaction
+import org.meshtastic.core.model.geo.MessageCoordinate
 import org.meshtastic.core.resources.Res
 import org.meshtastic.core.resources.a11y_message_from
+import org.meshtastic.core.resources.coords_show_on_map
 import org.meshtastic.core.resources.filter_message_label
 import org.meshtastic.core.resources.message_translated_label
 import org.meshtastic.core.resources.reply
@@ -101,9 +104,11 @@ import org.meshtastic.core.ui.component.TransportIcon
 import org.meshtastic.core.ui.emoji.EmojiPickerDialog
 import org.meshtastic.core.ui.icon.FormatQuote
 import org.meshtastic.core.ui.icon.HopCount
+import org.meshtastic.core.ui.icon.Map
 import org.meshtastic.core.ui.icon.MeshtasticIcons
 import org.meshtastic.core.ui.icon.Reply
 import org.meshtastic.core.ui.icon.ShieldCheck
+import org.meshtastic.core.ui.util.MapFocusPoint
 import org.meshtastic.core.ui.util.createClipEntry
 import org.meshtastic.core.ui.util.nameWithTeam
 import org.meshtastic.feature.messaging.priority.MessagePriority
@@ -171,6 +176,8 @@ fun MessageItem(
     currentTimeMillis: () -> Long = { nowMillis },
     onTranslate: () -> Unit = {},
     onToggleTranslation: () -> Unit = {},
+    /** Opens the map on a coordinate a received message holds; null hides the button. Nothing is sent. */
+    onShowOnMap: ((MapFocusPoint) -> Unit)? = null,
 ) = Column(
     modifier =
     modifier
@@ -497,6 +504,10 @@ fun MessageItem(
                                 )
                             }
 
+                            if (onShowOnMap != null && !message.fromLocal) {
+                                ShowOnMapButton(text = message.text, onShowOnMap = onShowOnMap)
+                            }
+
                             Row(
                                 modifier = Modifier.padding(top = 4.dp),
                                 verticalAlignment = Alignment.CenterVertically,
@@ -790,5 +801,19 @@ private fun OriginalMessageSnippet(
                 )
             }
         }
+    }
+}
+
+/** "Show on map" under a received message holding a complete coordinate; absent otherwise. */
+@Composable
+private fun ShowOnMapButton(text: String, onShowOnMap: (MapFocusPoint) -> Unit) {
+    val found = remember(text) { MessageCoordinate.find(text) } ?: return
+    TextButton(onClick = { onShowOnMap(MapFocusPoint(found.point.latitude, found.point.longitude)) }) {
+        Icon(MeshtasticIcons.Map, contentDescription = null, modifier = Modifier.size(18.dp))
+        Text(
+            text = stringResource(Res.string.coords_show_on_map),
+            modifier = Modifier.padding(start = 6.dp),
+            style = MaterialTheme.typography.labelLarge,
+        )
     }
 }
