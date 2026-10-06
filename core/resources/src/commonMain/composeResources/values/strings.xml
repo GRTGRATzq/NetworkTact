@@ -333,7 +333,10 @@
     <string name="coords_fact_description">Description</string>
     <string name="coords_fact_description_required">Describe what was observed.</string>
     <string name="coords_fact_insert">Insert in message</string>
+    <string name="coords_fact_observed_at">Observed at (HH:MM)</string>
+    <string name="coords_fact_observed_at_invalid">Expected as HH:MM, for example 14:05.</string>
     <string name="coords_fact_place">Place</string>
+    <string name="coords_fact_previous_day">Later than now: taken as the day before (veille).</string>
     <string name="coords_fact_review">Nothing is sent: the message goes into the input field for you to review and send.</string>
     <string name="coords_fact_title">Observed fact</string>
     <string name="coords_fact_too_long">Too long: %1$d/%2$d bytes. Shorten the description.</string>

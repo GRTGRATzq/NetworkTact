@@ -16,8 +16,10 @@
  */
 package org.meshtastic.feature.messaging.coordinates
 
+import kotlinx.datetime.TimeZone
 import org.meshtastic.core.model.geo.CoordinateFormat
 import org.meshtastic.core.model.geo.CoordinateParser
+import org.meshtastic.core.model.geo.ObservedTime
 import org.meshtastic.feature.messaging.priority.MessagePriority
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -27,14 +29,17 @@ import kotlin.test.assertTrue
 
 class ObservedFactDraftTest {
 
-    private fun draft(place: String, format: CoordinateFormat, description: String) =
-        observedFactDraft(CoordinateParser.parse(place, format), format, description)
+    // 14:30 UTC on 6 October 2026.
+    private val now = 1_791_297_000L
+
+    private fun draft(place: String, format: CoordinateFormat, description: String, time: String = "14:05") =
+        observedFactDraft(CoordinateParser.parse(place, format), format, description, time, now, TimeZone.UTC)
 
     @Test
     fun valid_place_and_description_give_a_report_filed_as_cr() {
         val draft = draft("31U 448251 5411932", CoordinateFormat.UTM, "deux véhicules arrêtés")
         assertEquals(
-            "[CR] FAIT OBSERVÉ · Lieu UTM 31U 448251 5411932 = MGRS 31U DQ 48251 11932 · deux véhicules arrêtés",
+            "[CR] FAIT OBSERVÉ · 14:05 · Lieu UTM 31U 448251 5411932 = MGRS 31U DQ 48251 11932 · deux véhicules arrêtés",
             draft.message,
         )
         assertTrue(draft.canInsert)
@@ -59,5 +64,37 @@ class ObservedFactDraftTest {
         assertTrue(draft.bytes > 200)
         assertFalse(draft.canInsert)
         assertTrue(checkNotNull(draft.message).endsWith("é".repeat(100)))
+    }
+
+    @Test
+    fun observationTimeGoesIntoTheReport() {
+        val draft = draft("31U DQ 48251 11932", CoordinateFormat.MGRS, "fumée", time = "9h05")
+        assertEquals("[CR] FAIT OBSERVÉ · 09:05 · Lieu MGRS 31U DQ 48251 11932 · fumée", draft.message)
+        assertEquals(ObservedTime(9, 5, previousDay = false), draft.observedAt)
+        assertTrue(draft.canInsert)
+    }
+
+    @Test
+    fun observationTimeLaterThanNowIsTheDayBefore() {
+        val draft = draft("31U DQ 48251 11932", CoordinateFormat.MGRS, "fumée", time = "14:31")
+        assertEquals("[CR] FAIT OBSERVÉ · 14:31 (veille) · Lieu MGRS 31U DQ 48251 11932 · fumée", draft.message)
+        assertTrue(checkNotNull(draft.observedAt).previousDay)
+        assertTrue(draft.canInsert)
+    }
+
+    @Test
+    fun invalidObservationTimeGivesNothing() {
+        listOf("", "14", "25:00", "14:60", "14:5", "midi").forEach { time ->
+            val draft = draft("31U DQ 48251 11932", CoordinateFormat.MGRS, "fumée", time = time)
+            assertNull(draft.observedAt, time)
+            assertNull(draft.message, time)
+            assertFalse(draft.canInsert, time)
+        }
+    }
+
+    @Test
+    fun clockIsReadInUsualForms() {
+        listOf("14:05", "14h05", "14 05", "1405", " 14:05 ").forEach { assertEquals(14 to 5, parseClock(it), it) }
+        assertEquals(9 to 5, parseClock("9:05"))
     }
 }

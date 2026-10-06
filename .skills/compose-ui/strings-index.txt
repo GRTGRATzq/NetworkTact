@@ -309,7 +309,10 @@ coords_error_zone
 coords_fact_description
 coords_fact_description_required
 coords_fact_insert
+coords_fact_observed_at
+coords_fact_observed_at_invalid
 coords_fact_place
+coords_fact_previous_day
 coords_fact_review
 coords_fact_title
 coords_fact_too_long
