@@ -124,6 +124,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import org.meshtastic.app.map.component.CustomTileProviderManagerSheet
 import org.meshtastic.app.map.component.MapTypeDropdown
@@ -177,6 +178,7 @@ import org.meshtastic.core.ui.icon.MeshtasticIcons
 import org.meshtastic.core.ui.theme.TracerouteColors
 import org.meshtastic.core.ui.util.ActiveWhileStarted
 import org.meshtastic.core.ui.util.KeepScreenOn
+import org.meshtastic.core.ui.util.MapFocusRequests
 import org.meshtastic.core.ui.util.PermissionStatus
 import org.meshtastic.core.ui.util.formatAgo
 import org.meshtastic.core.ui.util.formatPositionTime
@@ -257,6 +259,9 @@ sealed interface GoogleMapMode {
 
 private const val TRACEROUTE_OFFSET_METERS = 100.0
 private const val TRACEROUTE_BOUNDS_PADDING_PX = 120
+
+/** The least zoom a map opened on a point shows it at. */
+private const val FOCUS_ZOOM = 15f
 
 // Shared geofence overlay styling (orange, matching the fdroid flavor).
 private val GEOFENCE_OVERLAY_COLOR = Color(0xFFFF9800)
@@ -456,6 +461,22 @@ fun MapView(
                 }
             cameraPositionState.move(cameraUpdate)
             mapViewModel.onInitialNodeBoundsApplied()
+        }
+    }
+
+    // A point another screen asked for (a coordinate read from a message): centred on once, then cleared.
+    val focusRequests: MapFocusRequests = koinInject()
+    val focus by focusRequests.pending.collectAsStateWithLifecycle()
+    LaunchedEffect(focus, isMapLoaded) {
+        val point = focus
+        if (mode is GoogleMapMode.Main && point != null && isMapLoaded) {
+            // The mesh is not framed afterwards: that would move away from the point.
+            mapViewModel.onInitialNodeBoundsApplied()
+            val zoom = max(cameraPositionState.position.zoom, FOCUS_ZOOM)
+            cameraPositionState.animate(
+                CameraUpdateFactory.newLatLngZoom(LatLng(point.latitude, point.longitude), zoom),
+            )
+            focusRequests.consume(point)
         }
     }
 

@@ -47,7 +47,10 @@ import org.maplibre.compose.location.rememberDefaultLocationProvider
 import org.maplibre.compose.location.rememberLocationState
 import org.maplibre.compose.location.rememberSystemSettingsLauncher
 import org.maplibre.compose.map.MapState
+import org.maplibre.spatialk.geojson.Position
 import org.meshtastic.core.ui.util.KeepScreenOn
+import org.meshtastic.core.ui.util.MapFocusPoint
+import org.meshtastic.core.ui.util.MapFocusRequests
 import org.meshtastic.core.ui.util.MapViewProvider
 import org.meshtastic.feature.map.SharedMapViewModel
 import org.meshtastic.feature.map.component.ClusterMemberEntry
@@ -148,6 +151,10 @@ class MapLibreMapViewProvider(
         val location = rememberLocationControls()
         val waypoints = rememberWaypointEditing()
         val screen = rememberMapScreenState(waypointId = waypointId, sitePlannerNodeNum = sitePlannerNodeNum)
+        val focusRequests: MapFocusRequests = koinInject()
+        val focus by focusRequests.pending.collectAsState()
+        // Opened on a point: framing the mesh once positions arrive would move away from it.
+        val openedOnPoint = remember { focus != null }
 
         val mapState =
             rememberMapScreenMapState(
@@ -158,8 +165,10 @@ class MapLibreMapViewProvider(
                 location = location,
                 customLayers = customLayers(),
                 navigateToNodeDetails = navigateToNodeDetails,
+                focused = openedOnPoint,
             )
 
+        FocusCamera(mapState, focus, focusRequests)
         SaveCameraPosition(mapState)
 
         // Following the user means the screen is the thing being watched — the Google flavor holds it awake for the
@@ -224,6 +233,7 @@ private fun rememberMapScreenMapState(
     location: LocationControls,
     customLayers: List<CustomLayer>,
     navigateToNodeDetails: (Int) -> Unit,
+    focused: Boolean,
 ): MapState {
     val viewModel: SharedMapViewModel = koinViewModel()
     return rememberMeshMapState(
@@ -240,9 +250,27 @@ private fun rememberMapScreenMapState(
         locationState = location.state,
         followLocation = location.following,
         bearingUpdate = location.bearingUpdate,
-        // Only when there was nothing stored: a remembered view is the user's own and is not yanked away.
-        frameOnNodes = restored.position == null,
+        // Only when there was nothing stored: a remembered view is the user's own and is not yanked away. Nor when
+        // the map was opened on a point: framing the mesh would move away from it.
+        frameOnNodes = restored.position == null && !focused,
     )
+}
+
+/** Centres the camera on [focus], the point another screen asked for, at least at [DETAIL_ZOOM]. */
+@Composable
+private fun FocusCamera(mapState: MapState, focus: MapFocusPoint?, requests: MapFocusRequests) {
+    LaunchedEffect(focus) {
+        focus ?: return@LaunchedEffect
+        mapState.animateCamera(
+            CameraUpdate(
+                target = Position(longitude = focus.longitude, latitude = focus.latitude),
+                zoom = maxOf(DETAIL_ZOOM, mapState.cameraPosition.zoom),
+            ),
+            CameraAnimation.Ease(),
+        )
+        // Only once the camera is there: clearing the request restarts this effect, which would cut the move short.
+        requests.consume(focus)
+    }
 }
 
 /** The "you're offline" pill, top-start so it never collides with the toolbar's top-center controls. */
