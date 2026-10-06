@@ -71,7 +71,8 @@ class DemoDataSetTest {
         assertTrue(texts.any { it.startsWith("[CR] ") && !it.startsWith("[CR] FAIT OBSERVÉ") }, "report")
         assertTrue(texts.any { it.startsWith("[URG] ") }, "urgent")
         assertTrue(texts.any { it.startsWith("[POS] ALPHA-1 · MGRS ") && "relevée" in it }, "position")
-        assertTrue(texts.any { it.startsWith("[CR] FAIT OBSERVÉ · Lieu DMS ") }, "observed fact")
+        // Observed ten minutes before now (14:03 UTC), in the format with the observation time.
+        assertTrue(texts.any { it.startsWith("[CR] FAIT OBSERVÉ · 14:03 · Lieu DMS ") }, "observed fact")
         assertTrue(texts.any { it == "[EQUIPES] Alpha;Bravo" }, "team list")
     }
 

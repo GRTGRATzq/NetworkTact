@@ -27,6 +27,7 @@ import org.meshtastic.core.model.geo.CoordinateFormat
 import org.meshtastic.core.model.geo.FormattedCoordinates
 import org.meshtastic.core.model.geo.LatLon
 import org.meshtastic.core.model.geo.ObservedFactMessage
+import org.meshtastic.core.model.geo.ObservedTime
 import org.meshtastic.core.model.geo.PositionMessage
 import org.meshtastic.core.model.geo.PositionSource
 import org.meshtastic.core.model.team.TeamRoster
@@ -95,6 +96,7 @@ object DemoDataSet {
     private val alpha1Point = LatLon(48.856_667, 2.350_833)
     private val observedPoint = LatLon(48.854_200, 2.356_400)
     private val alpha1PositionAge = 2.minutes
+    private val observedFactAge = 10.minutes
     private val rosterAge = 30.minutes
 
     /** The nodes: PC-0 is this phone's own; CHARLIE-3 has a position stored without any time. */
@@ -113,7 +115,7 @@ object DemoDataSet {
             Received(GENERAL_KEY, CHARLIE3_NUM, 12.minutes, read = true) { _, _ -> "[CR] Secteur nord reconnu, RAS" },
             Received(GENERAL_KEY, ALPHA1_NUM, 9.minutes) { _, _ -> "[URG] Blessé léger au point B, demande appui" },
             Sent(GENERAL_KEY, "Bien reçu, appui en route", 8.minutes, MessageStatus.DELIVERED),
-            Received(GENERAL_KEY, CHARLIE3_NUM, 6.minutes) { _, _ -> observedFact() },
+            Received(GENERAL_KEY, CHARLIE3_NUM, 6.minutes) { now, zone -> observedFact(now, zone) },
             Received(GENERAL_KEY, ALPHA1_NUM, alpha1PositionAge) { now, zone -> alpha1Position(now, zone) },
             Sent(GENERAL_KEY, "[CR] Point de situation à 15:00", 1.minutes, MessageStatus.ENROUTE),
             Sent(GENERAL_KEY, "Regroupement au PC à 15:30", 30.seconds, MessageStatus.QUEUED),
@@ -161,10 +163,12 @@ object DemoDataSet {
         timeZone = timeZone,
     )
 
-    private fun observedFact(): String = ObservedFactMessage.build(
+    /** Observed ten minutes ago, reported four minutes later. */
+    private fun observedFact(nowSeconds: Long, timeZone: TimeZone): String = ObservedFactMessage.build(
         place = FormattedCoordinates.of(observedPoint),
         typedAs = CoordinateFormat.DMS,
         description = "véhicule arrêté au carrefour",
+        observedAt = ObservedTime.now(nowSeconds - observedFactAge.inWholeSeconds, timeZone),
     )
 
     private fun myNodeInfo(): MyNodeInfo = MyNodeInfo(
