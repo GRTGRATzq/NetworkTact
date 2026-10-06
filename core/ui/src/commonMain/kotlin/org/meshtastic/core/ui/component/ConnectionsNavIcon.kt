@@ -17,31 +17,44 @@
 package org.meshtastic.core.ui.component
 
 import androidx.compose.animation.Crossfade
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme.colorScheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.text.font.FontWeight
+import org.jetbrains.compose.resources.DrawableResource
+import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.compose.resources.vectorResource
 import org.meshtastic.core.model.ConnectionState
 import org.meshtastic.core.model.DeviceType
-import org.meshtastic.core.ui.icon.Bluetooth
-import org.meshtastic.core.ui.icon.Device
-import org.meshtastic.core.ui.icon.DeviceSleep
-import org.meshtastic.core.ui.icon.MeshtasticIcons
-import org.meshtastic.core.ui.icon.NoDevice
-import org.meshtastic.core.ui.icon.Reconnecting
-import org.meshtastic.core.ui.icon.Usb
-import org.meshtastic.core.ui.icon.Wifi
-import org.meshtastic.core.ui.theme.StatusColors.StatusGreen
-import org.meshtastic.core.ui.theme.StatusColors.StatusOrange
-import org.meshtastic.core.ui.theme.StatusColors.StatusRed
-import org.meshtastic.core.ui.theme.StatusColors.StatusYellow
+import org.meshtastic.core.resources.Res
+import org.meshtastic.core.resources.bluetooth
+import org.meshtastic.core.resources.ic_tactnav_radio_connected
+import org.meshtastic.core.resources.ic_tactnav_radio_connecting
+import org.meshtastic.core.resources.ic_tactnav_radio_disconnected
+import org.meshtastic.core.resources.ic_tactnav_radio_sleeping
+import org.meshtastic.core.resources.network
+import org.meshtastic.core.resources.tactnav_radio_connected
+import org.meshtastic.core.resources.tactnav_radio_connected_via
+import org.meshtastic.core.resources.tactnav_radio_connecting
+import org.meshtastic.core.resources.tactnav_radio_disconnected
+import org.meshtastic.core.resources.tactnav_radio_sleeping
+import org.meshtastic.core.resources.usb
+import org.meshtastic.core.ui.theme.TactColors
 
+/**
+ * The state of my radio, drawn with the NetworkTact radio icons. The shape carries the state: two waves each side
+ * (connected), one wave (connecting), a crescent moon (asleep), struck through with no wave (disconnected). Only a
+ * connected radio is coloured, in the NetworkTact green; the other states keep the surrounding content colour. A lost
+ * link also gets an alert badge in inverted colours, never red or amber, which stay reserved for message priorities.
+ *
+ * [contentDescription] defaults to the state, with the link type when it is known.
+ */
 @Composable
 fun ConnectionsNavIcon(
     modifier: Modifier = Modifier,
@@ -49,53 +62,53 @@ fun ConnectionsNavIcon(
     deviceType: DeviceType?,
     contentDescription: String? = null,
 ) {
-    val tint = getTint(connectionState)
+    val description = contentDescription ?: radioStateDescription(connectionState, deviceType)
+    val tint =
+        if (connectionState == ConnectionState.Connected) {
+            TactColors.navigationActive(colorScheme.secondaryContainer)
+        } else {
+            LocalContentColor.current
+        }
 
-    val (backgroundIcon, connectionTypeIcon) = getIconPair(deviceType = deviceType, connectionState = connectionState)
-
-    val foregroundPainter = connectionTypeIcon?.let { rememberVectorPainter(it) }
-
-    Crossfade(targetState = backgroundIcon, label = "ConnectionIcon") {
-        Icon(
-            imageVector = it,
-            contentDescription = contentDescription,
-            tint = tint,
-            modifier =
-            modifier.drawWithContent {
-                drawContent()
-                foregroundPainter?.let {
-                    @Suppress("MagicNumber")
-                    val badgeSize = size.width * .45f
-                    with(it) { draw(Size(badgeSize, badgeSize), colorFilter = ColorFilter.tint(tint)) }
-                }
-            },
-        )
+    BadgedBox(modifier = modifier, badge = { if (connectionState == ConnectionState.Disconnected) RadioLostBadge() }) {
+        Crossfade(targetState = radioIcon(connectionState), label = "ConnectionIcon") { icon ->
+            Icon(imageVector = vectorResource(icon), contentDescription = description, tint = tint)
+        }
     }
 }
 
+/** Alert badge of a lost link, in the app's alert style: inverted colours, no red, no amber. */
 @Composable
-private fun getTint(connectionState: ConnectionState): Color = when (connectionState) {
-    ConnectionState.Connecting -> colorScheme.StatusOrange
-    ConnectionState.Disconnected -> colorScheme.StatusRed
-    ConnectionState.DeviceSleep -> colorScheme.StatusYellow
-    else -> colorScheme.StatusGreen
+private fun RadioLostBadge() {
+    Badge(containerColor = colorScheme.inverseSurface, contentColor = colorScheme.inverseOnSurface) {
+        Text(text = "!", fontWeight = FontWeight.Bold)
+    }
+}
+
+private fun radioIcon(connectionState: ConnectionState): DrawableResource = when (connectionState) {
+    ConnectionState.Connected -> Res.drawable.ic_tactnav_radio_connected
+    ConnectionState.Connecting -> Res.drawable.ic_tactnav_radio_connecting
+    ConnectionState.DeviceSleep -> Res.drawable.ic_tactnav_radio_sleeping
+    ConnectionState.Disconnected -> Res.drawable.ic_tactnav_radio_disconnected
 }
 
 @Composable
-fun getIconPair(connectionState: ConnectionState, deviceType: DeviceType? = null): Pair<ImageVector, ImageVector?> =
+private fun radioStateDescription(connectionState: ConnectionState, deviceType: DeviceType?): String =
     when (connectionState) {
-        ConnectionState.Disconnected -> MeshtasticIcons.NoDevice to null
+        ConnectionState.Connected ->
+            linkName(deviceType)?.let { stringResource(Res.string.tactnav_radio_connected_via, stringResource(it)) }
+                ?: stringResource(Res.string.tactnav_radio_connected)
 
-        ConnectionState.DeviceSleep -> MeshtasticIcons.Device to MeshtasticIcons.DeviceSleep
+        ConnectionState.Connecting -> stringResource(Res.string.tactnav_radio_connecting)
 
-        ConnectionState.Connecting -> MeshtasticIcons.Device to MeshtasticIcons.Reconnecting
+        ConnectionState.DeviceSleep -> stringResource(Res.string.tactnav_radio_sleeping)
 
-        else ->
-            MeshtasticIcons.Device to
-                when (deviceType) {
-                    DeviceType.BLE -> MeshtasticIcons.Bluetooth
-                    DeviceType.TCP -> MeshtasticIcons.Wifi
-                    DeviceType.USB -> MeshtasticIcons.Usb
-                    else -> null
-                }
+        ConnectionState.Disconnected -> stringResource(Res.string.tactnav_radio_disconnected)
     }
+
+private fun linkName(deviceType: DeviceType?): StringResource? = when (deviceType) {
+    DeviceType.BLE -> Res.string.bluetooth
+    DeviceType.TCP -> Res.string.network
+    DeviceType.USB -> Res.string.usb
+    null -> null
+}
