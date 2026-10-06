@@ -63,6 +63,13 @@ object TactColors {
         return pickLegible(candidates = preferred, background = background, fallback = strongest, minRatio = minRatio)
     }
 
+    /**
+     * NetworkTact green for an active navigation icon (the selected tab, a connected radio), drawn on [indicator], the
+     * selected tab's pill: the fresh tones, held to the 3:1 graphical contrast. The primary green of the light scheme
+     * reaches only 2.81:1 on its pill `#D5D6E0`; the first fresh tones give 4.51:1 (light) and 6.88:1 (dark).
+     */
+    fun navigationActive(indicator: Color): Color = legible(TactHue.FRESH, indicator, MIN_GRAPHICAL_CONTRAST)
+
     /** True for a dark background, whatever drove it: the app's choice, the system, or a dynamic palette. */
     fun isDarkBackground(background: Color): Boolean = background.luminance() < DARK_LUMINANCE
 

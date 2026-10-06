@@ -19,11 +19,11 @@ package org.meshtastic.core.navigation
 import androidx.navigation3.runtime.NavKey
 import org.jetbrains.compose.resources.StringResource
 import org.meshtastic.core.resources.Res
-import org.meshtastic.core.resources.bottom_nav_settings
-import org.meshtastic.core.resources.connect
-import org.meshtastic.core.resources.map
-import org.meshtastic.core.resources.messages
-import org.meshtastic.core.resources.nodes
+import org.meshtastic.core.resources.tactnav_map
+import org.meshtastic.core.resources.tactnav_messages
+import org.meshtastic.core.resources.tactnav_network
+import org.meshtastic.core.resources.tactnav_radio
+import org.meshtastic.core.resources.tactnav_settings
 
 /**
  * Shared top-level destinations for the application shell.
@@ -32,11 +32,11 @@ import org.meshtastic.core.resources.nodes
  * and Desktop navigation shells.
  */
 enum class TopLevelDestination(val label: StringResource, val route: Route) {
-    Messages(Res.string.messages, ContactsRoute.Contacts),
-    Nodes(Res.string.nodes, NodesRoute.Nodes),
-    Map(Res.string.map, MapRoute.Map()),
-    Settings(Res.string.bottom_nav_settings, SettingsRoute.Settings()),
-    Connect(Res.string.connect, ConnectionsRoute.Connections()),
+    Messages(Res.string.tactnav_messages, ContactsRoute.Contacts),
+    Nodes(Res.string.tactnav_network, NodesRoute.Nodes),
+    Map(Res.string.tactnav_map, MapRoute.Map()),
+    Settings(Res.string.tactnav_settings, SettingsRoute.Settings()),
+    Connect(Res.string.tactnav_radio, ConnectionsRoute.Connections()),
     ;
 
     companion object {

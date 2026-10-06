@@ -19,19 +19,23 @@ package org.meshtastic.core.ui.navigation
 import org.jetbrains.compose.resources.DrawableResource
 import org.meshtastic.core.navigation.TopLevelDestination
 import org.meshtastic.core.resources.Res
-import org.meshtastic.core.resources.ic_forum
-import org.meshtastic.core.resources.ic_map
-import org.meshtastic.core.resources.ic_nodes
-import org.meshtastic.core.resources.ic_settings
-import org.meshtastic.core.resources.ic_wifi
+import org.meshtastic.core.resources.ic_tactnav_map
+import org.meshtastic.core.resources.ic_tactnav_messages
+import org.meshtastic.core.resources.ic_tactnav_network
+import org.meshtastic.core.resources.ic_tactnav_radio_connected
+import org.meshtastic.core.resources.ic_tactnav_settings
 
-/** Maps a shared [TopLevelDestination] to its corresponding icon [DrawableResource]. */
+/**
+ * Maps a shared [TopLevelDestination] to its NetworkTact icon [DrawableResource]. The radio tab shows its live state
+ * through [org.meshtastic.core.ui.component.ConnectionsNavIcon]; this static icon only serves where no state applies
+ * (the demo radio).
+ */
 val TopLevelDestination.icon: DrawableResource
     get() =
         when (this) {
-            TopLevelDestination.Messages -> Res.drawable.ic_forum
-            TopLevelDestination.Nodes -> Res.drawable.ic_nodes
-            TopLevelDestination.Map -> Res.drawable.ic_map
-            TopLevelDestination.Settings -> Res.drawable.ic_settings
-            TopLevelDestination.Connect -> Res.drawable.ic_wifi
+            TopLevelDestination.Messages -> Res.drawable.ic_tactnav_messages
+            TopLevelDestination.Nodes -> Res.drawable.ic_tactnav_network
+            TopLevelDestination.Map -> Res.drawable.ic_tactnav_map
+            TopLevelDestination.Settings -> Res.drawable.ic_tactnav_settings
+            TopLevelDestination.Connect -> Res.drawable.ic_tactnav_radio_connected
         }

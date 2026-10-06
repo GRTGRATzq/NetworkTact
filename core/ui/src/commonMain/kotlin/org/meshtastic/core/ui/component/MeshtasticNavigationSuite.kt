@@ -45,6 +45,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.flow.Flow
 import org.jetbrains.compose.resources.stringResource
@@ -65,6 +66,7 @@ import org.meshtastic.core.resources.node_restarting
 import org.meshtastic.core.resources.reconnecting
 import org.meshtastic.core.resources.tactdemo_connection
 import org.meshtastic.core.ui.navigation.icon
+import org.meshtastic.core.ui.theme.TactColors
 import org.meshtastic.core.ui.viewmodel.UIViewModel
 
 /**
@@ -258,13 +260,18 @@ private fun NavigationIconContent(
                     Icon(
                         imageVector = vectorResource(destination.icon),
                         contentDescription = stringResource(destination.label),
-                        tint = if (isSelectedState) colorScheme.primary else LocalContentColor.current,
+                        tint = navIconTint(isSelectedState),
                     )
                 }
             }
         }
     }
 }
+
+/** Selected tab: the NetworkTact green, legible on the selection pill. Otherwise the item's own content color. */
+@Composable
+private fun navIconTint(selected: Boolean): Color =
+    if (selected) TactColors.navigationActive(colorScheme.secondaryContainer) else LocalContentColor.current
 
 @Composable
 private fun connectionTooltipLabel(
