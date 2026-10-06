@@ -1784,6 +1784,17 @@ tactmsg_status_invalid_proof
 tactmsg_status_relayed
 tactmsg_status_unknown
 tactmsg_too_long
+### TACTNAV ###
+tactnav_map
+tactnav_messages
+tactnav_network
+tactnav_radio
+tactnav_radio_connected
+tactnav_radio_connected_via
+tactnav_radio_connecting
+tactnav_radio_disconnected
+tactnav_radio_sleeping
+tactnav_settings
 ### TAK ###
 tak
 tak_config

@@ -1838,6 +1838,17 @@
     <string name="tactmsg_status_relayed">Relayed by the mesh</string>
     <string name="tactmsg_status_unknown">Status unknown</string>
     <string name="tactmsg_too_long">Message too long</string>
+    <!-- TACTNAV -->
+    <string name="tactnav_map">Map</string>
+    <string name="tactnav_messages">Messages</string>
+    <string name="tactnav_network">Network</string>
+    <string name="tactnav_radio">My radio</string>
+    <string name="tactnav_radio_connected">My radio: connected</string>
+    <string name="tactnav_radio_connected_via">My radio: connected (%1$s)</string>
+    <string name="tactnav_radio_connecting">My radio: connecting</string>
+    <string name="tactnav_radio_disconnected">My radio: disconnected</string>
+    <string name="tactnav_radio_sleeping">My radio: asleep</string>
+    <string name="tactnav_settings">Settings</string>
     <!-- TAK -->
     <string name="tak">TAK (ATAK)</string>
     <string name="tak_config">TAK Configuration</string>

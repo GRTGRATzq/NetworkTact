@@ -1533,4 +1533,14 @@
     <string name="tactmsg_status_relayed">Relayé par le réseau</string>
     <string name="tactmsg_status_unknown">État inconnu</string>
     <string name="tactmsg_too_long">Message trop long</string>
+    <string name="tactnav_map">Carte</string>
+    <string name="tactnav_messages">Messages</string>
+    <string name="tactnav_network">Réseau</string>
+    <string name="tactnav_radio">Ma radio</string>
+    <string name="tactnav_radio_connected">Ma radio : connectée</string>
+    <string name="tactnav_radio_connected_via">Ma radio : connectée (%1$s)</string>
+    <string name="tactnav_radio_connecting">Ma radio : connexion en cours</string>
+    <string name="tactnav_radio_disconnected">Ma radio : déconnectée</string>
+    <string name="tactnav_radio_sleeping">Ma radio : en veille</string>
+    <string name="tactnav_settings">Réglages</string>
 </resources>
