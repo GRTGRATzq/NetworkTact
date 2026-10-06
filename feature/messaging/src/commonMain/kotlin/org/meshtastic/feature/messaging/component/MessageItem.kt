@@ -439,130 +439,136 @@ fun MessageItem(
             shape = messageShape,
             border = cardBorder,
         ) {
-            Row(modifier = Modifier.height(IntrinsicSize.Min)) {
-                Box(
-                    modifier =
-                    Modifier.width(PRIORITY_BAR_WIDTH)
-                        .fillMaxHeight()
-                        .background(barColor)
-                        .testTag(PRIORITY_BAR_TEST_TAG),
-                )
-                Column(
-                    modifier = if (message.fromLocal) Modifier.width(IntrinsicSize.Max) else Modifier.weight(1f),
-                ) {
-                    MessageCardHeader(
-                        priority = priority,
-                        color = headerColor,
-                        fromLocal = message.fromLocal,
-                        senderName = senderName,
-                        conversationName = conversationLabel,
-                        isDirectMessage = isDirectMessage,
-                        recipientName = recipientName,
-                        onSenderClick = { onClickChip(node) },
-                        modifier = Modifier.fillMaxWidth().padding(start = 12.dp, end = 12.dp, top = 8.dp),
+            LegibleSecondaryContent(background = containerColor) {
+                Row(modifier = Modifier.height(IntrinsicSize.Min)) {
+                    Box(
+                        modifier =
+                        Modifier.width(PRIORITY_BAR_WIDTH)
+                            .fillMaxHeight()
+                            .background(barColor)
+                            .testTag(PRIORITY_BAR_TEST_TAG),
                     )
-                    OriginalMessageSnippet(
-                        modifier = Modifier.fillMaxWidth(),
-                        message = message,
-                        ourNode = ourNode,
-                        onNavigateToOriginalMessage = onNavigateToOriginalMessage,
-                    )
+                    Column(
+                        modifier = if (message.fromLocal) Modifier.width(IntrinsicSize.Max) else Modifier.weight(1f),
+                    ) {
+                        MessageCardHeader(
+                            priority = priority,
+                            color = headerColor,
+                            fromLocal = message.fromLocal,
+                            senderName = senderName,
+                            conversationName = conversationLabel,
+                            isDirectMessage = isDirectMessage,
+                            recipientName = recipientName,
+                            onSenderClick = { onClickChip(node) },
+                            modifier = Modifier.fillMaxWidth().padding(start = 12.dp, end = 12.dp, top = 8.dp),
+                        )
+                        OriginalMessageSnippet(
+                            modifier = Modifier.fillMaxWidth(),
+                            message = message,
+                            ourNode = ourNode,
+                            onNavigateToOriginalMessage = onNavigateToOriginalMessage,
+                        )
 
-                    Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
-                        if (searchQuery.isNotEmpty()) {
-                            HighlightedText(
-                                text = message.text,
-                                query = searchQuery,
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = contentColor,
-                            )
-                        } else {
-                            val mentionDisplayName =
-                                remember(resolveMention) {
-                                    { id: String ->
-                                        resolveMention(id)?.let { it.user.long_name.ifEmpty { it.user.short_name } }
-                                    }
-                                }
-                            // The priority tag already heads the card; the body reads on without it.
-                            val displayedBody = remember(bodyText) { MessagePriority.stripPrefix(bodyText) }
-                            AutoLinkText(
-                                text = displayedBody,
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = contentColor,
-                                mentionName = mentionDisplayName,
-                                onMentionClick = { id -> resolveMention(id)?.let(onClickChip) },
-                            )
-                        }
-
-                        Row(
-                            modifier = Modifier.padding(top = 4.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(6.dp),
-                        ) {
-                            if (!message.fromLocal) {
-                                ReceivedStatusLabel(
-                                    receivedAtMillis = message.displayTime,
-                                    currentTimeMillis = currentTimeMillis,
+                        Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
+                            if (searchQuery.isNotEmpty()) {
+                                HighlightedText(
+                                    text = message.text,
+                                    query = searchQuery,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = contentColor,
                                 )
-                                // All mesh diagnostics (signature, signal or hops, transport) grouped in one run.
-                                DiagnosticsRow {
-                                    // XEdDSA is only set on verified broadcasts, never DMs.
-                                    if (message.xeddsaSigned) {
-                                        Icon(
-                                            imageVector = MeshtasticIcons.ShieldCheck,
-                                            contentDescription =
-                                            stringResource(Res.string.security_signed_verified),
-                                            modifier = Modifier.size(14.dp),
-                                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        )
+                            } else {
+                                val mentionDisplayName =
+                                    remember(resolveMention) {
+                                        { id: String ->
+                                            resolveMention(id)?.let {
+                                                it.user.long_name.ifEmpty { it.user.short_name }
+                                            }
+                                        }
                                     }
-                                    TransportIcon(
-                                        transport = message.transportMechanism,
-                                        viaMqtt = message.viaMqtt,
-                                        modifier = Modifier.size(14.dp),
-                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                // The priority tag already heads the card; the body reads on without it.
+                                val displayedBody = remember(bodyText) { MessagePriority.stripPrefix(bodyText) }
+                                AutoLinkText(
+                                    text = displayedBody,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = contentColor,
+                                    mentionName = mentionDisplayName,
+                                    onMentionClick = { id -> resolveMention(id)?.let(onClickChip) },
+                                )
+                            }
+
+                            Row(
+                                modifier = Modifier.padding(top = 4.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            ) {
+                                if (!message.fromLocal) {
+                                    ReceivedStatusLabel(
+                                        receivedAtMillis = message.displayTime,
+                                        currentTimeMillis = currentTimeMillis,
                                     )
-                                    if (message.hopsAway == 0 && !message.viaMqtt) {
-                                        NeutralSnr(message.snr)
-                                        NeutralRssi(message.rssi)
-                                    } else {
-                                        Icon(
-                                            imageVector = MeshtasticIcons.HopCount,
-                                            contentDescription = null,
+                                    // All mesh diagnostics (signature, signal or hops, transport) grouped in one
+                                    // run.
+                                    DiagnosticsRow {
+                                        // XEdDSA is only set on verified broadcasts, never DMs.
+                                        if (message.xeddsaSigned) {
+                                            Icon(
+                                                imageVector = MeshtasticIcons.ShieldCheck,
+                                                contentDescription =
+                                                stringResource(Res.string.security_signed_verified),
+                                                modifier = Modifier.size(14.dp),
+                                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            )
+                                        }
+                                        TransportIcon(
+                                            transport = message.transportMechanism,
+                                            viaMqtt = message.viaMqtt,
                                             modifier = Modifier.size(14.dp),
                                             tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                         )
-                                        Text(
-                                            text = if (message.hopsAway >= 0) message.hopsAway.toString() else "?",
-                                            style = metadataStyle,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        )
+                                        if (message.hopsAway == 0 && !message.viaMqtt) {
+                                            NeutralSnr(message.snr)
+                                            NeutralRssi(message.rssi)
+                                        } else {
+                                            Icon(
+                                                imageVector = MeshtasticIcons.HopCount,
+                                                contentDescription = null,
+                                                modifier = Modifier.size(14.dp),
+                                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            )
+                                            Text(
+                                                text =
+                                                if (message.hopsAway >= 0) message.hopsAway.toString() else "?",
+                                                style = metadataStyle,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            )
+                                        }
                                     }
                                 }
-                            }
-                            if (containsBel) {
-                                Text(text = "\uD83D\uDD14")
-                            }
-                            if (message.filtered) {
-                                Text(
-                                    text = stringResource(Res.string.filter_message_label),
-                                    style = metadataStyle,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
-                            }
-                            if (showsTranslation) {
-                                Text(
-                                    text = stringResource(Res.string.message_translated_label),
-                                    style = metadataStyle,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
-                            }
-                            if (message.fromLocal) {
-                                SentStatusLabel(
-                                    sentStatus = sentStatus,
-                                    recipientName = recipientName,
-                                    onStatusClick = onStatusClick,
-                                )
+                                if (containsBel) {
+                                    Text(text = "\uD83D\uDD14")
+                                }
+                                if (message.filtered) {
+                                    Text(
+                                        text = stringResource(Res.string.filter_message_label),
+                                        style = metadataStyle,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                }
+                                if (showsTranslation) {
+                                    Text(
+                                        text = stringResource(Res.string.message_translated_label),
+                                        style = metadataStyle,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                }
+                                if (message.fromLocal) {
+                                    SentStatusLabel(
+                                        sentStatus = sentStatus,
+                                        recipientName = recipientName,
+                                        onStatusClick = onStatusClick,
+                                    )
+                                }
                             }
                         }
                     }

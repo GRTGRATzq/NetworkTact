@@ -56,9 +56,10 @@ import org.meshtastic.core.resources.tactmsg_priority_urgent
 import org.meshtastic.core.ui.icon.MeshtasticIcons
 import org.meshtastic.core.ui.icon.Warning
 import org.meshtastic.core.ui.theme.AppTheme
+import org.meshtastic.core.ui.theme.MIN_GRAPHICAL_CONTRAST
 import org.meshtastic.core.ui.theme.MIN_TEXT_CONTRAST
-import org.meshtastic.core.ui.theme.StatusColors.StatusRed
-import org.meshtastic.core.ui.theme.StatusColors.StatusYellow
+import org.meshtastic.core.ui.theme.TactColors
+import org.meshtastic.core.ui.theme.TactHue
 import org.meshtastic.core.ui.theme.pickLegible
 import org.meshtastic.feature.messaging.priority.MessagePriority
 
@@ -68,12 +69,19 @@ internal const val PRIORITY_WASH_ALPHA = 0.14f
 /**
  * The only colour these screens use to code meaning: red for urgent, amber for a report, the neutral outline for
  * information. Red and amber appear nowhere else in the messaging screens, so they are never ambiguous.
+ *
+ * Red and amber are the theme's own tones ([TactColors]), held at the 3:1 of a graphical object against the card they
+ * edge, the dynamic palette included.
  */
 @Composable
-internal fun priorityAccent(priority: MessagePriority): Color = when (priority) {
-    MessagePriority.URGENT -> MaterialTheme.colorScheme.StatusRed
-    MessagePriority.REPORT -> MaterialTheme.colorScheme.StatusYellow
-    MessagePriority.INFO -> MaterialTheme.colorScheme.outlineVariant
+internal fun priorityAccent(priority: MessagePriority): Color =
+    priorityAccent(priority, CardDefaults.cardColors().containerColor, MaterialTheme.colorScheme.outlineVariant)
+
+/** [priorityAccent] on a given card [background]; [neutral] is the info colour. */
+internal fun priorityAccent(priority: MessagePriority, background: Color, neutral: Color): Color = when (priority) {
+    MessagePriority.URGENT -> TactColors.legible(TactHue.URGENT, background, MIN_GRAPHICAL_CONTRAST)
+    MessagePriority.REPORT -> TactColors.legible(TactHue.REPORT, background, MIN_GRAPHICAL_CONTRAST)
+    MessagePriority.INFO -> neutral
 }
 
 /** A message card's background: the card colour, under a light wash of the priority's hue for urgent and report. */
