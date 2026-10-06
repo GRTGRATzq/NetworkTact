@@ -68,7 +68,6 @@ import org.meshtastic.core.resources.message
 import org.meshtastic.core.ui.component.MainAppBar
 import org.meshtastic.core.ui.icon.MeshtasticIcons
 import org.meshtastic.core.ui.icon.Message
-import org.meshtastic.core.ui.icon.Warning
 import org.meshtastic.core.ui.util.nameWithTeam
 import kotlin.time.Duration
 
@@ -176,69 +175,42 @@ private fun CommandPostCard(row: CommandPostRow, onOpenNode: (Int) -> Unit, onOp
 
 @Composable
 private fun ContactLine(state: ContactState) {
-    val neutral = MaterialTheme.colorScheme.onSurfaceVariant
-    val (text, color) =
+    val text =
         when (state) {
-            ContactState.NeverHeard -> stringResource(Res.string.command_post_contact_never) to neutral
+            ContactState.NeverHeard -> stringResource(Res.string.command_post_contact_never)
 
-            is ContactState.SeenRecently ->
-                stringResource(Res.string.command_post_contact_recent, formatAge(state.age)) to
-                    MaterialTheme.colorScheme.onSurface
+            is ContactState.SeenRecently -> stringResource(Res.string.command_post_contact_recent, formatAge(state.age))
 
-            is ContactState.NotHeardSince ->
-                stringResource(Res.string.command_post_contact_stale, formatAge(state.age)) to neutral
+            is ContactState.NotHeardSince -> stringResource(Res.string.command_post_contact_stale, formatAge(state.age))
 
             is ContactState.InconsistentTimestamp ->
-                stringResource(Res.string.command_post_contact_inconsistent, formatAge(state.ahead)) to
-                    MaterialTheme.colorScheme.error
+                stringResource(Res.string.command_post_contact_inconsistent, formatAge(state.ahead))
         }
-    Text(text = text, style = MaterialTheme.typography.bodyMedium, color = color)
+    FreshnessLine(text = text, tone = state.tone())
 }
 
 @Composable
 private fun PositionLine(state: PositionState) {
-    val neutral = MaterialTheme.colorScheme.onSurfaceVariant
-    val error = MaterialTheme.colorScheme.error
-    // Only a fix time from the sender earns the "fresh" colour; every other state stays neutral or alarming.
-    val (text, color) =
+    val text =
         when (state) {
-            PositionState.NoPosition -> stringResource(Res.string.command_post_position_none) to neutral
+            PositionState.NoPosition -> stringResource(Res.string.command_post_position_none)
 
-            is PositionState.Fresh ->
-                stringResource(Res.string.command_post_position_fresh, formatAge(state.age)) to
-                    MaterialTheme.colorScheme.primary
+            is PositionState.Fresh -> stringResource(Res.string.command_post_position_fresh, formatAge(state.age))
 
-            is PositionState.Stale ->
-                stringResource(Res.string.command_post_position_stale, formatAge(state.age)) to error
+            is PositionState.Stale -> stringResource(Res.string.command_post_position_stale, formatAge(state.age))
 
             is PositionState.StaleAtLeast ->
-                stringResource(Res.string.command_post_position_stale_at_least, formatAge(state.minAge)) to error
+                stringResource(Res.string.command_post_position_stale_at_least, formatAge(state.minAge))
 
             is PositionState.ReceivedFixTimeUnknown ->
-                stringResource(Res.string.command_post_position_fix_unknown, formatAge(state.minAge)) to neutral
+                stringResource(Res.string.command_post_position_fix_unknown, formatAge(state.minAge))
 
-            PositionState.NoFixTime -> stringResource(Res.string.command_post_position_no_time) to neutral
+            PositionState.NoFixTime -> stringResource(Res.string.command_post_position_no_time)
 
             is PositionState.InconsistentTimestamp ->
-                stringResource(Res.string.command_post_position_inconsistent, formatAge(state.ahead)) to error
+                stringResource(Res.string.command_post_position_inconsistent, formatAge(state.ahead))
         }
-    val alarming = color == error
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        if (alarming) {
-            Icon(
-                MeshtasticIcons.Warning,
-                contentDescription = null,
-                tint = color,
-                modifier = Modifier.padding(end = 4.dp).size(16.dp),
-            )
-        }
-        Text(
-            text = text,
-            style = MaterialTheme.typography.bodyMedium,
-            fontWeight = if (alarming) FontWeight.Bold else FontWeight.Normal,
-            color = color,
-        )
-    }
+    FreshnessLine(text = text, tone = state.tone())
 }
 
 @Composable
