@@ -98,6 +98,22 @@ class PriorityBarContrastTest {
     @Test
     fun secondaryTextReadsOnEveryCardInTheDarkScheme() = runComposeUiTest { assertSecondaryTextReads(darkTheme = true) }
 
+    private fun ComposeUiTest.assertSchemeSecondaryReadsOnTheNeutralCard(darkTheme: Boolean) {
+        val painted = paint(darkTheme)
+        val ratio = contrastRatio(painted.secondary, painted.card)
+        assertTrue(ratio >= MIN_TEXT_CONTRAST, "onSurfaceVariant reads $ratio:1 on the card (dark=$darkTheme)")
+    }
+
+    @Test
+    fun schemeSecondaryReadsOnTheNeutralCardInTheLightScheme() = runComposeUiTest {
+        assertSchemeSecondaryReadsOnTheNeutralCard(darkTheme = false)
+    }
+
+    @Test
+    fun schemeSecondaryReadsOnTheNeutralCardInTheDarkScheme() = runComposeUiTest {
+        assertSchemeSecondaryReadsOnTheNeutralCard(darkTheme = true)
+    }
+
     @Test
     fun barsReadOnDynamicPaletteCards() {
         dynamicCards.forEach { card ->

@@ -45,7 +45,10 @@ val onBackgroundLight = Color(0xFF2C2D3C) // Neutral 800
 val surfaceLight = Color(0xFFF5F6FA) // Neutral 50
 val onSurfaceLight = Color(0xFF2C2D3C) // Neutral 800
 val surfaceVariantLight = Color(0xFFDADBE7) // NV 200
-val onSurfaceVariantLight = Color(0xFF5C5E78) // NV 600
+
+// NetworkTact: darker than NV 600 (#5C5E78, 4.37:1 on a card) so secondary text reads at 4.94:1 on
+// surfaceContainerHighest.
+val onSurfaceVariantLight = Color(0xFF54566F)
 val outlineLight = Color(0xFF767892) // NV 500
 val outlineVariantLight = Color(0xFFBDBFCF) // NV 300
 val scrimLight = Color(0xFF000000)
