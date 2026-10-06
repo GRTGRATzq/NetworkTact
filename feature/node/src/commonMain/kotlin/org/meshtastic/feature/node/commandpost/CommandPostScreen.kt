@@ -32,6 +32,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -39,6 +40,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.jetbrains.compose.resources.stringResource
@@ -68,8 +70,10 @@ import org.meshtastic.core.resources.message
 import org.meshtastic.core.ui.component.MainAppBar
 import org.meshtastic.core.ui.icon.MeshtasticIcons
 import org.meshtastic.core.ui.icon.Message
+import org.meshtastic.core.ui.theme.AppTheme
 import org.meshtastic.core.ui.util.nameWithTeam
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.minutes
 
 private const val COORDINATE_DECIMALS = 5
 private const val MINUTES_PER_HOUR = 60
@@ -237,3 +241,54 @@ private fun formatAge(duration: Duration): String {
             )
     }
 }
+
+/** Fictitious nodes covering every freshness look: fresh, old, fix time unknown, inconsistent clock. */
+@PreviewLightDark
+@Composable
+private fun CommandPostContentPreview() {
+    val rows =
+        listOf(
+            previewRow(
+                1,
+                "A1",
+                "ALPHA-1 [Alpha]",
+                ContactState.SeenRecently(2.minutes),
+                PositionState.Fresh(2.minutes),
+            ),
+            previewRow(
+                2,
+                "B2",
+                "BRAVO-2 [Bravo]",
+                ContactState.SeenRecently(4.minutes),
+                PositionState.Stale(25.minutes),
+            ),
+            previewRow(
+                3,
+                "C3",
+                "CHARLIE-3 [Alpha]",
+                ContactState.NotHeardSince(40.minutes),
+                PositionState.ReceivedFixTimeUnknown(40.minutes),
+            ),
+            previewRow(
+                4,
+                "PC0",
+                "PC-0",
+                ContactState.InconsistentTimestamp(5.minutes),
+                PositionState.InconsistentTimestamp(5.minutes),
+            ),
+        )
+    AppTheme { Surface { CommandPostContent(rows = rows, onOpenNode = {}, onOpenMessages = {}) } }
+}
+
+private fun previewRow(num: Int, shortName: String, longName: String, contact: ContactState, position: PositionState) =
+    CommandPostRow(
+        num = num,
+        shortName = shortName,
+        longName = longName,
+        lastHeard = 0,
+        contact = contact,
+        position = position,
+        latitude = null,
+        longitude = null,
+        directMessageKey = "0!0000000$num",
+    )
