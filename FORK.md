@@ -1,7 +1,7 @@
 # NetworkTact
 
 NetworkTact est un fork de [Meshtastic-Android](https://github.com/meshtastic/Meshtastic-Android),
-modifié à partir du 26 septembre 2026 (dernière mise à jour de ce fichier : 6 octobre 2026, branche `feat/theme`).
+modifié à partir du 26 septembre 2026 (dernière mise à jour de ce fichier : 6 octobre 2026, branche `feat/navigation`).
 
 - **Licence** : GPL-3.0-or-later (voir le fichier `LICENSE`, inchangé).
 - **Origine** : code de Meshtastic-Android, © Meshtastic LLC. Les mentions de copyright de
@@ -202,6 +202,32 @@ Les captures d'écran Compose (`screenshot-tests`) ne sont pas utilisées : elle
 Android et des images de référence, et ne tournent pas dans `fork-apk`. Les contrastes sont
 vérifiés par des tests (`PriorityBarContrastTest`, `FreshnessToneTest`, `NodeColorsTest`), et des
 aperçus clair / sombre existent pour les cartes de message, la vue PC, les Équipes et le mode démo.
+
+### 11. Barre de navigation (`feat/navigation`)
+
+Ordre des onglets, routes, liste blanche du mode démo et badges de non-lus inchangés.
+
+- **Libellés** : Messages, Réseau, Carte, Réglages, Ma radio (EN : Messages, Network, Map,
+  Settings, My radio), chaînes `tactnav_*`. Ils s'affichent sous les icônes aussi en portrait,
+  plus seulement sur le rail des écrans larges. Les autres langues affichent l'anglais.
+- **Icônes dessinées pour le fork** (`core/resources/.../drawable/ic_tactnav_*.xml`), dans le
+  style du logo : grille 24 dp, trait 1,8 dp arrondi, nœuds pleins, ondes extérieures à 60 %.
+  Elles remplacent les icônes d'origine de la barre (`ic_forum`, `ic_nodes`, `ic_map`,
+  `ic_settings`, `ic_wifi`), qui restent utilisées ailleurs.
+- **Onglet sélectionné** : vert `#1E6B3C` en clair (4,51:1 sur la pastille de sélection
+  `#D5D6E0`) et `#67EA94` en sombre (6,88:1), au lieu du vert primaire du clair, à 2,81:1
+  (`TactColors.navigationActive`, seuil 3:1). Icônes non sélectionnées 6,12:1 / 8,30:1,
+  libellés 11,61:1 / 12,96:1.
+- **État de ma radio** (onglet Ma radio et badge du nœud local) : la forme porte l'état
+  (connectée : deux ondes ; en connexion : une onde ; en veille : croissant de lune ;
+  déconnectée : barrée). Connectée en vert NetworkTact, les autres états en couleur neutre ;
+  déconnectée avec une pastille « ! » en couleurs inversées. Le rouge (déconnectée), l'orange
+  (connexion) et le jaune (veille) d'origine disparaissent. La petite icône du moyen de liaison
+  passe dans la description d'accessibilité (« Ma radio : connectée (Bluetooth) »).
+
+Aperçu clair / sombre de la barre et des quatre états de la radio. Pas de test automatique
+des contrastes de la barre : `core:ui` ne tourne pas dans `fork-apk` ; les valeurs ci-dessus
+sont mesurées sur la palette fixe.
 
 ## Marques
 
