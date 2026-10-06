@@ -16,9 +16,13 @@
  */
 package org.meshtastic.core.model.geo
 
+import kotlinx.datetime.TimeZone
+import org.meshtastic.core.model.utf8Size
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertIs
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class ObservedFactMessageTest {
@@ -85,5 +89,76 @@ class ObservedFactMessageTest {
     @Test
     fun report_is_filed_under_the_cr_prefix() {
         assertTrue(ObservedFactMessage.HEADER.startsWith("[CR] "))
+    }
+
+    @Test
+    fun observationTimeFollowsTheHeader() {
+        assertEquals(
+            "[CR] FAIT OBSERVÉ · 14:05 · Lieu MGRS 31U DQ 48251 11932 · fumée",
+            ObservedFactMessage.build(
+                place("31U DQ 48251 11932", CoordinateFormat.MGRS),
+                CoordinateFormat.MGRS,
+                "fumée",
+                ObservedTime(hour = 14, minute = 5, previousDay = false),
+            ),
+        )
+    }
+
+    @Test
+    fun observationTimeInTheFutureIsTheDayBefore() {
+        // 00:10 UTC on 6 October 2026: 23:50 cannot have been observed yet today.
+        val now = 1_791_245_400L
+        val observed = ObservedTime.of(hour = 23, minute = 50, nowEpochSeconds = now, timeZone = TimeZone.UTC)
+        assertEquals(ObservedTime(23, 50, previousDay = true), observed)
+        assertEquals(
+            "[CR] FAIT OBSERVÉ · 23:50 (veille) · Lieu MGRS 31U DQ 48251 11932 · fumée",
+            ObservedFactMessage.build(
+                place("31U DQ 48251 11932", CoordinateFormat.MGRS),
+                CoordinateFormat.MGRS,
+                "fumée",
+                observed,
+            ),
+        )
+    }
+
+    @Test
+    fun observationTimeAtTheCurrentMinuteIsToday() {
+        val now = 1_791_245_400L
+        assertEquals(ObservedTime(0, 10, previousDay = false), ObservedTime.of(0, 10, now, TimeZone.UTC))
+        assertEquals(ObservedTime(0, 10, previousDay = false), ObservedTime.now(now, TimeZone.UTC))
+        assertEquals(ObservedTime(0, 9, previousDay = false), ObservedTime.of(0, 9, now, TimeZone.UTC))
+    }
+
+    @Test
+    fun observationTimeOutOfRangeIsRejected() {
+        assertNull(ObservedTime.of(24, 0, 0L, TimeZone.UTC))
+        assertNull(ObservedTime.of(12, 60, 0L, TimeZone.UTC))
+        assertNull(ObservedTime.of(-1, 0, 0L, TimeZone.UTC))
+    }
+
+    @Test
+    fun observationTimeIsReadBack() {
+        assertEquals("14:05", ObservedFactMessage.observedAt("[CR] FAIT OBSERVÉ · 14:05 · Lieu MGRS 31U DQ 1 1 · a"))
+        assertEquals(
+            "23:50 (veille)",
+            ObservedFactMessage.observedAt("[CR] FAIT OBSERVÉ · 23:50 (veille) · Lieu MGRS 31U DQ 1 1 · a"),
+        )
+    }
+
+    @Test
+    fun earlierFormatIsStillAnObservedFactWithoutTime() {
+        val old = "[CR] FAIT OBSERVÉ · Lieu MGRS 31U DQ 48251 11932 · fumée"
+        assertTrue(ObservedFactMessage.isObservedFact(old))
+        assertTrue(old.startsWith("[CR] "))
+        assertNull(ObservedFactMessage.observedAt(old))
+        assertFalse(ObservedFactMessage.isObservedFact("[CR] RAS"))
+    }
+
+    @Test
+    fun observationTimeAddsAtMostSixteenBytes() {
+        val place = place("31U DQ 48251 11932", CoordinateFormat.MGRS)
+        val without = ObservedFactMessage.build(place, CoordinateFormat.MGRS, "fumée").utf8Size()
+        val with = ObservedFactMessage.build(place, CoordinateFormat.MGRS, "fumée", ObservedTime(23, 50, true))
+        assertEquals(without + " · 23:50 (veille)".utf8Size(), with.utf8Size())
     }
 }

@@ -17,21 +17,32 @@
 package org.meshtastic.core.model.geo
 
 /**
- * The observed fact report: a `[CR]` message, so it is filed as a report with no new prefix, giving the place in the
- * format it was typed in, plus MGRS, then the free description:
+ * The observed fact report: a `[CR]` message, so it is filed as a report with no new prefix, giving the time of the
+ * observation, the place in the format it was typed in, plus MGRS, then the free description:
  *
- * `[CR] FAIT OBSERVÉ · Lieu DMS 48°51'24"N 002°21'03"E = MGRS 31U DQ 52382 11725 · deux véhicules arrêtés`
+ * `[CR] FAIT OBSERVÉ · 14:05 · Lieu DMS 48°51'24"N 002°21'03"E = MGRS 31U DQ 52382 11725 · deux véhicules arrêtés`
  *
- * A place typed in MGRS is given once. Beyond 84° N and 80° S, where MGRS is undefined, only DMS is given.
+ * A time later than the current minute is the day before: `· 23:50 (veille) ·`. A place typed in MGRS is given once.
+ * Beyond 84° N and 80° S, where MGRS is undefined, only DMS is given. Reports in the earlier format, without the time,
+ * are still recognised: they carry the same header.
  */
 object ObservedFactMessage {
     const val HEADER = "[CR] FAIT OBSERVÉ"
 
     private const val SEPARATOR = " · "
     private val WHITESPACE = Regex("""\s+""")
+    private val OBSERVED_AT = Regex("""^\[CR] FAIT OBSERVÉ · (\d{2}:\d{2}(?: \(veille\))?) · """)
 
-    /** The report for [place] typed as [typedAs], with [description] on one line. Nothing is shortened. */
-    fun build(place: FormattedCoordinates, typedAs: CoordinateFormat, description: String): String {
+    /**
+     * The report for [place] typed as [typedAs], observed at [observedAt], with [description] on one line. Nothing is
+     * shortened. Without [observedAt], the report has the earlier format, with no time.
+     */
+    fun build(
+        place: FormattedCoordinates,
+        typedAs: CoordinateFormat,
+        description: String,
+        observedAt: ObservedTime? = null,
+    ): String {
         val typed = place.format(typedAs)?.let { "${typedAs.name} $it" }
         val mgrs = place.mgrs?.let { "MGRS $it" }
         val location =
@@ -41,6 +52,13 @@ object ObservedFactMessage {
                 else -> "$typed = $mgrs"
             }
         val text = description.replace(WHITESPACE, " ").trim()
-        return listOfNotNull(HEADER, "Lieu $location", text.takeIf { it.isNotEmpty() }).joinToString(SEPARATOR)
+        return listOfNotNull(HEADER, observedAt?.label(), "Lieu $location", text.takeIf { it.isNotEmpty() })
+            .joinToString(SEPARATOR)
     }
+
+    /** Whether [text] is an observed fact report, in either format. */
+    fun isObservedFact(text: String): Boolean = text.trimStart().startsWith(HEADER)
+
+    /** The time of observation [text] gives (`14:05`, `23:50 (veille)`), or null for a report without one. */
+    fun observedAt(text: String): String? = OBSERVED_AT.find(text.trimStart())?.groupValues?.get(1)
 }
