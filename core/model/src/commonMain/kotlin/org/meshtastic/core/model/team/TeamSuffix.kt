@@ -74,7 +74,7 @@ object TeamSuffix {
 data class TeamNameChange(val longName: String, val truncated: Boolean)
 
 /** Clips to at most [maxBytes] of UTF-8, stepping whole code points so a surrogate pair is never cut in half. */
-private fun String.clipToUtf8Bytes(maxBytes: Int): String {
+internal fun String.clipToUtf8Bytes(maxBytes: Int): String {
     var end = 0
     var used = 0
     while (end < length) {
