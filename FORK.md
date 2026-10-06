@@ -1,7 +1,7 @@
 # NetworkTact
 
 NetworkTact est un fork de [Meshtastic-Android](https://github.com/meshtastic/Meshtastic-Android),
-modifié à partir du 26 septembre 2026 (dernière mise à jour de ce fichier : 6 octobre 2026, branche `feat/navigation`).
+modifié à partir du 26 septembre 2026 (dernière mise à jour de ce fichier : 6 octobre 2026, branche `feat/fait-observe-carte`).
 
 - **Licence** : GPL-3.0-or-later (voir le fichier `LICENSE`, inchangé).
 - **Origine** : code de Meshtastic-Android, © Meshtastic LLC. Les mentions de copyright de
@@ -10,7 +10,8 @@ modifié à partir du 26 septembre 2026 (dernière mise à jour de ce fichier : 
 - **Code source** : https://github.com/GRTGRATzq/NetworkTact
 - **Radios** : le firmware des radios n'est pas modifié. Aucun nouveau protocole radio ni
   nouveau type de paquet : toutes les conventions ci-dessous sont du texte ordinaire, lisible
-  par l'application Meshtastic officielle.
+  par l'application Meshtastic officielle. Seule exception, le partage d'un point sur la carte
+  (section 12) utilise le point de repère (waypoint) que Meshtastic sait déjà envoyer.
 
 Le détail de chaque changement est dans l'historique Git de ce dépôt.
 
@@ -228,6 +229,52 @@ Ordre des onglets, routes, liste blanche du mode démo et badges de non-lus inch
 Aperçu clair / sombre de la barre et des quatre états de la radio. Pas de test automatique
 des contrastes de la barre : `core:ui` ne tourne pas dans `fork-apk` ; les valeurs ci-dessus
 sont mesurées sur la palette fixe.
+
+### 12. Fait observé avec heure, points partagés sur la carte (`feat/fait-observe-carte`)
+
+- **Heure d'observation** : le formulaire « Fait observé » a un champ « Observé à », à l'heure
+  actuelle par défaut, modifiable (`14:05`, `14h05`, `1405`). Le message devient
+  `[CR] FAIT OBSERVÉ · 14:05 · Lieu … = MGRS … · description`. Une heure pas encore atteinte
+  est comptée comme la veille et le message le dit : `· 23:50 (veille) ·`. Au-delà de 200
+  octets, le bouton reste grisé et la taille s'affiche. L'ancien format, sans heure, reste
+  reconnu et classé comme compte rendu. Le fait observé du mode démo suit le nouveau format.
+- **Coordonnée dans un message** (`core/model/.../geo/MessageCoordinate.kt`) : seule une
+  coordonnée complète compte, vérifiée par le convertisseur (MGRS avec zone, bande, carré et
+  5 + 5 chiffres ; UTM avec zone, bande et abscisse à six chiffres ; DMS avec un hémisphère sur
+  les deux axes). Un numéro de téléphone, une heure, une date ou une référence ne sont jamais
+  pris pour une position (tests dédiés).
+- **Partager ce point sur la carte** : après l'envoi d'un message qui contient une coordonnée
+  (`[POS]`, fait observé, coordonnée collée depuis le convertisseur), un encart propose
+  « Partager » ou « Ne pas partager ». Rien n'est émis sans ce geste. Accepté, un point de
+  repère Meshtastic existant (`WAYPOINT_APP`, envoyé par la fonction d'envoi de l'application)
+  part sur le canal du message, ou au même correspondant pour un message direct. Il est visible
+  dans l'application officielle.
+
+  | Message | Nom du point (29 octets au plus) | Description (99 octets au plus) |
+  |---|---|---|
+  | Fait observé | `FO 14:05 ALPHA-1`, `FO --:-- ALPHA-1` (ancien format) | la description du fait |
+  | `[POS]` récente | `POS 14:32 ALPHA-1` | `relevée 14:32` |
+  | `[POS]` ancienne | `POS ANC 14:07 ALPHA-1`, `POS ANC --:-- ALPHA-1` | `POSITION ANCIENNE, …` |
+  | `[POS]` sans heure | `POS --:-- ALPHA-1` | `heure de relevé inconnue` |
+  | Autre message | `PT ALPHA-1` | `envoyé 14:05 · texte` |
+
+  Les longueurs sont celles du protobuf (`name` 30 et `description` 100 octets, fin de chaîne
+  comprise), coupées par point de code. Le point est valable 24 h, verrouillé à son auteur
+  (lui seul peut le modifier ou le retirer), avec l'icône 👁, 📍 ou 📌. Son identifiant est
+  dérivé de l'auteur et du texte : un même message partagé deux fois met à jour le même point.
+  Un point partagé par erreur se retire par la fonction existante de la carte (Supprimer, puis
+  « pour tout le monde », avec confirmation).
+- **Voir sur la carte** : un message reçu qui contient une coordonnée complète affiche ce
+  bouton, qui ouvre la carte centrée sur le point (`MapFocusRequests`, `core/ui`). Affichage
+  local seulement, rien n'est émis. Le point n'est pas marqué sur la carte : seul le centrage
+  l'indique, tant que la carte hors ligne (P1-5) n'existe pas.
+- **Fenêtre d'un point** (carte MapLibre, variante fdroid et bureau) : « De ALPHA-1 · reçu
+  06/10/26 14:05 », « De moi » pour un point de cette radio, « heure inconnue » sans heure. La
+  carte Google (variante google) centre aussi sur le point, mais sa fenêtre n'a pas changé.
+- **Mode démo** : la carte reste indisponible. « Partager » ne fait rien partir (le contrôleur
+  d'écran est celui de la démo, testé dans `ScreenFacadesTest`), l'encart et la confirmation
+  le disent ; « Voir sur la carte » répond « Carte indisponible en mode démo ».
+- CI : les tests de `feature:map` tournent dans `fork-apk`, dans une étape à part.
 
 ## Marques
 
