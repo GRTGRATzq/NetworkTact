@@ -38,6 +38,8 @@ import kotlinx.coroutines.test.setMain
 import kotlinx.coroutines.withContext
 import org.meshtastic.core.model.ConnectionState
 import org.meshtastic.core.model.ContactSettings
+import org.meshtastic.core.model.DataPacket
+import org.meshtastic.core.model.Node
 import org.meshtastic.core.repository.ActiveConversationTracker
 import org.meshtastic.core.repository.ConnectionStateProvider
 import org.meshtastic.core.repository.CustomEmojiPrefs
@@ -58,12 +60,14 @@ import org.meshtastic.proto.ChannelSet
 import org.meshtastic.proto.DeviceProfile
 import org.meshtastic.proto.LocalConfig
 import org.meshtastic.proto.LocalModuleConfig
+import org.meshtastic.proto.User
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
@@ -359,6 +363,69 @@ class MessageViewModelTest {
         }
 
         eventually { verifySuspend { sendMessageUseCase.invoke("Hello", "0!12345678", null) } }
+    }
+
+    private fun setOurNode() = nodeRepository.setOurNode(
+        Node(num = 0x0A1A0001, user = User.Builder().also { it.long_name = "ALPHA-1 [Alpha]" }.build()),
+    )
+
+    @Test
+    fun sendingACoordinateOffersToShareItWithoutSendingAnything() = runTest {
+        everySuspend { sendMessageUseCase.invoke(any(), any(), any()) } returns 1
+        setOurNode()
+
+        viewModel.sendMessage("[CR] FAIT OBSERVÉ · 14:05 · Lieu MGRS 31U DQ 48251 11932 · fumée", "1^all", null)
+        advanceUntilIdle()
+
+        val offer = assertNotNull(viewModel.sharePointOffer.value)
+        assertEquals("FO 14:05 ALPHA-1", offer.point.name)
+        assertEquals("1^all", offer.contactKey)
+        verifySuspend(VerifyMode.not) { messagingController.sendMessage(any()) }
+    }
+
+    @Test
+    fun sendingTextWithoutCoordinateOffersNothing() = runTest {
+        everySuspend { sendMessageUseCase.invoke(any(), any(), any()) } returns 1
+        setOurNode()
+
+        viewModel.sendMessage("Appelez le 06 12 34 56 78 à 14:05", "0^all", null)
+        advanceUntilIdle()
+
+        assertNull(viewModel.sharePointOffer.value)
+    }
+
+    @Test
+    fun sharingSendsOneWaypointOnTheChannelOfTheMessage() = runTest {
+        everySuspend { sendMessageUseCase.invoke(any(), any(), any()) } returns 1
+        val sent = mutableListOf<DataPacket>()
+        everySuspend { messagingController.sendMessage(any()) } calls { (packet: DataPacket) -> sent += packet }
+        setOurNode()
+
+        viewModel.sendMessage("[POS] ALPHA-1 · MGRS 31U DQ 48251 11932 · relevée 14:28", "1^all", null)
+        advanceUntilIdle()
+        viewModel.shareOfferedPoint()
+        advanceUntilIdle()
+
+        val packet = sent.single()
+        assertEquals(1, packet.channel)
+        assertEquals("POS 14:28 ALPHA-1", assertNotNull(packet.waypoint).name)
+        assertEquals(0x0A1A0001, packet.waypoint?.locked_to)
+        assertNull(viewModel.sharePointOffer.value)
+    }
+
+    @Test
+    fun decliningClearsTheOfferAndSendsNothing() = runTest {
+        everySuspend { sendMessageUseCase.invoke(any(), any(), any()) } returns 1
+        setOurNode()
+
+        viewModel.sendMessage("Regroupement 31U DQ 48251 11932", "0!12345678", null)
+        advanceUntilIdle()
+        assertTrue(viewModel.sharePointOffer.value != null)
+        viewModel.dismissPointOffer()
+        advanceUntilIdle()
+
+        assertNull(viewModel.sharePointOffer.value)
+        verifySuspend(VerifyMode.not) { messagingController.sendMessage(any()) }
     }
 
     @Test

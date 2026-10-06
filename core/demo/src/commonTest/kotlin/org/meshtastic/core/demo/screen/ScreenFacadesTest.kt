@@ -32,7 +32,11 @@ import org.meshtastic.core.demo.send.DemoMessagingController
 import org.meshtastic.core.demo.send.DemoSendMessageUseCase
 import org.meshtastic.core.demo.store.DemoStore
 import org.meshtastic.core.di.CoroutineDispatchers
+import org.meshtastic.core.model.DataPacket
 import org.meshtastic.core.model.Node
+import org.meshtastic.core.model.NodeAddress
+import org.meshtastic.core.model.geo.SharedPoint
+import org.meshtastic.core.model.geo.toWaypoint
 import org.meshtastic.core.model.team.TeamRosterRecord
 import org.meshtastic.core.repository.MessagingController
 import org.meshtastic.core.repository.usecase.SendMessageUseCase
@@ -40,9 +44,11 @@ import org.meshtastic.core.testing.FakeNodeRepository
 import org.meshtastic.core.testing.FakeRadioController
 import org.meshtastic.core.testing.FakeTeamRosterPrefs
 import org.meshtastic.core.testing.FakeUiPrefs
+import org.meshtastic.proto.PortNum
 import org.meshtastic.proto.User
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 /**
@@ -167,6 +173,30 @@ class ScreenFacadesTest {
         assertTrue(store.packets.value.any { it.packet.id == id })
         assertTrue(realRadio.sentPackets.isEmpty())
         assertTrue(realStore.packets.value.none { it.packet.id == id })
+    }
+
+    @Test
+    fun sharingAPointDuringADemoEmitsNoWaypoint() = runTest(dispatcher) {
+        // Strict mock: a waypoint reaching the real messaging controller fails the test.
+        val realMessaging = mock<MessagingController>()
+        val messaging = ScreenMessagingController(realMessaging, DemoMessagingController(), demoMode)
+        demoMode.activate()
+        val point =
+            assertNotNull(
+                SharedPoint.of(
+                    "[CR] FAIT OBSERVÉ · 14:05 · Lieu MGRS 31U DQ 48251 11932 · fumée",
+                    "PC-0",
+                    DemoDataSet.PC0_NUM,
+                    REAL_TIME / 1_000,
+                    TimeZone.UTC,
+                ),
+            )
+
+        messaging.sendMessage(DataPacket(NodeAddress.ID_BROADCAST, 0, point.toWaypoint()))
+
+        assertTrue(realRadio.sentPackets.isEmpty())
+        assertTrue(store.packets.value.none { it.packet.dataType == PortNum.WAYPOINT_APP.value })
+        assertTrue(realStore.packets.value.none { it.packet.dataType == PortNum.WAYPOINT_APP.value })
     }
 
     @Test

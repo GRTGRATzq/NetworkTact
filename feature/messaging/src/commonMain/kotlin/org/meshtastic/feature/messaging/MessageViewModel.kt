@@ -45,11 +45,15 @@ import org.koin.core.annotation.KoinViewModel
 import org.koin.core.annotation.Named
 import org.meshtastic.core.common.util.currentLocaleCode
 import org.meshtastic.core.common.util.ioDispatcher
+import org.meshtastic.core.common.util.nowSeconds
+import org.meshtastic.core.common.util.systemTimeZone
 import org.meshtastic.core.model.ContactKey
 import org.meshtastic.core.model.ContactSettings
+import org.meshtastic.core.model.DataPacket
 import org.meshtastic.core.model.Message
 import org.meshtastic.core.model.Node
 import org.meshtastic.core.model.NodeAddress
+import org.meshtastic.core.model.geo.toWaypoint
 import org.meshtastic.core.repository.ActiveConversationTracker
 import org.meshtastic.core.repository.ConnectionStateProvider
 import org.meshtastic.core.repository.CustomEmojiPrefs
@@ -67,6 +71,8 @@ import org.meshtastic.core.repository.UiPrefs
 import org.meshtastic.core.repository.usecase.SendMessageUseCase
 import org.meshtastic.core.resources.Res
 import org.meshtastic.core.resources.UiText
+import org.meshtastic.core.resources.coords_share_done
+import org.meshtastic.core.resources.coords_share_done_demo
 import org.meshtastic.core.resources.translation_failed
 import org.meshtastic.core.resources.translation_model_download_failed
 import org.meshtastic.core.resources.translation_not_required
@@ -74,6 +80,8 @@ import org.meshtastic.core.ui.util.SnackbarManager
 import org.meshtastic.core.ui.viewmodel.errorEventFlow
 import org.meshtastic.core.ui.viewmodel.safeLaunch
 import org.meshtastic.core.ui.viewmodel.stateInWhileSubscribed
+import org.meshtastic.feature.messaging.coordinates.SharePointOffer
+import org.meshtastic.feature.messaging.coordinates.sharePointOffer
 import org.meshtastic.feature.messaging.filter.ThreadFilter
 import org.meshtastic.feature.messaging.status.sentStatusOf
 import org.meshtastic.feature.messaging.translation.DownloadResult
@@ -432,8 +440,46 @@ class MessageViewModel(
     fun sendMessage(str: String, contactKey: String = "0${NodeAddress.ID_BROADCAST}", replyId: Int? = null) {
         safeLaunch(errorEvents = sendErrorEvents, tag = "sendMessage") {
             sendMessageUseCase.invoke(str, contactKey, replyId)
+            val ourNode = nodeRepository.ourNodeInfo.value
+            _sharePointOffer.value =
+                sharePointOffer(str, contactKey, ourNode?.num, ourNode?.user?.long_name, nowSeconds, systemTimeZone)
         }
     }
+
+    private val _sharePointOffer = MutableStateFlow<SharePointOffer?>(null)
+
+    /**
+     * The point the last message sent can be shared as on the map, until the user shares or declines it. Nothing is
+     * sent before [shareOfferedPoint].
+     */
+    val sharePointOffer: StateFlow<SharePointOffer?> = _sharePointOffer.asStateFlow()
+
+    /**
+     * Sends the offered point as an ordinary Meshtastic waypoint, to the conversation its message went to. During a
+     * demo the screen's messaging controller is the demo one: nothing is emitted, and the confirmation says so.
+     */
+    fun shareOfferedPoint() {
+        val offer = _sharePointOffer.value ?: return
+        _sharePointOffer.value = null
+        safeLaunch(tag = "sharePoint") {
+            val key = ContactKey(offer.contactKey)
+            messagingController.sendMessage(DataPacket(key.addressString, key.channel, offer.point.toWaypoint()))
+            val done =
+                if (demoMode.isActive.value) {
+                    UiText.Resource(Res.string.coords_share_done_demo)
+                } else {
+                    UiText.Resource(Res.string.coords_share_done, offer.point.name)
+                }
+            snackbarManager.showSnackbar(MessagingUiTextResolver.resolve(done))
+        }
+    }
+
+    fun dismissPointOffer() {
+        _sharePointOffer.value = null
+    }
+
+    /** Whether a demo is running: the share prompt then says that sharing is simulated. */
+    val isDemoActive: StateFlow<Boolean> = demoMode.isActive
 
     fun sendReaction(emoji: String, replyId: Int, contactKey: String) =
         safeLaunch(tag = "sendReaction") { messagingController.sendReaction(emoji, replyId, contactKey) }

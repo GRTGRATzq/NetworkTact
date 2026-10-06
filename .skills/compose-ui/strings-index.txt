@@ -325,6 +325,13 @@ coords_my_position_phone
 coords_my_position_shortened
 coords_not_covered
 coords_replace_message
+coords_share_action
+coords_share_body
+coords_share_demo
+coords_share_dismiss
+coords_share_done
+coords_share_done_demo
+coords_share_title
 copy
 copyright_notice
 create_your_own_networks

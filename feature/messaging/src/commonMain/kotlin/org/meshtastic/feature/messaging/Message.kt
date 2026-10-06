@@ -136,6 +136,7 @@ import org.meshtastic.feature.messaging.component.ReplySnippet
 import org.meshtastic.feature.messaging.component.ScrollToBottomFab
 import org.meshtastic.feature.messaging.component.TranslationModelDownloadDialog
 import org.meshtastic.feature.messaging.coordinates.FieldShortcuts
+import org.meshtastic.feature.messaging.coordinates.SharePointPrompt
 import org.meshtastic.feature.messaging.priority.MessagePriority
 
 private const val ROUNDED_CORNER_PERCENT = 100
@@ -220,6 +221,8 @@ fun MessageScreen(
     LaunchedEffect(contactKey) { viewModel.loadDraft(contactKey) }
 
     val storedDraft by viewModel.draftMessage.collectAsStateWithLifecycle()
+    val sharePointOffer by viewModel.sharePointOffer.collectAsStateWithLifecycle()
+    val isDemoActive by viewModel.isDemoActive.collectAsStateWithLifecycle()
 
     // Seed the composer once the draft arrives, unless the screen was opened with a message to prefill.
     LaunchedEffect(storedDraft) {
@@ -523,6 +526,15 @@ fun MessageScreen(
                         onClearReply = { replyingToPacketId = null },
                         ourNode = ourNode,
                     )
+                    sharePointOffer?.let { offer ->
+                        SharePointPrompt(
+                            point = offer.point,
+                            canShare = connectionState is ConnectionState.Connected,
+                            isDemo = isDemoActive,
+                            onShare = viewModel::shareOfferedPoint,
+                            onDismiss = viewModel::dismissPointOffer,
+                        )
+                    }
                     FieldShortcuts(
                         messageInputState = messageInputState,
                         canFill = connectionState is ConnectionState.Connected,

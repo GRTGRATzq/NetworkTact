@@ -1546,4 +1546,11 @@
     <string name="coords_fact_observed_at">Observé à (HH:MM)</string>
     <string name="coords_fact_observed_at_invalid">Format attendu HH:MM, par exemple 14:05.</string>
     <string name="coords_fact_previous_day">Heure pas encore atteinte : comptée comme la veille.</string>
+    <string name="coords_share_title">Partager ce point sur la carte ?</string>
+    <string name="coords_share_body">Envoie un point de repère (waypoint) sur le même canal, ou au même correspondant. Il reste 24 h sur les cartes du réseau, y compris dans l'application officielle. Rien n'est envoyé sans votre accord.</string>
+    <string name="coords_share_demo">Mode démo : partage simulé, rien n'est émis.</string>
+    <string name="coords_share_action">Partager</string>
+    <string name="coords_share_dismiss">Ne pas partager</string>
+    <string name="coords_share_done">Point partagé sur la carte : %1$s</string>
+    <string name="coords_share_done_demo">Partage simulé (mode démo) : aucun point émis.</string>
 </resources>

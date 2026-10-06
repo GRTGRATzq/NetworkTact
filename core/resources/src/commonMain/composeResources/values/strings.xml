@@ -349,6 +349,13 @@
     <string name="coords_my_position_shortened">Shortened to fit 200 bytes: DMS, then UTM if needed, left out.</string>
     <string name="coords_not_covered">not covered beyond 84° N and 80° S</string>
     <string name="coords_replace_message">Replace the text being typed?</string>
+    <string name="coords_share_action">Share</string>
+    <string name="coords_share_body">Sends it as a map point (waypoint) on the same channel, or to the same contact. It stays on the maps of the mesh for 24 h, the official app included. Nothing is sent unless you share.</string>
+    <string name="coords_share_demo">Demo mode: sharing is simulated, nothing is transmitted.</string>
+    <string name="coords_share_dismiss">Don't share</string>
+    <string name="coords_share_done">Point shared on the map: %1$s</string>
+    <string name="coords_share_done_demo">Sharing simulated (demo mode): no point transmitted.</string>
+    <string name="coords_share_title">Share this point on the map?</string>
     <string name="copy">Copy</string>
     <string name="copyright_notice">Meshtastic® Copyright Meshtastic LLC</string>
     <string name="create_your_own_networks">Create Your Own Networks</string>
