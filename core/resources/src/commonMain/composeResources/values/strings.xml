@@ -1370,6 +1370,26 @@
     <string name="notifications_on_message_receipt">Notifications on message receipt</string>
     <string name="now">Now</string>
     <!-- OFFLINE -->
+    <string name="offline_map_cancelled">Import cancelled. Nothing was kept.</string>
+    <string name="offline_map_copying">Copying “%1$s”…</string>
+    <string name="offline_map_default_name">Offline map</string>
+    <string name="offline_map_delete_message">“%1$s” will be removed from this phone. The original file is not affected.</string>
+    <string name="offline_map_delete_title">Delete this map?</string>
+    <string name="offline_map_detail">%1$s · zoom %2$d to %3$d</string>
+    <string name="offline_map_error_copy">The copy failed (storage full or file removed). Nothing was kept.</string>
+    <string name="offline_map_error_incomplete">The file is incomplete (interrupted transfer?). Nothing was kept.</string>
+    <string name="offline_map_error_not_pmtiles">This file is not a .pmtiles map. Nothing was kept.</string>
+    <string name="offline_map_error_raster">This .pmtiles file holds images, not a vector map: the built-in style cannot draw it. Nothing was kept.</string>
+    <string name="offline_map_error_read">The file could not be read. Nothing was kept.</string>
+    <string name="offline_map_error_space">Not enough free space: %1$s needed, %2$s free. Nothing was copied.</string>
+    <string name="offline_map_error_version">This .pmtiles file uses an unsupported version (version 3 expected). Nothing was kept.</string>
+    <string name="offline_map_files">Maps on this phone</string>
+    <string name="offline_map_files_empty">No map on this phone yet.</string>
+    <string name="offline_map_files_hint">A map imported from a .pmtiles file works without Internet.</string>
+    <string name="offline_map_import">Import a .pmtiles file</string>
+    <string name="offline_map_imported">“%1$s” is ready: choose it in the map style menu.</string>
+    <string name="offline_map_progress">%1$s of %2$s</string>
+    <string name="offline_map_size_mb">%1$s MB</string>
     <string name="offline_maps">Offline maps</string>
     <string name="offline_maps_empty">No areas downloaded yet</string>
     <string name="offline_terrain_cache_detail">%1$s: %2$s · %3$s</string>

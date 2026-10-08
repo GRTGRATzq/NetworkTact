@@ -1334,6 +1334,26 @@ notifications_on_alert_bell_receipt
 notifications_on_message_receipt
 now
 ### OFFLINE ###
+offline_map_cancelled
+offline_map_copying
+offline_map_default_name
+offline_map_delete_message
+offline_map_delete_title
+offline_map_detail
+offline_map_error_copy
+offline_map_error_incomplete
+offline_map_error_not_pmtiles
+offline_map_error_raster
+offline_map_error_read
+offline_map_error_space
+offline_map_error_version
+offline_map_files
+offline_map_files_empty
+offline_map_files_hint
+offline_map_import
+offline_map_imported
+offline_map_progress
+offline_map_size_mb
 offline_maps
 offline_maps_empty
 offline_terrain_cache_detail

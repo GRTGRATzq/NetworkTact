@@ -1558,4 +1558,24 @@
     <string name="waypoint_origin">De %1$s · reçu %2$s</string>
     <string name="waypoint_origin_me">moi</string>
     <string name="waypoint_origin_time_unknown">heure inconnue</string>
+    <string name="offline_map_files">Cartes sur le téléphone</string>
+    <string name="offline_map_files_hint">Une carte importée depuis un fichier .pmtiles fonctionne sans Internet.</string>
+    <string name="offline_map_files_empty">Aucune carte sur ce téléphone.</string>
+    <string name="offline_map_import">Importer un fichier .pmtiles</string>
+    <string name="offline_map_detail">%1$s · zoom %2$d à %3$d</string>
+    <string name="offline_map_size_mb">%1$s Mo</string>
+    <string name="offline_map_copying">Copie de « %1$s »…</string>
+    <string name="offline_map_progress">%1$s sur %2$s</string>
+    <string name="offline_map_imported">« %1$s » est prête : choisissez-la dans le menu des fonds de carte.</string>
+    <string name="offline_map_error_not_pmtiles">Ce fichier n'est pas une carte .pmtiles. Rien n'a été conservé.</string>
+    <string name="offline_map_error_version">Ce fichier .pmtiles est d'une version non prise en charge (version 3 attendue). Rien n'a été conservé.</string>
+    <string name="offline_map_error_raster">Ce fichier .pmtiles contient des images, pas une carte vectorielle : le style intégré ne peut pas l'afficher. Rien n'a été conservé.</string>
+    <string name="offline_map_error_space">Espace libre insuffisant : %1$s nécessaires, %2$s libres. Rien n'a été copié.</string>
+    <string name="offline_map_error_incomplete">Le fichier est incomplet (transfert interrompu ?). Rien n'a été conservé.</string>
+    <string name="offline_map_error_read">Le fichier n'a pas pu être lu. Rien n'a été conservé.</string>
+    <string name="offline_map_error_copy">La copie a échoué (stockage plein ou fichier retiré). Rien n'a été conservé.</string>
+    <string name="offline_map_cancelled">Import annulé. Rien n'a été conservé.</string>
+    <string name="offline_map_delete_title">Supprimer cette carte ?</string>
+    <string name="offline_map_delete_message">« %1$s » sera retirée de ce téléphone. Le fichier d'origine n'est pas touché.</string>
+    <string name="offline_map_default_name">Carte hors ligne</string>
 </resources>
