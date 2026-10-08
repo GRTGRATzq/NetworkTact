@@ -1578,4 +1578,5 @@
     <string name="offline_map_delete_title">Supprimer cette carte ?</string>
     <string name="offline_map_delete_message">« %1$s » sera retirée de ce téléphone. Le fichier d'origine n'est pas touché.</string>
     <string name="offline_map_default_name">Carte hors ligne</string>
+    <string name="map_attribution_osm_protomaps">© contributeurs OpenStreetMap · Protomaps</string>
 </resources>

@@ -28,6 +28,7 @@ import androidx.core.net.toFile
 import co.touchlab.kermit.Logger
 import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
+import org.meshtastic.app.map.offline.offlineMapBasemaps
 import org.meshtastic.core.common.util.safeCatching
 import org.meshtastic.feature.map.layers.getFileName
 import org.meshtastic.feature.map.maplibre.component.customRasterBasemaps
@@ -104,3 +105,13 @@ internal fun rememberMbTilesImport(): () -> Unit {
 @Composable
 internal fun androidCustomRasterBasemaps(): List<Basemap.Raster> =
     customRasterBasemaps(resolveLocalArchive = ::androidTileArchivePath)
+
+/**
+ * Every basemap of the user's own on Android: custom tile sources, MBTiles archives and offline .pmtiles maps. Null
+ * until the offline maps have been listed.
+ */
+@Composable
+internal fun androidCustomBasemaps(): List<Basemap>? {
+    val rasters = androidCustomRasterBasemaps()
+    return offlineMapBasemaps()?.let { offline -> rasters + offline }
+}

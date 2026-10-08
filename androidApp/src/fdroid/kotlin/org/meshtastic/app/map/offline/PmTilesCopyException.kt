@@ -14,15 +14,13 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-package org.meshtastic.app.node.component
+package org.meshtastic.app.map.offline
 
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import org.meshtastic.app.map.androidCustomBasemaps
-import org.meshtastic.core.model.Node
-import org.meshtastic.feature.map.maplibre.MapLibreInlineMap
+import org.meshtastic.feature.map.maplibre.component.OfflineMapImportFailure
 
-/** Flavor-unified entry point for the node-detail mini-map. MapLibre implementation. */
-@Composable
-fun InlineMap(node: Node, modifier: Modifier = Modifier) =
-    MapLibreInlineMap(node = node, modifier = modifier, customBasemaps = { androidCustomBasemaps() })
+/** Why a copy stopped, with the figures a "not enough space" message shows. */
+internal class PmTilesCopyException(
+    val reason: OfflineMapImportFailure,
+    val neededBytes: Long = 0,
+    val freeBytes: Long = 0,
+) : Exception(reason.name)

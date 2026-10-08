@@ -20,11 +20,14 @@ import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.koin.compose.koinInject
 import org.meshtastic.app.map.component.SitePlannerSlot
+import org.meshtastic.app.map.offline.OfflineMapLibrary
+import org.meshtastic.app.map.offline.rememberPmTilesImport
 import org.meshtastic.core.ui.util.MapViewProvider
 import org.meshtastic.feature.map.layers.MapLayersManager
 import org.meshtastic.feature.map.maplibre.MapLibreMapViewProvider
 import org.meshtastic.feature.map.maplibre.component.CustomTileSourcesMenuItem
 import org.meshtastic.feature.map.maplibre.component.ImportedLayersSlot
+import org.meshtastic.feature.map.maplibre.component.OfflineMapFilesMenuItem
 import org.meshtastic.feature.map.maplibre.layers.rememberRenderableLayers
 
 fun getMapViewProvider(): MapViewProvider = MapLibreMapViewProvider(
@@ -34,9 +37,14 @@ fun getMapViewProvider(): MapViewProvider = MapLibreMapViewProvider(
         // KML and KMZ are converted to GeoJSON on the way through; everything else MapLibre fetches directly.
         rememberRenderableLayers(layersManager, layers.filter { it.isVisible })
     },
-    customBasemaps = { androidCustomRasterBasemaps() },
+    customBasemaps = { androidCustomBasemaps() },
     // Everything but the picker is common now; Android is just the platform that has one.
-    basemapMenuExtra = { CustomTileSourcesMenuItem(onAddLocalMbTiles = rememberMbTilesImport()) },
+    basemapMenuExtra = {
+        CustomTileSourcesMenuItem(onAddLocalMbTiles = rememberMbTilesImport())
+        // Offline .pmtiles maps: imported from a file, drawn with the style, fonts and sprites the APK carries.
+        val offlineMaps: OfflineMapLibrary = koinInject()
+        OfflineMapFilesMenuItem(files = offlineMaps, onImport = rememberPmTilesImport(offlineMaps))
+    },
     // waypointEditor is not passed: EditWaypointDialog is multiplatform now and the provider defaults to it.
     // MapLibre's offline packs actually download here; on desktop they never do, so the default is off.
     offlineMapsSupported = true,
