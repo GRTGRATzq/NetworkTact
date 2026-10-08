@@ -16,10 +16,19 @@
  */
 package org.meshtastic.feature.map.maplibre
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
@@ -34,6 +43,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import org.maplibre.compose.camera.CameraAnimation
@@ -48,6 +58,11 @@ import org.maplibre.compose.location.rememberLocationState
 import org.maplibre.compose.location.rememberSystemSettingsLauncher
 import org.maplibre.compose.map.MapState
 import org.maplibre.spatialk.geojson.Position
+import org.meshtastic.core.resources.Res
+import org.meshtastic.core.resources.map_point_hide
+import org.meshtastic.core.ui.icon.Close
+import org.meshtastic.core.ui.icon.Map
+import org.meshtastic.core.ui.icon.MeshtasticIcons
 import org.meshtastic.core.ui.util.KeepScreenOn
 import org.meshtastic.core.ui.util.MapFocusPoint
 import org.meshtastic.core.ui.util.MapFocusRequests
@@ -154,6 +169,7 @@ class MapLibreMapViewProvider(
         val screen = rememberMapScreenState(waypointId = waypointId, sitePlannerNodeNum = sitePlannerNodeNum)
         val focusRequests: MapFocusRequests = koinInject()
         val focus by focusRequests.pending.collectAsState()
+        val marked by focusRequests.marked.collectAsState()
         // Opened on a point: framing the mesh once positions arrive would move away from it.
         val openedOnPoint = remember { focus != null }
 
@@ -167,6 +183,7 @@ class MapLibreMapViewProvider(
                 customLayers = customLayers(),
                 navigateToNodeDetails = navigateToNodeDetails,
                 focused = openedOnPoint,
+                marked = marked,
             )
 
         FocusCamera(mapState, focus, focusRequests)
@@ -188,6 +205,8 @@ class MapLibreMapViewProvider(
             MapZoom(mapState = mapState, basemap = basemaps.current)
 
             OfflineIndicator(viewModel)
+
+            MarkedPointBanner(point = marked, onClear = focusRequests::clearMark)
 
             MapToolbar(
                 basemaps = basemaps,
@@ -235,6 +254,7 @@ private fun rememberMapScreenMapState(
     customLayers: List<CustomLayer>,
     navigateToNodeDetails: (Int) -> Unit,
     focused: Boolean,
+    marked: MapFocusPoint?,
 ): MapState {
     val viewModel: SharedMapViewModel = koinViewModel()
     return rememberMeshMapState(
@@ -254,6 +274,7 @@ private fun rememberMapScreenMapState(
         // Only when there was nothing stored: a remembered view is the user's own and is not yanked away. Nor when
         // the map was opened on a point: framing the mesh would move away from it.
         frameOnNodes = restored.position == null && !focused,
+        markedPoint = marked?.let { Position(longitude = it.longitude, latitude = it.latitude) },
     )
 }
 
@@ -271,6 +292,47 @@ private fun FocusCamera(mapState: MapState, focus: MapFocusPoint?, requests: Map
         )
         // Only once the camera is there: clearing the request restarts this effect, which would cut the move short.
         requests.consume(focus)
+    }
+}
+
+/**
+ * What the marked point is and when it was taken, or that its time is unknown, over the foot of the map, with a button
+ * that removes the marker. Compose text rather than a map label, so it reads the same over any basemap, offline
+ * included.
+ */
+@Composable
+private fun BoxScope.MarkedPointBanner(point: MapFocusPoint?, onClear: () -> Unit) {
+    val label = point?.label ?: return
+    Surface(
+        modifier = Modifier.align(Alignment.BottomCenter).padding(start = 16.dp, end = 16.dp, bottom = 72.dp),
+        shape = RoundedCornerShape(12.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        contentColor = MaterialTheme.colorScheme.onSurface,
+        shadowElevation = 3.dp,
+    ) {
+        Row(
+            modifier = Modifier.padding(start = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Icon(
+                imageVector = MeshtasticIcons.Map,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(18.dp),
+            )
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.weight(1f, fill = false),
+            )
+            IconButton(onClick = onClear) {
+                Icon(
+                    imageVector = MeshtasticIcons.Close,
+                    contentDescription = stringResource(Res.string.map_point_hide),
+                )
+            }
+        }
     }
 }
 

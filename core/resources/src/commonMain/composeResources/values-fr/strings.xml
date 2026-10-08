@@ -1580,4 +1580,14 @@
     <string name="offline_map_default_name">Carte hors ligne</string>
     <string name="map_attribution_osm_protomaps">© contributeurs OpenStreetMap · Protomaps</string>
     <string name="map_attribution_osm">© contributeurs OpenStreetMap</string>
+    <string name="map_point_observed_fact">Fait observé %1$s · %2$s</string>
+    <string name="map_point_observed_fact_no_time">Fait observé · heure inconnue · %1$s</string>
+    <string name="map_point_position">Position relevée %1$s · %2$s</string>
+    <string name="map_point_position_old">Position ANCIENNE relevée %1$s · %2$s</string>
+    <string name="map_point_position_no_time">Position · heure de relevé inconnue · %1$s</string>
+    <string name="map_point_position_old_no_time">Position ANCIENNE · heure de relevé inconnue · %1$s</string>
+    <string name="map_point_position_inconsistent">Position · heure de relevé incohérente · %1$s</string>
+    <string name="map_point_other">Point d'un message · heure de relevé inconnue · %1$s, reçu %2$s</string>
+    <string name="map_point_sender_phone">%1$s (téléphone)</string>
+    <string name="map_point_hide">Masquer le point</string>
 </resources>

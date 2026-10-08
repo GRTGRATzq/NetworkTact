@@ -1068,6 +1068,16 @@
     <string name="map_overlay_hillshade">Hillshade</string>
     <string name="map_overlay_precipitation">Precipitation</string>
     <string name="map_overlay_weather_radar">Weather radar</string>
+    <string name="map_point_hide">Hide the point</string>
+    <string name="map_point_observed_fact">Observed fact %1$s · %2$s</string>
+    <string name="map_point_observed_fact_no_time">Observed fact · time unknown · %1$s</string>
+    <string name="map_point_other">Point from a message · time unknown · %1$s, received %2$s</string>
+    <string name="map_point_position">Position taken %1$s · %2$s</string>
+    <string name="map_point_position_inconsistent">Position · inconsistent fix time · %1$s</string>
+    <string name="map_point_position_no_time">Position · fix time unknown · %1$s</string>
+    <string name="map_point_position_old">OLD position taken %1$s · %2$s</string>
+    <string name="map_point_position_old_no_time">OLD position · fix time unknown · %1$s</string>
+    <string name="map_point_sender_phone">%1$s (phone)</string>
     <string name="map_purge_fail">SQL Cache purge failed, see logcat for details</string>
     <string name="map_purge_success">SQL Cache purged for %1$s</string>
     <string name="map_reporting_consent_header">Consent to Share Unencrypted Node Data via MQTT</string>

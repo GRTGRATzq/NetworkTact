@@ -22,20 +22,35 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import org.koin.core.annotation.Single
 
-/** A point the map is asked to centre on, such as a coordinate read from a message. */
-data class MapFocusPoint(val latitude: Double, val longitude: Double)
+/**
+ * A point the map is asked to centre on, such as a coordinate read from a message. [label] says what the point is and
+ * when it was taken (or that the time is unknown); null when the requesting screen has nothing to say.
+ */
+data class MapFocusPoint(val latitude: Double, val longitude: Double, val label: String? = null)
 
 /**
  * The point the map should centre on the next time it is shown. Another screen [request]s it before opening the map;
- * the map centres on it, then [consume]s it, so it is applied once. Local display only: nothing is sent.
+ * the map centres on it, then [consume]s it, so it is applied once. The point stays [marked] on the map until the user
+ * [clearMark]s it or another one is requested. Local display only: nothing is sent.
  */
 @Single
 class MapFocusRequests {
     private val _pending = MutableStateFlow<MapFocusPoint?>(null)
     val pending: StateFlow<MapFocusPoint?> = _pending.asStateFlow()
 
+    private val _marked = MutableStateFlow<MapFocusPoint?>(null)
+
+    /** The last point requested, shown on the map by a marker until cleared. */
+    val marked: StateFlow<MapFocusPoint?> = _marked.asStateFlow()
+
     fun request(point: MapFocusPoint) {
+        _marked.value = point
         _pending.value = point
+    }
+
+    /** Removes the marker; the map does not move. */
+    fun clearMark() {
+        _marked.value = null
     }
 
     /** Clears [point] once applied; a newer request made in between is kept. */

@@ -78,7 +78,6 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
-import org.meshtastic.core.common.util.DateFormatter
 import org.meshtastic.core.common.util.MetricFormatter
 import org.meshtastic.core.common.util.nowMillis
 import org.meshtastic.core.model.Message
@@ -505,7 +504,7 @@ fun MessageItem(
                             }
 
                             if (onShowOnMap != null && !message.fromLocal) {
-                                ShowOnMapButton(text = message.text, onShowOnMap = onShowOnMap)
+                                ShowOnMapButton(message = message, onShowOnMap = onShowOnMap)
                             }
 
                             Row(
@@ -804,11 +803,16 @@ private fun OriginalMessageSnippet(
     }
 }
 
-/** "Show on map" under a received message holding a complete coordinate; absent otherwise. */
+/**
+ * "Show on map" under a received message holding a complete coordinate; absent otherwise. The map marks the point with
+ * what it is, its sender and its time, or says that the time is unknown.
+ */
 @Composable
-private fun ShowOnMapButton(text: String, onShowOnMap: (MapFocusPoint) -> Unit) {
+private fun ShowOnMapButton(message: Message, onShowOnMap: (MapFocusPoint) -> Unit) {
+    val text = message.text
     val found = remember(text) { MessageCoordinate.find(text) } ?: return
-    TextButton(onClick = { onShowOnMap(MapFocusPoint(found.point.latitude, found.point.longitude)) }) {
+    val label = messagePointLabel(message)
+    TextButton(onClick = { onShowOnMap(MapFocusPoint(found.point.latitude, found.point.longitude, label)) }) {
         Icon(MeshtasticIcons.Map, contentDescription = null, modifier = Modifier.size(18.dp))
         Text(
             text = stringResource(Res.string.coords_show_on_map),

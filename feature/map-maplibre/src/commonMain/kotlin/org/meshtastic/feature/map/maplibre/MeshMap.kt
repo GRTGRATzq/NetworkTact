@@ -132,6 +132,8 @@ fun rememberMeshMapState(
      * user's own view is not yanked away from them.
      */
     frameOnNodes: Boolean = true,
+    /** A point another screen asked to show (a coordinate read from a message), marked until the user clears it. */
+    markedPoint: Position? = null,
 ): MapState {
     val nodes by viewModel.nodesWithPosition.collectAsStateWithLifecycle()
     val waypoints by viewModel.waypoints.collectAsStateWithLifecycle()
@@ -180,7 +182,10 @@ fun rememberMeshMapState(
                 scope = scope,
             )
 
-            // Declared last so the user's own position and an in-progress box corner draw above the mesh.
+            // Declared last so the asked-for point, the user's own position and an in-progress box corner draw above
+            // the
+            // mesh.
+            MarkedPointLayer(markedPoint)
             UserLocationPuck(locationState = locationState, visible = followLocation)
             BoxCornerMarker(boxCorner)
         }
@@ -381,6 +386,40 @@ private fun UserLocationPuck(locationState: LocationState?, visible: Boolean) {
 private val STALE_LOCATION_AFTER = 30.seconds
 
 private const val ACCURACY_FILL_ALPHA = 0.15f
+
+/**
+ * The point another screen asked the map to show: a filled dot in the theme's primary colour, white-ringed, inside a
+ * translucent halo so it stands out on any basemap. No text, so it needs no font: what the point is and when it was
+ * taken are said by the banner over the map.
+ */
+@Composable
+@MaplibreComposable
+private fun MarkedPointLayer(point: Position?) {
+    if (point == null) return
+
+    val source =
+        rememberFeatureSource(point) {
+            FeatureCollection(listOf(Feature<Point, JsonObject?>(geometry = Point(point), properties = null)))
+        }
+    val primary = MaterialTheme.colorScheme.primary
+    CircleLayer(
+        id = "marked-point-halo",
+        source = source,
+        color = const(primary),
+        opacity = const(MARKED_HALO_OPACITY),
+        radius = const(18.dp),
+    )
+    CircleLayer(
+        id = "marked-point",
+        source = source,
+        color = const(primary),
+        radius = const(8.dp),
+        strokeColor = const(Color.White),
+        strokeWidth = const(3.dp),
+    )
+}
+
+private const val MARKED_HALO_OPACITY = 0.3f
 
 /**
  * The first corner tapped while authoring a geofence box.
