@@ -95,9 +95,10 @@ class MapLibreMapViewProvider(
     /**
      * Supplies the user's own basemaps. Composable for the same reason as [customLayers]. The default reads the shared
      * raster tile-source store, so every host gets those; the F-Droid app overrides it to add local MBTiles archives
-     * and offline map files, which need a file picker.
+     * and offline map files, which need a file picker. Null while the host is still listing them: the map waits rather
+     * than open on a built-in style and swap.
      */
-    private val customBasemaps: @Composable () -> List<Basemap> = { customRasterBasemaps() },
+    private val customBasemaps: @Composable () -> List<Basemap>? = { customRasterBasemaps() },
     /**
      * Extra content for the foot of the basemap menu. Defaults to the shared tile-source editor, so desktop offers it
      * too; the F-Droid app overrides only to add the MBTiles file picker.

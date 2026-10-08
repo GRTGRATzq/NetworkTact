@@ -54,7 +54,8 @@ internal class BasemapSelection(
 )
 
 /**
- * Resolves the active basemap from the built-in list plus any [customs] the host supplies.
+ * Resolves the active basemap from the built-in list plus any [customs] the host supplies — null while the host is
+ * still listing them.
  *
  * Two preferences back this, matching how the Google flavor stores it: an index into the built-in list, and a separate
  * id for a user-defined source. Keeping them apart means a custom source being added or removed cannot silently repoint
@@ -75,7 +76,7 @@ internal class BasemapSelection(
  * away from.)
  */
 @Composable
-internal fun rememberBasemapSelection(customs: List<Basemap>): BasemapSelection? {
+internal fun rememberBasemapSelection(customs: List<Basemap>?): BasemapSelection? {
     val mapPrefs: MapPrefs = koinInject()
     val tilePrefs: MapTileProviderPrefs = koinInject()
     val scope = rememberCoroutineScope()
@@ -99,7 +100,9 @@ internal fun rememberBasemapSelection(customs: List<Basemap>): BasemapSelection?
 
     val loadedStyle = styleIndex
     val loadedCustom = selectedCustomId
-    if (loadedStyle == null || loadedCustom == null) return null
+    // The host's own basemaps are null while it is still listing them (offline map files on disk): resolving now
+    // could open on a built-in style and swap to the stored choice a moment later, the swap described above.
+    if (loadedStyle == null || loadedCustom == null || customs == null) return null
 
     val current =
         customs.firstOrNull { it.id == loadedCustom.value }
