@@ -24,11 +24,14 @@ import dev.mokkery.matcher.any
 import dev.mokkery.mock
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 import org.meshtastic.core.common.util.MeasurementSystem
 import org.meshtastic.core.common.util.nowSeconds
 import org.meshtastic.core.model.ConnectionState
@@ -36,6 +39,7 @@ import org.meshtastic.core.model.DataPacket
 import org.meshtastic.core.model.Node
 import org.meshtastic.core.model.NodeAddress
 import org.meshtastic.core.network.repository.NetworkRepository
+import org.meshtastic.core.repository.DemoMode
 import org.meshtastic.core.repository.MapFilterPrefs
 import org.meshtastic.core.repository.MapPrefs
 import org.meshtastic.core.repository.PacketRepository
@@ -53,6 +57,9 @@ import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class BaseMapViewModelTest {
@@ -109,6 +116,53 @@ class BaseMapViewModelTest {
     @Test
     fun testInitialization() {
         assertNotNull(viewModel)
+    }
+
+    /** Demo mode stand-in: only the switch matters to the map. */
+    private class SwitchDemoMode(active: Boolean) : DemoMode {
+        override val isActive = MutableStateFlow(active)
+        override val realMessagesSinceActivation = MutableStateFlow(0)
+
+        override fun activate() {
+            isActive.value = true
+        }
+
+        override fun deactivate() {
+            isActive.value = false
+        }
+    }
+
+    private fun mapViewModel(demoMode: DemoMode) = BaseMapViewModel(
+        mapPrefs = mapPrefs,
+        nodeRepository = nodeRepository,
+        packetRepository = packetRepository,
+        radioController = radioController,
+        radioConfigRepository = radioConfigRepository,
+        notificationPrefs = FakeNotificationPrefs(),
+        localeUnitsProvider = localeUnitsProvider,
+        networkRepository = networkRepository,
+        demoMode = demoMode,
+    )
+
+    private val waypoint = Waypoint.Builder().also { it.id = 42 }.build()
+
+    @Test
+    fun waypointIsNeverSentDuringADemo() = runTest(testDispatcher) {
+        val demo = mapViewModel(SwitchDemoMode(active = true))
+        assertTrue(demo.isDemoActive.value)
+        demo.sendWaypoint(waypoint)
+        assertTrue(radioController.sentPackets.isEmpty())
+    }
+
+    @Test
+    fun waypointIsSentOutsideADemo() = runTest(testDispatcher) {
+        val real = mapViewModel(SwitchDemoMode(active = false))
+        real.sendWaypoint(waypoint)
+        // Sent on the I/O dispatcher, so waited for in real time; the demo case returns before launching anything.
+        withContext(Dispatchers.Default) {
+            withTimeout(5.seconds) { while (radioController.sentPackets.isEmpty()) delay(10.milliseconds) }
+        }
+        assertEquals(1, radioController.sentPackets.size)
     }
 
     /** The map renders distance, altitude and speed, so it has to follow a mid-session units change too. */

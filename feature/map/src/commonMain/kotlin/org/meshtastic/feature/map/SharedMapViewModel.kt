@@ -17,25 +17,34 @@
 package org.meshtastic.feature.map
 
 import org.koin.core.annotation.KoinViewModel
+import org.koin.core.annotation.Named
 import org.meshtastic.core.common.util.LocaleUnitsProvider
 import org.meshtastic.core.network.repository.NetworkRepository
+import org.meshtastic.core.repository.DemoMode
 import org.meshtastic.core.repository.MapPrefs
 import org.meshtastic.core.repository.NodeRepository
 import org.meshtastic.core.repository.NotificationPrefs
 import org.meshtastic.core.repository.PacketRepository
 import org.meshtastic.core.repository.RadioConfigRepository
 import org.meshtastic.core.repository.RadioController
+import org.meshtastic.core.repository.SCREEN_DATA
 
+/**
+ * The view model of the shared map screens. Its node, packet and radio-configuration data come through the screens'
+ * sources ([SCREEN_DATA]): the real ones, or the demo's fictitious ones while demo mode is on, so the map can be shown
+ * in a demo without mixing in real data, and sends nothing then.
+ */
 @KoinViewModel
 class SharedMapViewModel(
     mapPrefs: MapPrefs,
-    nodeRepository: NodeRepository,
-    packetRepository: PacketRepository,
+    @Named(SCREEN_DATA) nodeRepository: NodeRepository,
+    @Named(SCREEN_DATA) packetRepository: PacketRepository,
     radioController: RadioController,
-    radioConfigRepository: RadioConfigRepository,
+    @Named(SCREEN_DATA) radioConfigRepository: RadioConfigRepository,
     notificationPrefs: NotificationPrefs,
     localeUnitsProvider: LocaleUnitsProvider,
     networkRepository: NetworkRepository,
+    demoMode: DemoMode,
 ) : BaseMapViewModel(
     mapPrefs,
     nodeRepository,
@@ -45,4 +54,5 @@ class SharedMapViewModel(
     notificationPrefs,
     localeUnitsProvider,
     networkRepository,
+    demoMode,
 )

@@ -17,6 +17,7 @@
 package org.meshtastic.feature.map
 
 import androidx.lifecycle.ViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
@@ -34,6 +35,7 @@ import org.meshtastic.core.model.TracerouteOverlay
 import org.meshtastic.core.model.geofence.activeWaypointPackets
 import org.meshtastic.core.model.isFromLocal
 import org.meshtastic.core.network.repository.NetworkRepository
+import org.meshtastic.core.repository.DemoMode
 import org.meshtastic.core.repository.MapFilterPrefs
 import org.meshtastic.core.repository.MapPrefs
 import org.meshtastic.core.repository.NodeRepository
@@ -70,9 +72,14 @@ open class BaseMapViewModel(
     private val notificationPrefs: NotificationPrefs,
     localeUnitsProvider: LocaleUnitsProvider,
     networkRepository: NetworkRepository,
+    /** Demo mode, for the map screens available in it: nothing is sent while it is on. Null where it never applies. */
+    private val demoMode: DemoMode? = null,
 ) : ViewModel() {
 
     val myNodeInfo = nodeRepository.myNodeInfo
+
+    /** Whether the map shows the demo's fictitious data; always false where demo mode does not apply. */
+    val isDemoActive: StateFlow<Boolean> = demoMode?.isActive ?: MutableStateFlow(false)
 
     /**
      * Whether the device currently has network connectivity, for the offline-basemap banner and (on the Google flavor)
@@ -205,6 +212,8 @@ open class BaseMapViewModel(
     }
 
     private fun sendDataPacket(p: DataPacket) {
+        // A demo sends nothing over the radio: the screens hide every way to send, and this holds if one is missed.
+        if (isDemoActive.value) return
         safeLaunch(context = ioDispatcher, tag = "sendDataPacket") { radioController.sendMessage(p) }
     }
 
