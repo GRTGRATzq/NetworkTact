@@ -1,7 +1,7 @@
 # NetworkTact
 
 NetworkTact est un fork de [Meshtastic-Android](https://github.com/meshtastic/Meshtastic-Android),
-modifié à partir du 26 septembre 2026 (dernière mise à jour de ce fichier : 6 octobre 2026, branche `feat/fait-observe-carte`).
+modifié à partir du 26 septembre 2026 (dernière mise à jour de ce fichier : 8 octobre 2026, branche `feat/carte-hors-ligne`).
 
 - **Licence** : GPL-3.0-or-later (voir le fichier `LICENSE`, inchangé).
 - **Origine** : code de Meshtastic-Android, © Meshtastic LLC. Les mentions de copyright de
@@ -275,6 +275,48 @@ sont mesurées sur la palette fixe.
   d'écran est celui de la démo, testé dans `ScreenFacadesTest`), l'encart et la confirmation
   le disent ; « Voir sur la carte » répond « Carte indisponible en mode démo ».
 - CI : les tests de `feature:map` tournent dans `fork-apk`, dans une étape à part.
+
+### 13. Carte hors ligne, lot 1 (`feat/carte-hors-ligne`)
+
+Variante fdroid (carte MapLibre). Rien n'est émis par radio et rien ne passe par Internet.
+
+- **Cartes sur le téléphone** : menu des fonds de carte → « Cartes sur le téléphone ». Import
+  d'un fichier `.pmtiles` par le sélecteur de fichiers Android, liste des cartes installées
+  (nom, taille, zooms) et suppression après confirmation. La procédure pour produire un
+  fichier sur un Mac (une ville avec `--bbox`, un département avec `--region`) est dans
+  `CARTE-HORS-LIGNE.md`.
+- **Import contrôlé** (`OfflineMapLibrary`, `androidApp/src/fdroid/.../map/offline/`) :
+  en-tête PMTiles v3 vérifié avant toute écriture (refus d'un fichier qui n'en est pas un,
+  d'une autre version ou d'une archive raster), espace libre vérifié (taille du fichier plus
+  50 Mo ou 5 %), copie avec progression et annulation dans `pmtiles-import/`, longueur vérifiée,
+  puis déplacement dans `pmtiles/`. Un échec ou une annulation ne laisse aucun fichier ; chaque
+  message le précise.
+- **Affichage sans réseau** : la carte est un fond vectoriel local (`Basemap.LocalVector`) dont
+  le style pointe vers le téléphone : `pmtiles://file://…` pour les tuiles, `file://…` pour les
+  polices et les sprites, installés depuis l'APK au premier usage, seulement si une carte existe.
+  Style Protomaps clair ou sombre selon le thème choisi dans l'application (même test que
+  `TactColors`), libellés en français. Elle apparaît dans le menu de toutes les cartes MapLibre
+  de l'application (carte principale, fiche d'un nœud, trace, traceroute, découverte). Au
+  démarrage, la carte attend la liste des cartes locales avant de choisir son fond, pour ne pas
+  basculer d'un fond intégré au fond mémorisé.
+- **Embarqué dans l'APK** (`androidApp/src/fdroid/assets/offline-map/`, régénéré par
+  `scripts/offline-map-assets.mjs`) : styles Protomaps Basemaps 5.7.2 (BSD-3-Clause), polices
+  Noto Sans Regular, Medium et Italic en glyphes, plages latines, grecques et cyrilliques
+  (SIL OFL 1.1, `OFL.txt` joint), sprites Protomaps v4 (MIT). Environ 2,6 Mo, 1,4 Mo compressés.
+- **Mentions** : « © contributeurs OpenStreetMap · Protomaps » sur une carte `.pmtiles` ; pour un
+  fichier MBTiles importé, la mention de sa table `metadata` (champ `attribution`, lu à
+  l'import), ou à défaut « © contributeurs OpenStreetMap ». Elles s'affichent dans le bouton
+  d'attribution de MapLibre (ouvert à l'affichage de la carte). Écran des licences : données
+  OpenStreetMap (ODbL 1.0), style et sprites Protomaps, polices Noto Sans
+  (`config/aboutlibraries/libraries/`, textes ODbL et OFL dans `config/aboutlibraries/licenses/`).
+- **Sans carte installée**, la carte est inchangée : seule l'entrée « Cartes sur le
+  téléphone » s'ajoute au menu, et aucun fichier n'est écrit.
+- **Tests** (`feature/map/.../offline/`, commonTest) : lecture et refus d'en-têtes PMTiles,
+  espace libre, nom de la carte, mention par défaut, style entièrement local, glyphes vides ;
+  relecture d'une source MBTiles enregistrée avant le champ `attribution`.
+- **Pas encore fait** (lot 2) : carte locale par défaut, marqueur du point « Voir sur la
+  carte », carte en mode démo (elle reste « Indisponible en mode démo »). La variante google
+  n'a pas l'import `.pmtiles`.
 
 ## Marques
 
