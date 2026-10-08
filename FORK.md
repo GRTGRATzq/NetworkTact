@@ -140,7 +140,8 @@ quitter l'écran de l'application y met fin. La version bureau n'a pas d'interru
 | Vue PC (l'onglet Nœuds s'ouvre dessus), Équipes | données fictives |
 | Réglages du téléphone | fictifs. Réglages directs grisés « Indisponible en mode démo », sauf Terrain/PC (gardé en mémoire, le vrai choix est rétabli à la sortie) |
 | À propos, Remerciements, Aide | inchangés |
-| Liste des nœuds, fiche d'un nœud, carte, connexions, configuration radio et modules, administration à distance, et tout autre écran | « Indisponible en mode démo » |
+| Carte (variante fdroid, depuis la section 14) | nœuds et points fictifs ; point GPS du téléphone, création et partage de points de repère, Site Planner masqués |
+| Liste des nœuds, fiche d'un nœud, carte de la variante google, connexions, configuration radio et modules, administration à distance, et tout autre écran | « Indisponible en mode démo » |
 
 La liste des écrans permis est fermée (`core/demo/.../DemoRoutes.kt`) : un écran ajouté plus
 tard est indisponible tant qu'il n'y est pas inscrit.
@@ -314,9 +315,40 @@ Variante fdroid (carte MapLibre). Rien n'est émis par radio et rien ne passe pa
 - **Tests** (`feature/map/.../offline/`, commonTest) : lecture et refus d'en-têtes PMTiles,
   espace libre, nom de la carte, mention par défaut, style entièrement local, glyphes vides ;
   relecture d'une source MBTiles enregistrée avant le champ `attribution`.
-- **Pas encore fait** (lot 2) : carte locale par défaut, marqueur du point « Voir sur la
-  carte », carte en mode démo (elle reste « Indisponible en mode démo »). La variante google
-  n'a pas l'import `.pmtiles`.
+- La variante google n'a pas l'import `.pmtiles`. Le lot 2 est décrit à la section 14.
+
+### 14. Carte hors ligne, lot 2 (`feat/carte-hors-ligne`)
+
+Carte MapLibre (variante fdroid ; bureau pour ce qui est commun). Tout vaut aussi pour un
+fichier MBTiles et sans carte locale. Rien n'est émis par radio.
+
+- **Carte locale par défaut** : une carte importée (`.pmtiles` ou `.mbtiles`) devient le fond
+  choisi ; un fond choisi ensuite est respecté. Si le fond mémorisé a été supprimé, la carte
+  prend une autre carte locale, sinon le fond intégré (`resolveBasemap`, testé). La carte
+  attend que ses sources soient lues sur le disque avant de choisir son fond (auparavant un
+  fichier MBTiles mémorisé s'ouvrait sur un fond intégré puis basculait).
+- **Polices locales pour un fichier MBTiles** : sur une archive stockée sur le téléphone, les
+  libellés (points de repère) utilisent les polices de l'APK au lieu de celles d'OpenFreeMap.
+- **Marqueur « Voir sur la carte »** : le point reste marqué (rond à la couleur principale du
+  thème, sans texte), avec un bandeau « Position relevée 14:32 · ALPHA-1 », « Position
+  ANCIENNE relevée 14:07 · … », « Fait observé 14:05 · … » ou « Point d'un message · heure
+  de relevé inconnue · …, reçu … », et ✕ pour le retirer (`MapFocusRequests.marked`,
+  `MessagePoint` dans `core/model/.../geo`, testé).
+- **Puces des nœuds** (règle de la vue PC, `NodeFreshness`) : étiquette inversée
+  « ANCIENNE » au-delà de 10 min (ou reçue depuis plus de 10 min sans heure de relevé),
+  « HEURE INCOHÉRENTE » si l'heure est en avance ; toujours visible, même quand les puces se
+  chevauchent. L'heure est donnée au toucher, dans un encart : ligne de position de la vue
+  PC dans son style, « Relevée à 14:32 », « Relevée le <date> » si ce n'est pas aujourd'hui,
+  ou « Heure de relevé inconnue », et « Détails » vers la fiche du nœud. Aussi sur la
+  mini-carte d'un nœud et la carte de traceroute. Tests : `NodePositionTimeTest`.
+- **Mode démo** : la carte est permise en variante fdroid (`DemoRoutes`, constante
+  `MAP_AVAILABLE_IN_DEMO`), la variante google la garde « Indisponible en mode démo ».
+  `SharedMapViewModel` lit nœuds, points et configuration par les façades
+  `@Named(SCREEN_DATA)`. En démo : nœuds fictifs avec heure de relevé (CHARLIE-3 sans heure),
+  point GPS du téléphone et suivi masqués, création, modification et suppression « pour tout
+  le monde » des points de repère masquées, Site Planner masqué ; `sendWaypoint` n'envoie
+  rien (testé). « Voir sur la carte » ouvre la carte aussi en démo.
+- CI : `:feature:map-maplibre:allTests` dans `fork-apk`, en dernière étape.
 
 ## Marques
 
