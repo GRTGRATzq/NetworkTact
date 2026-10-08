@@ -1,0 +1,16 @@
+{
+  "uniqueId": "com.protomaps:basemaps",
+  "artifactVersion": "5.7.2",
+  "name": "Protomaps Basemaps (style)",
+  "description": "Light and dark map styles used to draw offline maps (F-Droid flavor), generated with @protomaps/basemaps.",
+  "website": "https://github.com/protomaps/basemaps",
+  "developers": [
+    {
+      "name": "Protomaps",
+      "organisationUrl": "https://protomaps.com"
+    }
+  ],
+  "licenses": [
+    "BSD-3-Clause"
+  ]
+}

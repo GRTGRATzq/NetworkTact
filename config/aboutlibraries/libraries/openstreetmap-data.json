@@ -1,0 +1,16 @@
+{
+  "uniqueId": "org.openstreetmap:data",
+  "artifactVersion": "",
+  "name": "OpenStreetMap data",
+  "description": "Map data of the offline maps (.pmtiles) and of most imported MBTiles files. © OpenStreetMap contributors, available under the Open Database License.",
+  "website": "https://www.openstreetmap.org/copyright",
+  "developers": [
+    {
+      "name": "OpenStreetMap contributors",
+      "organisationUrl": "https://www.openstreetmap.org/copyright"
+    }
+  ],
+  "licenses": [
+    "ODbL-1.0"
+  ]
+}

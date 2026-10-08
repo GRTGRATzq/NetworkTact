@@ -1,0 +1,16 @@
+{
+  "uniqueId": "com.protomaps:basemaps-assets-sprites",
+  "artifactVersion": "v4",
+  "name": "Protomaps sprites",
+  "description": "Map icons of the offline map styles (F-Droid flavor), derived from tangrams/icons.",
+  "website": "https://github.com/protomaps/basemaps-assets",
+  "developers": [
+    {
+      "name": "Protomaps",
+      "organisationUrl": "https://protomaps.com"
+    }
+  ],
+  "licenses": [
+    "MIT"
+  ]
+}
