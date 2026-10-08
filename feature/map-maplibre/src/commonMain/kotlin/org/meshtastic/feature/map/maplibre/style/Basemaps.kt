@@ -33,6 +33,15 @@ sealed interface Basemap {
     /** Menu label. Every one is a proper noun, so these are deliberately not translated. */
     val label: String
 
+    /** Whether the tiles are a file stored on the device (an offline map or an MBTiles archive), not a server. */
+    val isLocal: Boolean
+        get() =
+            when (this) {
+                is Vector -> false
+                is Raster -> spec.tiles.any { it.startsWith(LOCAL_ARCHIVE_SCHEME) }
+                is LocalVector -> true
+            }
+
     /** Vector style served as a MapLibre style document. */
     data class Vector(override val id: String, override val label: String, val styleUri: String) : Basemap
 
@@ -113,6 +122,9 @@ private val RasterBaseStyle: BaseStyle =
         putJsonObject("sources") {}
         putJsonArray("layers") {}
     }
+
+/** MapLibre's scheme for a tile archive opened from a path on the device. */
+internal const val LOCAL_ARCHIVE_SCHEME = "mbtiles://"
 
 /** The MapLibre/Mapbox style specification version every style document here declares. */
 private const val STYLE_SPEC_VERSION = 8

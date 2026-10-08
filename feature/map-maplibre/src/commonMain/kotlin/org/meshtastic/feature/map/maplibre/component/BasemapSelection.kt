@@ -104,9 +104,7 @@ internal fun rememberBasemapSelection(customs: List<Basemap>?): BasemapSelection
     // could open on a built-in style and swap to the stored choice a moment later, the swap described above.
     if (loadedStyle == null || loadedCustom == null || customs == null) return null
 
-    val current =
-        customs.firstOrNull { it.id == loadedCustom.value }
-            ?: Basemaps.all.getOrElse(loadedStyle.value) { Basemaps.default }
+    val current = resolveBasemap(loadedCustom.value, loadedStyle.value, customs)
 
     return BasemapSelection(
         current = current,

@@ -31,6 +31,7 @@ import kotlinx.coroutines.sync.withLock
 import org.koin.core.annotation.Single
 import org.meshtastic.core.common.di.ApplicationCoroutineScope
 import org.meshtastic.core.common.util.safeCatching
+import org.meshtastic.core.repository.MapTileProviderPrefs
 import org.meshtastic.feature.map.maplibre.component.OfflineMapFile
 import org.meshtastic.feature.map.maplibre.component.OfflineMapFiles
 import org.meshtastic.feature.map.maplibre.component.OfflineMapImport
@@ -58,7 +59,11 @@ data class InstalledOfflineMap(val file: OfflineMapFile, val path: String)
  * the APK ([OfflineMapAssets]).
  */
 @Single
-class OfflineMapLibrary(private val context: Context, private val scope: ApplicationCoroutineScope) : OfflineMapFiles {
+class OfflineMapLibrary(
+    private val context: Context,
+    private val scope: ApplicationCoroutineScope,
+    private val tilePrefs: MapTileProviderPrefs,
+) : OfflineMapFiles {
 
     private val mapsDir = File(context.filesDir, MAPS_DIR)
     private val importDir = File(context.filesDir, IMPORT_DIR)
@@ -150,6 +155,8 @@ class OfflineMapLibrary(private val context: Context, private val scope: Applica
                 throw PmTilesCopyException(OfflineMapImportFailure.CopyFailed)
             }
             _importStatus.value = OfflineMapImport.Done(name)
+            // A map just imported is the one wanted: it becomes the basemap until the user picks another.
+            tilePrefs.setSelectedCustomTileProviderId(basemapId(id))
         } catch (e: PmTilesCopyException) {
             _importStatus.value = OfflineMapImport.Failed(e.reason, e.neededBytes, e.freeBytes)
         } catch (e: FileNotFoundException) {
@@ -231,10 +238,13 @@ class OfflineMapLibrary(private val context: Context, private val scope: Applica
         }
     }
 
-    private companion object {
-        const val TAG = "OfflineMapLibrary"
-        const val MAPS_DIR = "pmtiles"
-        const val IMPORT_DIR = "pmtiles-import"
-        const val NAME_SUFFIX = ".name"
+    companion object {
+        /** The basemap id of the stored map [mapId], kept apart from the custom tile sources' ids. */
+        fun basemapId(mapId: String): String = "pmtiles:$mapId"
+
+        private const val TAG = "OfflineMapLibrary"
+        private const val MAPS_DIR = "pmtiles"
+        private const val IMPORT_DIR = "pmtiles-import"
+        private const val NAME_SUFFIX = ".name"
     }
 }

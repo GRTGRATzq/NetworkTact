@@ -37,9 +37,6 @@ import org.meshtastic.feature.map.maplibre.style.Basemap
 import org.meshtastic.feature.map.offline.offlineMapName
 import org.meshtastic.feature.map.offline.offlineMapStyle
 
-/** Basemap ids of offline maps, kept apart from the custom tile sources' ids. */
-private const val OFFLINE_BASEMAP_PREFIX = "pmtiles:"
-
 /**
  * The offline maps stored on this phone, as basemaps.
  *
@@ -62,7 +59,7 @@ fun offlineMapBasemaps(): List<Basemap>? {
             val template = installed.styleTemplates.getValue(flavor)
             maps.map { map ->
                 Basemap.LocalVector(
-                    id = OFFLINE_BASEMAP_PREFIX + map.file.id,
+                    id = OfflineMapLibrary.basemapId(map.file.id),
                     label = map.file.name,
                     styleJson =
                     offlineMapStyle(

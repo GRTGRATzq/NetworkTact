@@ -32,11 +32,13 @@ import org.koin.compose.koinInject
 import org.meshtastic.app.map.offline.offlineMapBasemaps
 import org.meshtastic.core.common.util.ioDispatcher
 import org.meshtastic.core.common.util.safeCatching
+import org.meshtastic.core.repository.MapTileProviderPrefs
 import org.meshtastic.feature.map.layers.getFileName
 import org.meshtastic.feature.map.maplibre.component.customRasterBasemaps
 import org.meshtastic.feature.map.maplibre.style.Basemap
 import org.meshtastic.feature.map.tiles.CustomTileProviderConfig
 import org.meshtastic.feature.map.tiles.CustomTileProviderRepository
+import org.meshtastic.feature.map.tiles.CustomTileProviderSaveResult
 import java.io.File
 import kotlin.uuid.Uuid
 
@@ -65,6 +67,7 @@ internal fun androidTileArchivePath(localUri: String): String? {
 @Composable
 internal fun rememberMbTilesImport(): () -> Unit {
     val repository: CustomTileProviderRepository = koinInject()
+    val tilePrefs: MapTileProviderPrefs = koinInject()
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
 
@@ -77,14 +80,17 @@ internal fun rememberMbTilesImport(): () -> Unit {
                     val stored = importMbTiles(context, uri, "mbtiles_${Uuid.random()}.mbtiles")
                     if (stored != null) {
                         val attribution = withContext(ioDispatcher) { readMbTilesAttribution(stored) }
-                        repository.addCustomTileProvider(
+                        val config =
                             CustomTileProviderConfig(
                                 name = name.substringBeforeLast('.'),
                                 urlTemplate = "",
                                 localUri = Uri.fromFile(File(stored)).toString(),
                                 attribution = attribution,
-                            ),
-                        )
+                            )
+                        // A map just imported is the one wanted: it becomes the basemap until the user picks another.
+                        if (repository.addCustomTileProvider(config) == CustomTileProviderSaveResult.SAVED) {
+                            tilePrefs.setSelectedCustomTileProviderId(config.id)
+                        }
                     }
                 }
             }
@@ -107,15 +113,16 @@ internal fun rememberMbTilesImport(): () -> Unit {
  * [customRasterBasemaps] is common and handles URL templates on every platform; this is the one seam Android adds.
  */
 @Composable
-internal fun androidCustomRasterBasemaps(): List<Basemap.Raster> =
+internal fun androidCustomRasterBasemaps(): List<Basemap.Raster>? =
     customRasterBasemaps(resolveLocalArchive = ::androidTileArchivePath)
 
 /**
  * Every basemap of the user's own on Android: custom tile sources, MBTiles archives and offline .pmtiles maps. Null
- * until the offline maps have been listed.
+ * until both stores have been read.
  */
 @Composable
 internal fun androidCustomBasemaps(): List<Basemap>? {
     val rasters = androidCustomRasterBasemaps()
-    return offlineMapBasemaps()?.let { offline -> rasters + offline }
+    val offline = offlineMapBasemaps()
+    return if (rasters == null || offline == null) null else rasters + offline
 }
