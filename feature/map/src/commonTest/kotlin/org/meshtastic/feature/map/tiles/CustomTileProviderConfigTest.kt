@@ -16,8 +16,11 @@
  */
 package org.meshtastic.feature.map.tiles
 
+import kotlinx.serialization.json.Json
 import kotlin.test.Test
+import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class CustomTileProviderConfigTest {
@@ -62,5 +65,26 @@ class CustomTileProviderConfigTest {
         assertFalse(
             "http://tiles.example.org/{z}/{x}/{y}.png?token={apiKey}".isValidTileUrlTemplate(requireHttps = false),
         )
+    }
+
+    @Test
+    fun sourceStoredBeforeAttributionReadsWithNone() {
+        val stored = """{"id":"a1","name":"Camp","urlTemplate":"","localUri":"file:///data/mbtiles/a1.mbtiles"}"""
+        val config = Json.decodeFromString(CustomTileProviderConfig.serializer(), stored)
+        assertEquals("Camp", config.name)
+        assertNull(config.attribution)
+    }
+
+    @Test
+    fun archiveAttributionSurvivesStorage() {
+        val config =
+            CustomTileProviderConfig(
+                name = "Camp",
+                urlTemplate = "",
+                localUri = "file:///a.mbtiles",
+                attribution = "© IGN",
+            )
+        val json = Json.encodeToString(CustomTileProviderConfig.serializer(), config)
+        assertEquals("© IGN", Json.decodeFromString(CustomTileProviderConfig.serializer(), json).attribution)
     }
 }

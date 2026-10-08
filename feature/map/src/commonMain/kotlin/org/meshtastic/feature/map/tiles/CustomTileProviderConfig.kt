@@ -25,6 +25,8 @@ data class CustomTileProviderConfig(
     val name: String,
     val urlTemplate: String,
     val localUri: String? = null,
+    /** The credit a local archive's own metadata declares (MBTiles `metadata.attribution`); null if none. */
+    val attribution: String? = null,
 ) {
     val isLocal: Boolean
         get() = localUri != null

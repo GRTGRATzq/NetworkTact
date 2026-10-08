@@ -17,10 +17,12 @@
 package org.meshtastic.app.map
 
 import android.content.Context
+import android.database.sqlite.SQLiteDatabase
 import android.net.Uri
 import co.touchlab.kermit.Logger
 import kotlinx.coroutines.withContext
 import org.meshtastic.core.common.util.ioDispatcher
+import org.meshtastic.core.common.util.safeCatching
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -62,3 +64,17 @@ internal suspend fun importMbTiles(context: Context, uri: Uri, fileName: String)
         null
     }
 }
+
+/**
+ * The credit an MBTiles archive declares in its `metadata` table (`attribution` row), or null if it declares none or
+ * cannot be read. Blocking: call off the main thread.
+ */
+internal fun readMbTilesAttribution(path: String): String? = safeCatching {
+    SQLiteDatabase.openDatabase(path, null, SQLiteDatabase.OPEN_READONLY).use { database ->
+        database.rawQuery("SELECT value FROM metadata WHERE name = 'attribution'", null).use { cursor ->
+            if (cursor.moveToFirst()) cursor.getString(0) else null
+        }
+    }
+}
+    .onFailure { Logger.withTag(TAG).w(it) { "Could not read the MBTiles attribution" } }
+    .getOrNull()

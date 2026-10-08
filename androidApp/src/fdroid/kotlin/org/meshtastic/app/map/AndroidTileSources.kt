@@ -27,8 +27,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.core.net.toFile
 import co.touchlab.kermit.Logger
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.koin.compose.koinInject
 import org.meshtastic.app.map.offline.offlineMapBasemaps
+import org.meshtastic.core.common.util.ioDispatcher
 import org.meshtastic.core.common.util.safeCatching
 import org.meshtastic.feature.map.layers.getFileName
 import org.meshtastic.feature.map.maplibre.component.customRasterBasemaps
@@ -74,11 +76,13 @@ internal fun rememberMbTilesImport(): () -> Unit {
                     val name = uri.getFileName(context)
                     val stored = importMbTiles(context, uri, "mbtiles_${Uuid.random()}.mbtiles")
                     if (stored != null) {
+                        val attribution = withContext(ioDispatcher) { readMbTilesAttribution(stored) }
                         repository.addCustomTileProvider(
                             CustomTileProviderConfig(
                                 name = name.substringBeforeLast('.'),
                                 urlTemplate = "",
                                 localUri = Uri.fromFile(File(stored)).toString(),
+                                attribution = attribution,
                             ),
                         )
                     }

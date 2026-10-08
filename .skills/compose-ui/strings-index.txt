@@ -987,6 +987,7 @@ manage_map_layers
 manual_position_request
 ### MAP ###
 map
+map_attribution_osm
 map_attribution_osm_protomaps
 map_cache_info
 map_cache_manager
