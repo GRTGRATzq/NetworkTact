@@ -140,10 +140,14 @@ fun NodeLayers(
     // composition, and resolve the handle at click time — see the comment at the query itself.
     val mapState = checkNotNull(LocalMapState.current)
 
+    // Old positions carry a tag on their chip; recomputed on a timer, the feature set rebuilds only when one changes.
+    val alerts = rememberPositionAlerts(nodes)
+
     val nodeSource =
         rememberFeatureSource(
             nodes,
             myNodeNum,
+            alerts,
             options =
             GeoJsonOptions(
                 cluster = true,
@@ -152,7 +156,7 @@ fun NodeLayers(
                 clusterMinPoints = CLUSTER_MIN_POINTS,
             ),
         ) {
-            nodesToFeatureCollection(nodes, myNodeNum)
+            nodesToFeatureCollection(nodes, myNodeNum, alerts)
         }
 
     CircleLayer(
@@ -238,6 +242,7 @@ fun NodeLayers(
         nodes = chipNodes,
         onNodeClick = onNodeClick,
         chipFilter = !feature.has("point_count"),
+        alerts = alerts,
     )
 }
 

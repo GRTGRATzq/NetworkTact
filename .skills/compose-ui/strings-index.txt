@@ -994,6 +994,8 @@ map_cache_manager
 map_cache_megabytes
 map_cache_size
 map_cache_tiles
+map_chip_inconsistent
+map_chip_old
 map_clear_tiles
 map_download_complete
 map_download_errors
@@ -1012,6 +1014,9 @@ map_filter_show_ignored
 map_filter_title
 map_layer_formats
 map_layer_opacity
+map_node_fix_at
+map_node_fix_on
+map_node_fix_unknown
 map_node_popup_details
 map_offline_banner
 map_offline_download_failed_build

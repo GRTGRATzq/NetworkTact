@@ -18,6 +18,8 @@ package org.meshtastic.feature.map.maplibre.layers
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
@@ -35,15 +37,18 @@ import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.delay
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.int
 import kotlinx.serialization.json.jsonPrimitive
+import org.jetbrains.compose.resources.stringResource
 import org.maplibre.compose.expressions.ast.Expression
 import org.maplibre.compose.expressions.dsl.asBoolean
 import org.maplibre.compose.expressions.dsl.asString
@@ -59,15 +64,22 @@ import org.maplibre.compose.interaction.ClickResult
 import org.maplibre.compose.layers.FeaturesClickHandler
 import org.maplibre.compose.layers.SymbolLayer
 import org.maplibre.compose.sources.VectorSource
+import org.meshtastic.core.common.util.nowSeconds
 import org.meshtastic.core.model.Node
+import org.meshtastic.core.model.freshness.FreshnessThresholds
+import org.meshtastic.core.resources.Res
+import org.meshtastic.core.resources.map_chip_inconsistent
+import org.meshtastic.core.resources.map_chip_old
 import org.meshtastic.core.ui.icon.MeshtasticIcons
 import org.meshtastic.core.ui.icon.Person
 import org.meshtastic.core.ui.icon.Temperature
 import org.meshtastic.feature.map.MapNodePolicy
+import org.meshtastic.feature.map.maplibre.geojson.ChipAlert
 import org.meshtastic.feature.map.maplibre.geojson.MapChipGlyph
 import org.meshtastic.feature.map.maplibre.geojson.MapChipKey
 import org.meshtastic.feature.map.maplibre.geojson.NodeFeatureKeys
 import org.meshtastic.feature.map.maplibre.geojson.featureValue
+import org.meshtastic.feature.map.maplibre.geojson.positionAlerts
 import org.meshtastic.feature.map.maplibre.geojson.toNodeChip
 
 /**
@@ -98,12 +110,13 @@ internal fun NodeChipLayer(
     nodes: List<Node>,
     onNodeClick: ((Int) -> Unit)? = null,
     chipFilter: Expression<BooleanValue>? = null,
+    alerts: Map<Int, ChipAlert> = emptyMap(),
 ) = MapChipLayer(
     id = id,
     source = source,
     // Already ordered by how likely each node is to be drawn on its own; MapChipLayer keeps as many as it can
     // afford.
-    chips = remember(nodes) { nodes.map { it.toNodeChip() } },
+    chips = remember(nodes, alerts) { nodes.map { it.toNodeChip(alerts[it.num]) } },
     filter = chipFilter,
     onClick =
     onNodeClick?.let { click ->
@@ -121,6 +134,23 @@ internal fun NodeChipLayer(
         }
     },
 )
+
+/**
+ * The alert tag of each node's chip ([positionAlerts]), re-read every [FreshnessThresholds.refreshInterval] as the
+ * command post view is, so a position turns old on the map while it is being watched. An unchanged result is an equal
+ * map, so nothing downstream rebuilds on a tick that changes nothing.
+ */
+@Composable
+internal fun rememberPositionAlerts(nodes: List<Node>): Map<Int, ChipAlert> {
+    val now by
+        produceState(nowSeconds) {
+            while (true) {
+                delay(FreshnessThresholds.Default.refreshInterval)
+                value = nowSeconds
+            }
+        }
+    return remember(nodes, now) { positionAlerts(nodes, now) }
+}
 
 /**
  * How far up the stack a node's chip is drawn, mirroring the Google flavor's `NodeClusterItem.zIndex`: this node and
@@ -196,6 +226,17 @@ private fun rememberChipImages(chips: List<MapChipKey>): Map<String, ChipImage> 
     val measurer = rememberTextMeasurer()
     val density = LocalDensity.current
     val textStyle = MaterialTheme.typography.labelLarge
+    val tag =
+        ChipTagStyle(
+            textStyle =
+            MaterialTheme.typography.labelSmall.copy(
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.inverseOnSurface,
+            ),
+            background = MaterialTheme.colorScheme.inverseSurface,
+            oldText = stringResource(Res.string.map_chip_old),
+            inconsistentText = stringResource(Res.string.map_chip_inconsistent),
+        )
 
     // Vector painters have to be built in composition, so they are resolved here and handed to the rasterizer rather
     // than looked up inside it.
@@ -205,8 +246,8 @@ private fun rememberChipImages(chips: List<MapChipKey>): Map<String, ChipImage> 
             MapChipGlyph.SOCIAL to rememberVectorPainter(MeshtasticIcons.Person),
         )
 
-    return remember(chips, measurer, density, textStyle, glyphs) {
-        chips.associate { chip -> chip.featureValue() to chip.rasterize(measurer, textStyle, density, glyphs) }
+    return remember(chips, measurer, density, textStyle, glyphs, tag) {
+        chips.associate { chip -> chip.featureValue() to chip.rasterize(measurer, textStyle, density, glyphs, tag) }
     }
 }
 
@@ -215,6 +256,7 @@ private fun MapChipKey.rasterize(
     textStyle: TextStyle,
     density: Density,
     glyphs: Map<MapChipGlyph, Painter>,
+    tag: ChipTagStyle,
 ): ChipImage {
     val style =
         textStyle.copy(textDecoration = TextDecoration.LineThrough.takeIf { struckThrough }, color = Color(foreground))
@@ -228,6 +270,13 @@ private fun MapChipKey.rasterize(
         with(density) {
             layout?.let { maxOf(MIN_WIDTH_DP.dp, it.size.width.toDp() + HORIZONTAL_PADDING_DP.dp * 2) } ?: HEIGHT_DP.dp
         }
+    val tagLayout =
+        alert?.let {
+            val text = if (it == ChipAlert.OLD) tag.oldText else tag.inconsistentText
+            measurer.measure(AnnotatedString(text), tag.textStyle, density = density)
+        }
+    val tagWidth =
+        with(density) { tagLayout?.let { it.size.width.toDp() + TAG_PADDING_DP.dp * 2 + TAG_INSET_DP.dp } ?: 0.dp }
     val cornerRadiusPx = with(density) { CORNER_RADIUS_DP.dp.toPx() }
     val borderPx = if (outlined) with(density) { BORDER_DP.dp.toPx() } else 0f
 
@@ -240,8 +289,10 @@ private fun MapChipKey.rasterize(
             borderPx = borderPx,
             glyphPainter = glyph?.let(glyphs::get),
             glyphSizePx = with(density) { GLYPH_DP.dp.toPx() },
+            tag = tagLayout?.let { ChipTag(it, tag.background, with(density) { tagWidth.toPx() }) },
+            tagInsetPx = with(density) { TAG_INSET_DP.dp.toPx() },
         ),
-        size = DpSize(width, HEIGHT_DP.dp),
+        size = DpSize(width + tagWidth, HEIGHT_DP.dp),
     )
 }
 
@@ -253,6 +304,8 @@ private class ChipPainter(
     private val borderPx: Float,
     private val glyphPainter: Painter?,
     private val glyphSizePx: Float,
+    private val tag: ChipTag?,
+    private val tagInsetPx: Float,
 ) : Painter() {
     // Never read: the caller always names an explicit size, which is what makes the chip's width follow its text.
     override val intrinsicSize: Size = Size.Unspecified
@@ -275,16 +328,48 @@ private class ChipPainter(
                 with(glyphPainter) { draw(glyph, colorFilter = ColorFilter.tint(Color(chip.foreground))) }
             }
         } else if (layout != null) {
+            // The name keeps the part of the chip left of the tag, centred in it as on a chip without one.
+            val nameWidth = size.width - (tag?.widthPx ?: 0f)
             drawText(
                 textLayoutResult = layout,
-                topLeft = Offset(
-                    x = (size.width - layout.size.width) / 2f,
-                    y = (size.height - layout.size.height) / 2f,
-                ),
+                topLeft = Offset(x = (nameWidth - layout.size.width) / 2f, y = (size.height - layout.size.height) / 2f),
             )
         }
+        tag?.let { drawTag(it) }
+    }
+
+    /** The inverted tag at the end of the chip, inset so the chip's own colour frames it. */
+    private fun DrawScope.drawTag(tag: ChipTag) {
+        val left = size.width - tag.widthPx
+        val width = tag.widthPx - tagInsetPx
+        val height = size.height - tagInsetPx * 2
+        drawRoundRect(
+            color = tag.background,
+            topLeft = Offset(left, tagInsetPx),
+            size = Size(width, height),
+            cornerRadius = CornerRadius(cornerRadiusPx - tagInsetPx),
+        )
+        drawText(
+            textLayoutResult = tag.layout,
+            topLeft =
+            Offset(
+                x = left + (width - tag.layout.size.width) / 2f,
+                y = tagInsetPx + (height - tag.layout.size.height) / 2f,
+            ),
+        )
     }
 }
+
+/** How an alert tag looks: the command post view's inverted pill, in the theme's inverse colours. */
+private data class ChipTagStyle(
+    val textStyle: TextStyle,
+    val background: Color,
+    val oldText: String,
+    val inconsistentText: String,
+)
+
+/** A measured tag and the width it takes at the end of the chip, inset included. */
+private class ChipTag(val layout: TextLayoutResult, val background: Color, val widthPx: Float)
 
 /** The image a node past [MAX_CHIP_IMAGES] resolves to: one transparent pixel, drawn once. */
 @Composable
@@ -304,6 +389,10 @@ private const val HORIZONTAL_PADDING_DP = 8
 
 /** Border width for an outlined chip, matching the discovery map's own 1dp. */
 private const val BORDER_DP = 1
+
+/** Room around the text of an alert tag, and between the tag and the chip's edge. */
+private const val TAG_PADDING_DP = 4
+private const val TAG_INSET_DP = 3
 
 /** Icon size inside a glyph chip, matching the discovery marker's own 16dp. */
 private const val GLYPH_DP = 16

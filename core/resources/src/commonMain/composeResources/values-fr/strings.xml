@@ -1590,4 +1590,9 @@
     <string name="map_point_other">Point d'un message · heure de relevé inconnue · %1$s, reçu %2$s</string>
     <string name="map_point_sender_phone">%1$s (téléphone)</string>
     <string name="map_point_hide">Masquer le point</string>
+    <string name="map_chip_old">ANCIENNE</string>
+    <string name="map_chip_inconsistent">HEURE INCOHÉRENTE</string>
+    <string name="map_node_fix_at">Relevée à %1$s</string>
+    <string name="map_node_fix_on">Relevée le %1$s</string>
+    <string name="map_node_fix_unknown">Heure de relevé inconnue</string>
 </resources>

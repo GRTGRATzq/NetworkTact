@@ -16,19 +16,10 @@
  */
 package org.meshtastic.feature.map.maplibre
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
@@ -43,7 +34,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
-import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import org.maplibre.compose.camera.CameraAnimation
@@ -58,11 +48,6 @@ import org.maplibre.compose.location.rememberLocationState
 import org.maplibre.compose.location.rememberSystemSettingsLauncher
 import org.maplibre.compose.map.MapState
 import org.maplibre.spatialk.geojson.Position
-import org.meshtastic.core.resources.Res
-import org.meshtastic.core.resources.map_point_hide
-import org.meshtastic.core.ui.icon.Close
-import org.meshtastic.core.ui.icon.Map
-import org.meshtastic.core.ui.icon.MeshtasticIcons
 import org.meshtastic.core.ui.util.KeepScreenOn
 import org.meshtastic.core.ui.util.MapFocusPoint
 import org.meshtastic.core.ui.util.MapFocusRequests
@@ -169,7 +154,6 @@ class MapLibreMapViewProvider(
         val screen = rememberMapScreenState(waypointId = waypointId, sitePlannerNodeNum = sitePlannerNodeNum)
         val focusRequests: MapFocusRequests = koinInject()
         val focus by focusRequests.pending.collectAsState()
-        val marked by focusRequests.marked.collectAsState()
         // Opened on a point: framing the mesh once positions arrive would move away from it.
         val openedOnPoint = remember { focus != null }
 
@@ -181,9 +165,8 @@ class MapLibreMapViewProvider(
                 waypoints = waypoints,
                 location = location,
                 customLayers = customLayers(),
-                navigateToNodeDetails = navigateToNodeDetails,
+                navigateToNodeDetails = screen::selectNode,
                 focused = openedOnPoint,
-                marked = marked,
             )
 
         FocusCamera(mapState, focus, focusRequests)
@@ -206,7 +189,7 @@ class MapLibreMapViewProvider(
 
             OfflineIndicator(viewModel)
 
-            MarkedPointBanner(point = marked, onClear = focusRequests::clearMark)
+            MapFootCards(focusRequests, screen.selectedNodeNum, navigateToNodeDetails) { screen.selectedNodeNum = null }
 
             MapToolbar(
                 basemaps = basemaps,
@@ -254,8 +237,8 @@ private fun rememberMapScreenMapState(
     customLayers: List<CustomLayer>,
     navigateToNodeDetails: (Int) -> Unit,
     focused: Boolean,
-    marked: MapFocusPoint?,
 ): MapState {
+    val marked by koinInject<MapFocusRequests>().marked.collectAsState()
     val viewModel: SharedMapViewModel = koinViewModel()
     return rememberMeshMapState(
         viewModel = viewModel,
@@ -295,47 +278,6 @@ private fun FocusCamera(mapState: MapState, focus: MapFocusPoint?, requests: Map
     }
 }
 
-/**
- * What the marked point is and when it was taken, or that its time is unknown, over the foot of the map, with a button
- * that removes the marker. Compose text rather than a map label, so it reads the same over any basemap, offline
- * included.
- */
-@Composable
-private fun BoxScope.MarkedPointBanner(point: MapFocusPoint?, onClear: () -> Unit) {
-    val label = point?.label ?: return
-    Surface(
-        modifier = Modifier.align(Alignment.BottomCenter).padding(start = 16.dp, end = 16.dp, bottom = 72.dp),
-        shape = RoundedCornerShape(12.dp),
-        color = MaterialTheme.colorScheme.surfaceContainerHigh,
-        contentColor = MaterialTheme.colorScheme.onSurface,
-        shadowElevation = 3.dp,
-    ) {
-        Row(
-            modifier = Modifier.padding(start = 12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            Icon(
-                imageVector = MeshtasticIcons.Map,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(18.dp),
-            )
-            Text(
-                text = label,
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.weight(1f, fill = false),
-            )
-            IconButton(onClick = onClear) {
-                Icon(
-                    imageVector = MeshtasticIcons.Close,
-                    contentDescription = stringResource(Res.string.map_point_hide),
-                )
-            }
-        }
-    }
-}
-
 /** The "you're offline" pill, top-start so it never collides with the toolbar's top-center controls. */
 @Composable
 private fun BoxScope.OfflineIndicator(viewModel: SharedMapViewModel) {
@@ -350,6 +292,13 @@ private fun BoxScope.OfflineIndicator(viewModel: SharedMapViewModel) {
 @Stable
 private class MapScreenState {
     var infoWaypointId by mutableStateOf<Int?>(null)
+    var selectedNodeNum by mutableStateOf<Int?>(null)
+
+    /** A tap on a chip first says how old that position is; the card it opens leads on to the node's page. */
+    fun selectNode(nodeNum: Int) {
+        selectedNodeNum = nodeNum
+    }
+
     var clusterMembers by mutableStateOf(emptyList<ClusterMember>())
     var plannerOpen by mutableStateOf(false)
     var overlays by mutableStateOf(emptyList<MapOverlay>())

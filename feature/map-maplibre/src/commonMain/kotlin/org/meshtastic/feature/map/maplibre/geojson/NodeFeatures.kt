@@ -39,34 +39,37 @@ internal fun Int.toCssHex(): String {
  * Nodes without a usable fix are dropped rather than emitted at (0, 0) — that is what produced the "flying through the
  * ocean" jump on the OSMdroid map.
  */
-fun nodesToFeatureCollection(nodes: List<Node>, myNodeNum: Int? = null): FeatureCollection<Point, JsonObject?> =
-    FeatureCollection(
-        nodes.mapNotNull { node ->
-            node.validPosition ?: return@mapNotNull null
-            val (foreground, background) = node.colors
-            Feature(
-                geometry = Point(Position(longitude = node.longitude, latitude = node.latitude)),
-                properties =
-                buildJsonObject {
-                    put(NodeFeatureKeys.NODE_NUM, node.num)
-                    put(NodeFeatureKeys.SHORT_NAME, node.user.short_name)
-                    put(NodeFeatureKeys.LONG_NAME, node.user.long_name)
-                    put(NodeFeatureKeys.IS_FAVORITE, node.isFavorite)
-                    put(NodeFeatureKeys.IS_ONLINE, node.isOnline)
-                    put(NodeFeatureKeys.IS_SELF, myNodeNum != null && node.num == myNodeNum)
-                    put(NodeFeatureKeys.FOREGROUND, foreground.toCssHex())
-                    put(NodeFeatureKeys.BACKGROUND, background.toCssHex())
-                    put(NodeFeatureKeys.LAST_HEARD, node.lastHeard)
-                    // Omitted rather than written as 0.0 when the node reports no precision: 0 is a real
-                    // radius, and a reader cannot tell the difference. GeoCircle drops such nodes instead.
-                    precisionRadiusMetersOrNull(node.position.precision_bits)?.let {
-                        put(NodeFeatureKeys.PRECISION_METERS, it)
-                    }
-                    put(NodeFeatureKeys.CHIP, node.toNodeChip().featureValue())
-                },
-            )
-        },
-    )
+fun nodesToFeatureCollection(
+    nodes: List<Node>,
+    myNodeNum: Int? = null,
+    alerts: Map<Int, ChipAlert> = emptyMap(),
+): FeatureCollection<Point, JsonObject?> = FeatureCollection(
+    nodes.mapNotNull { node ->
+        node.validPosition ?: return@mapNotNull null
+        val (foreground, background) = node.colors
+        Feature(
+            geometry = Point(Position(longitude = node.longitude, latitude = node.latitude)),
+            properties =
+            buildJsonObject {
+                put(NodeFeatureKeys.NODE_NUM, node.num)
+                put(NodeFeatureKeys.SHORT_NAME, node.user.short_name)
+                put(NodeFeatureKeys.LONG_NAME, node.user.long_name)
+                put(NodeFeatureKeys.IS_FAVORITE, node.isFavorite)
+                put(NodeFeatureKeys.IS_ONLINE, node.isOnline)
+                put(NodeFeatureKeys.IS_SELF, myNodeNum != null && node.num == myNodeNum)
+                put(NodeFeatureKeys.FOREGROUND, foreground.toCssHex())
+                put(NodeFeatureKeys.BACKGROUND, background.toCssHex())
+                put(NodeFeatureKeys.LAST_HEARD, node.lastHeard)
+                // Omitted rather than written as 0.0 when the node reports no precision: 0 is a real
+                // radius, and a reader cannot tell the difference. GeoCircle drops such nodes instead.
+                precisionRadiusMetersOrNull(node.position.precision_bits)?.let {
+                    put(NodeFeatureKeys.PRECISION_METERS, it)
+                }
+                put(NodeFeatureKeys.CHIP, node.toNodeChip(alerts[node.num]).featureValue())
+            },
+        )
+    },
+)
 
 /**
  * One distinct chip appearance. Two markers that look identical only need drawing once.
@@ -75,6 +78,8 @@ fun nodesToFeatureCollection(nodes: List<Node>, myNodeNum: Int? = null): Feature
  *   [org.meshtastic.core.ui.component.NodeChip].
  * @param glyph drawn instead of [label], for the discovery map's sensor and social markers. The Google discovery map
  *   substitutes an icon for the name the same way.
+ * @param alert an inverted tag after the name (old position, inconsistent time), always shown however many chips crowd
+ *   together; the time itself is given on a tap.
  */
 internal data class MapChipKey(
     val label: String,
@@ -83,6 +88,7 @@ internal data class MapChipKey(
     val struckThrough: Boolean = false,
     val outlined: Boolean = false,
     val glyph: MapChipGlyph? = null,
+    val alert: ChipAlert? = null,
 )
 
 /** The icons a chip can carry in place of its text. */
@@ -100,9 +106,9 @@ internal enum class MapChipGlyph {
  * Every field that changes the pixels is in the key: a short name is not unique, and neither is a colour.
  */
 internal fun MapChipKey.featureValue(): String =
-    "$label ${background.toString(HEX_RADIX)} ${foreground.toString(HEX_RADIX)} $struckThrough $outlined $glyph"
+    "$label ${background.toString(HEX_RADIX)} ${foreground.toString(HEX_RADIX)} $struckThrough $outlined $glyph $alert"
 
-internal fun Node.toNodeChip(): MapChipKey {
+internal fun Node.toNodeChip(alert: ChipAlert? = null): MapChipKey {
     val (foreground, background) = colors
     return MapChipKey(
         // Matches NodeChip, which shows "???" rather than an empty badge for a node that has not sent a name yet.
@@ -110,6 +116,7 @@ internal fun Node.toNodeChip(): MapChipKey {
         background = background,
         foreground = foreground,
         struckThrough = isIgnored,
+        alert = alert,
     )
 }
 
