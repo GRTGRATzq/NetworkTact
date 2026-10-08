@@ -22,13 +22,18 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.net.toFile
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import co.touchlab.kermit.Logger
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.koin.compose.koinInject
+import org.meshtastic.app.map.offline.OfflineMapAssetsState
+import org.meshtastic.app.map.offline.OfflineMapLibrary
 import org.meshtastic.app.map.offline.offlineMapBasemaps
 import org.meshtastic.core.common.util.ioDispatcher
 import org.meshtastic.core.common.util.safeCatching
@@ -110,11 +115,24 @@ internal fun rememberMbTilesImport(): () -> Unit {
 /**
  * The user's custom sources with Android's local-archive support wired in.
  *
- * [customRasterBasemaps] is common and handles URL templates on every platform; this is the one seam Android adds.
+ * [customRasterBasemaps] is common and handles URL templates on every platform; this is the one seam Android adds, with
+ * the fonts an archive on the device draws its labels with. Null until the sources and those fonts are ready.
  */
 @Composable
-internal fun androidCustomRasterBasemaps(): List<Basemap.Raster>? =
-    customRasterBasemaps(resolveLocalArchive = ::androidTileArchivePath)
+internal fun androidCustomRasterBasemaps(): List<Basemap.Raster>? {
+    val library: OfflineMapLibrary = koinInject()
+    val assets by library.assets.collectAsStateWithLifecycle()
+    val rasters =
+        customRasterBasemaps(
+            resolveLocalArchive = ::androidTileArchivePath,
+            // Labels over an archive on the device read the fonts the APK carries, so they need no network either.
+            localGlyphsUrl = (assets as? OfflineMapAssetsState.Installed)?.assets?.glyphsUrl,
+        )
+    val needsFonts = rasters?.any { it.isLocal } == true
+    LaunchedEffect(needsFonts) { if (needsFonts) library.ensureAssets() }
+    // Until the fonts are in place, wait rather than open on the online ones and swap the style a moment later.
+    return rasters.takeUnless { needsFonts && assets == OfflineMapAssetsState.NotInstalled }
+}
 
 /**
  * Every basemap of the user's own on Android: custom tile sources, MBTiles archives and offline .pmtiles maps. Null

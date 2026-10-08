@@ -17,9 +17,7 @@
 package org.meshtastic.app.map.offline
 
 import android.content.Context
-import android.content.Intent
 import android.net.Uri
-import android.provider.OpenableColumns
 import co.touchlab.kermit.Logger
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -44,6 +42,16 @@ import java.io.FileNotFoundException
 import java.io.IOException
 import java.io.RandomAccessFile
 import kotlin.uuid.Uuid
+
+/** Whether the bundled style, fonts and sprites are on disk. */
+sealed interface OfflineMapAssetsState {
+    data object NotInstalled : OfflineMapAssetsState
+
+    data class Installed(val assets: OfflineMapAssets) : OfflineMapAssetsState
+
+    /** The copy from the APK failed: offline maps are not offered, and local archives keep the online fonts. */
+    data object Failed : OfflineMapAssetsState
+}
 
 /** An installed map, with the path MapLibre opens it by. */
 data class InstalledOfflineMap(val file: OfflineMapFile, val path: String)
@@ -71,7 +79,7 @@ class OfflineMapLibrary(
     private var importJob: Job? = null
 
     private val installed = MutableStateFlow<List<InstalledOfflineMap>>(emptyList())
-    private val assetsState = MutableStateFlow<OfflineMapAssets?>(null)
+    private val assetsState = MutableStateFlow<OfflineMapAssetsState>(OfflineMapAssetsState.NotInstalled)
     private val listed = MutableStateFlow(false)
     private val _maps = MutableStateFlow<List<OfflineMapFile>>(emptyList())
     private val _importStatus = MutableStateFlow<OfflineMapImport>(OfflineMapImport.Idle)
@@ -79,8 +87,8 @@ class OfflineMapLibrary(
     /** The installed maps, with their paths. */
     val installedMaps: StateFlow<List<InstalledOfflineMap>> = installed.asStateFlow()
 
-    /** The bundled style, fonts and sprites; null until a map exists and they have been installed. */
-    val assets: StateFlow<OfflineMapAssets?> = assetsState.asStateFlow()
+    /** The bundled style, fonts and sprites: installed once a map stored on the device (of any format) exists. */
+    val assets: StateFlow<OfflineMapAssetsState> = assetsState.asStateFlow()
 
     /** False until the maps on disk have been listed once (and the assets installed if any map exists). */
     val ready: StateFlow<Boolean> = listed.asStateFlow()
@@ -114,6 +122,15 @@ class OfflineMapLibrary(
             }
     }
 
+    /**
+     * Installs the bundled fonts if they are not yet: an MBTiles archive on the device needs them for its labels too,
+     * though the .pmtiles maps listed here are the ones that install them otherwise.
+     */
+    fun ensureAssets() {
+        if (assetsState.value != OfflineMapAssetsState.NotInstalled) return
+        scope.launch { mutex.withLock { installAssets() } }
+    }
+
     override fun cancelImport() {
         importJob?.cancel()
     }
@@ -133,14 +150,14 @@ class OfflineMapLibrary(
     }
 
     private suspend fun runImport(uri: Uri, name: String) {
-        val size = declaredSize(uri)
+        val size = context.contentResolver.declaredSize(uri)
         _importStatus.value = OfflineMapImport.Copying(name, copiedBytes = 0, totalBytes = size)
         importDir.deleteRecursively()
         importDir.mkdirs()
         mapsDir.mkdirs()
         val id = Uuid.random().toString()
         val temporary = File(importDir, "$id.$PMTILES_EXTENSION")
-        val permission = holdReadPermission(uri)
+        val permission = context.contentResolver.holdReadPermission(uri)
         try {
             val input =
                 context.contentResolver.openInputStream(uri)
@@ -171,7 +188,7 @@ class OfflineMapLibrary(
             _importStatus.value = OfflineMapImport.Failed(OfflineMapImportFailure.Unreadable)
         } finally {
             importDir.deleteRecursively()
-            if (permission) releaseReadPermission(uri)
+            if (permission) context.contentResolver.releaseReadPermission(uri)
             refresh()
         }
     }
@@ -197,15 +214,20 @@ class OfflineMapLibrary(
             .filter { it.name.endsWith(NAME_SUFFIX) && it.name.removeSuffix(NAME_SUFFIX) !in ids }
             .forEach { it.delete() }
 
-        if (maps.isNotEmpty() && assetsState.value == null) {
-            assetsState.value =
-                safeCatching { OfflineMapAssets.install(context) }
-                    .onFailure { Logger.withTag(TAG).e(it) { "Could not install the offline map style" } }
-                    .getOrNull()
-        }
+        if (maps.isNotEmpty()) installAssets()
         installed.value = maps
         _maps.value = maps.map { it.file }
         listed.value = true
+    }
+
+    /** Installs the bundled assets unless done or failed already. Call with [mutex] held. */
+    private fun installAssets() {
+        if (assetsState.value != OfflineMapAssetsState.NotInstalled) return
+        assetsState.value =
+            safeCatching { OfflineMapAssets.install(context) }
+                .onFailure { Logger.withTag(TAG).e(it) { "Could not install the offline map style" } }
+                .map { OfflineMapAssetsState.Installed(it) }
+                .getOrDefault(OfflineMapAssetsState.Failed)
     }
 
     private fun readHeader(file: File): PmTilesHeader? = safeCatching {
@@ -216,27 +238,6 @@ class OfflineMapLibrary(
         }
     }
         .getOrNull()
-
-    private fun declaredSize(uri: Uri): Long? = safeCatching {
-        context.contentResolver.query(uri, arrayOf(OpenableColumns.SIZE), null, null, null)?.use { cursor ->
-            val column = cursor.getColumnIndex(OpenableColumns.SIZE)
-            if (cursor.moveToFirst() && column >= 0 && !cursor.isNull(column)) cursor.getLong(column) else null
-        }
-    }
-        .getOrNull()
-        ?.takeIf { it > 0 }
-
-    /** Keeps the picker's read grant for the length of a long copy; false if the provider does not offer that. */
-    private fun holdReadPermission(uri: Uri): Boolean = safeCatching {
-        context.contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
-    }
-        .isSuccess
-
-    private fun releaseReadPermission(uri: Uri) {
-        safeCatching {
-            context.contentResolver.releasePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        }
-    }
 
     companion object {
         /** The basemap id of the stored map [mapId], kept apart from the custom tile sources' ids. */

@@ -95,13 +95,16 @@ fun offlineMapStyle(
     return JsonObject(
         style +
             mapOf(
-                "glyphs" to JsonPrimitive("file://$assetsDir/fonts/{fontstack}/{range}.pbf"),
+                "glyphs" to JsonPrimitive(offlineGlyphsUrl(assetsDir)),
                 "sprite" to JsonPrimitive("file://$assetsDir/sprites/$flavor"),
                 "sources" to sources,
             ),
     )
         .toString()
 }
+
+/** The glyph URL template of the bundled fonts installed in [assetsDir]. */
+fun offlineGlyphsUrl(assetsDir: String): String = "file://$assetsDir/fonts/{fontstack}/{range}.pbf"
 
 /** The source every bundled style draws its tiles from. */
 private const val PROTOMAPS_SOURCE = "protomaps"

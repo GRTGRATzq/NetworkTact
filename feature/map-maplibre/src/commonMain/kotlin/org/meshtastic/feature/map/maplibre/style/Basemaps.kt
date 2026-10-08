@@ -45,8 +45,18 @@ sealed interface Basemap {
     /** Vector style served as a MapLibre style document. */
     data class Vector(override val id: String, override val label: String, val styleUri: String) : Basemap
 
-    /** Classic XYZ raster tiles — everything the OSMdroid map used to serve. */
-    data class Raster(override val id: String, override val label: String, val spec: RasterTileSpec) : Basemap
+    /**
+     * Classic XYZ raster tiles — everything the OSMdroid map used to serve.
+     *
+     * @param glyphsUrl Where the style drawn under the tiles loads its fonts; null for the online default. A map file
+     *   on the device sets fonts stored on the device, so its labels need no network either.
+     */
+    data class Raster(
+        override val id: String,
+        override val label: String,
+        val spec: RasterTileSpec,
+        val glyphsUrl: String? = null,
+    ) : Basemap
 
     /**
      * A vector style handed over as the document itself rather than a URL: a map file stored on the device, whose style
@@ -90,7 +100,7 @@ object Basemaps {
 /** Vector basemaps arrive as a style document; raster ones draw over a bare one that still declares its fonts. */
 internal fun Basemap.toBaseStyle(): BaseStyle = when (this) {
     is Basemap.Vector -> BaseStyle.Uri(styleUri)
-    is Basemap.Raster -> RasterBaseStyle
+    is Basemap.Raster -> glyphsUrl?.let(::rasterBaseStyle) ?: RasterBaseStyle
     is Basemap.LocalVector -> BaseStyle.Json(styleJson)
 }
 
@@ -114,14 +124,16 @@ private const val GLYPHS_URL = "https://tiles.openfreemap.org/fonts/{fontstack}/
  *
  * No sources or layers of its own — the basemap itself is added at runtime as a raster layer over the top of this.
  */
-private val RasterBaseStyle: BaseStyle =
-    BaseStyle.Json {
-        put("version", STYLE_SPEC_VERSION)
-        put("name", "Meshtastic raster basemap")
-        put("glyphs", GLYPHS_URL)
-        putJsonObject("sources") {}
-        putJsonArray("layers") {}
-    }
+private val RasterBaseStyle: BaseStyle = rasterBaseStyle(GLYPHS_URL)
+
+/** [RasterBaseStyle] with its fonts read from [glyphsUrl]. */
+private fun rasterBaseStyle(glyphsUrl: String): BaseStyle = BaseStyle.Json {
+    put("version", STYLE_SPEC_VERSION)
+    put("name", "Meshtastic raster basemap")
+    put("glyphs", glyphsUrl)
+    putJsonObject("sources") {}
+    putJsonArray("layers") {}
+}
 
 /** MapLibre's scheme for a tile archive opened from a path on the device. */
 internal const val LOCAL_ARCHIVE_SCHEME = "mbtiles://"

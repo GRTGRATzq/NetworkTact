@@ -55,7 +55,7 @@ fun offlineMapBasemaps(): List<Basemap>? {
 
     val basemaps =
         remember(maps, assets, flavor, attribution) {
-            val installed = assets ?: return@remember emptyList()
+            val installed = (assets as? OfflineMapAssetsState.Installed)?.assets ?: return@remember emptyList()
             val template = installed.styleTemplates.getValue(flavor)
             maps.map { map ->
                 Basemap.LocalVector(

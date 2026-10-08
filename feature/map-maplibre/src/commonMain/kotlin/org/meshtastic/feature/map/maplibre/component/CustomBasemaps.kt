@@ -45,9 +45,14 @@ internal fun mbTilesUrl(absolutePath: String): String = "$LOCAL_ARCHIVE_SCHEME$a
  * @param resolveLocalArchive Turns a stored `file://` URI into an absolute path, or returns null when the archive is
  *   gone or this platform cannot open one. Only Android supplies it: there is no file picker elsewhere yet, and the
  *   desktop renderer aborts the process on the native MBTiles source rather than failing softly.
+ * @param localGlyphsUrl Fonts stored on the device, for the labels drawn over an archive on the device; null keeps the
+ *   online fonts. Only Android supplies them, from the APK.
  */
 @Composable
-fun customRasterBasemaps(resolveLocalArchive: (String) -> String? = { null }): List<Basemap.Raster>? {
+fun customRasterBasemaps(
+    resolveLocalArchive: (String) -> String? = { null },
+    localGlyphsUrl: String? = null,
+): List<Basemap.Raster>? {
     val tileProviders: CustomTileProviderRepository = koinInject()
     // Null until the store has been read from disk: an empty list before that would let the map open on a built-in
     // style and swap to a stored custom source (an imported map) a moment later.
@@ -66,6 +71,7 @@ fun customRasterBasemaps(resolveLocalArchive: (String) -> String? = { null }): L
             id = config.id,
             label = config.name,
             spec = RasterTileSpec(tiles = listOf(tiles), attributionHtml = attribution),
+            glyphsUrl = localGlyphsUrl.takeIf { config.isLocal },
         )
     }
 }

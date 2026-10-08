@@ -19,6 +19,7 @@ package org.meshtastic.app.map.offline
 import android.content.Context
 import org.meshtastic.feature.map.offline.emptyGlyphRange
 import org.meshtastic.feature.map.offline.glyphRanges
+import org.meshtastic.feature.map.offline.offlineGlyphsUrl
 import java.io.File
 import java.io.IOException
 import java.net.URLEncoder
@@ -35,6 +36,10 @@ import java.net.URLEncoder
  * @property styleTemplates The bundled style documents, by flavor (`light`, `dark`).
  */
 class OfflineMapAssets(val dir: File, val styleTemplates: Map<String, String>) {
+
+    /** The glyph URL template of the installed fonts, for any style drawn over a map stored on the device. */
+    val glyphsUrl: String
+        get() = offlineGlyphsUrl(dir.absolutePath)
 
     companion object {
         private const val ASSET_ROOT = "offline-map"
