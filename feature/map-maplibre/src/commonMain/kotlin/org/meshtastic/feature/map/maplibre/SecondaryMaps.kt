@@ -98,7 +98,7 @@ private const val INLINE_ZOOM = 15.0
 fun MapLibreInlineMap(
     node: Node,
     modifier: Modifier = Modifier,
-    customBasemaps: @Composable () -> List<Basemap.Raster> = { customRasterBasemaps() },
+    customBasemaps: @Composable () -> List<Basemap> = { customRasterBasemaps() },
 ) {
     if (node.validPosition == null) return
     // Null for the one frame before the basemap preference has loaded from disk; see rememberBasemapSelection.
@@ -149,7 +149,7 @@ fun MapLibreTracerouteMap(
     returnRoute: List<Int>,
     nodeLookup: Map<Int, Node>,
     modifier: Modifier = Modifier,
-    customBasemaps: @Composable () -> List<Basemap.Raster> = { customRasterBasemaps() },
+    customBasemaps: @Composable () -> List<Basemap> = { customRasterBasemaps() },
 ) {
     // Null for the one frame before the basemap preference has loaded from disk; see rememberBasemapSelection.
     val basemaps = rememberBasemapSelection(customBasemaps()) ?: return
@@ -190,7 +190,7 @@ fun MapLibreDiscoveryMap(
     userLongitude: Double,
     nodes: List<DiscoveryMapNode>,
     modifier: Modifier = Modifier,
-    customBasemaps: @Composable () -> List<Basemap.Raster> = { customRasterBasemaps() },
+    customBasemaps: @Composable () -> List<Basemap> = { customRasterBasemaps() },
 ) {
     val scanner = GeoPosition(longitude = userLongitude, latitude = userLatitude)
     // Null for the one frame before the basemap preference has loaded from disk; see rememberBasemapSelection.

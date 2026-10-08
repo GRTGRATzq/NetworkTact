@@ -38,6 +38,13 @@ sealed interface Basemap {
 
     /** Classic XYZ raster tiles — everything the OSMdroid map used to serve. */
     data class Raster(override val id: String, override val label: String, val spec: RasterTileSpec) : Basemap
+
+    /**
+     * A vector style handed over as the document itself rather than a URL: a map file stored on the device, whose style
+     * the host builds with local paths for its tiles, fonts and sprites. Its label is the name the user gave the file,
+     * so unlike the built-ins it is not a proper noun of ours.
+     */
+    data class LocalVector(override val id: String, override val label: String, val styleJson: String) : Basemap
 }
 
 /**
@@ -75,6 +82,7 @@ object Basemaps {
 internal fun Basemap.toBaseStyle(): BaseStyle = when (this) {
     is Basemap.Vector -> BaseStyle.Uri(styleUri)
     is Basemap.Raster -> RasterBaseStyle
+    is Basemap.LocalVector -> BaseStyle.Json(styleJson)
 }
 
 /**
@@ -120,6 +128,7 @@ private const val STYLE_SPEC_VERSION = 8
  */
 internal fun Basemap.zoomRange(): ClosedFloatingPointRange<Float> = when (this) {
     is Basemap.Vector -> DEFAULT_MIN_ZOOM..DEFAULT_MAX_ZOOM
+    is Basemap.LocalVector -> DEFAULT_MIN_ZOOM..DEFAULT_MAX_ZOOM
     is Basemap.Raster -> spec.minZoom.toFloat()..spec.maxZoom.toFloat()
 }
 

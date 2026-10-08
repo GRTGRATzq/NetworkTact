@@ -92,7 +92,7 @@ fun MapLibreNodeTrackMap(
     modifier: Modifier = Modifier,
     selectedPositionTime: Int? = null,
     onPositionSelect: ((Int) -> Unit)? = null,
-    customBasemaps: @Composable () -> List<Basemap.Raster> = { customRasterBasemaps() },
+    customBasemaps: @Composable () -> List<Basemap> = { customRasterBasemaps() },
 ) {
     // Oldest first, as the Google flavor sorts its own track. Everything downstream reads order as age: the gradient
     // runs from the start of the line, the fade runs from index 0, and the chip goes on the last point. The view model

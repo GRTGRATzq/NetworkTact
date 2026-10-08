@@ -75,7 +75,7 @@ internal class BasemapSelection(
  * away from.)
  */
 @Composable
-internal fun rememberBasemapSelection(customs: List<Basemap.Raster>): BasemapSelection? {
+internal fun rememberBasemapSelection(customs: List<Basemap>): BasemapSelection? {
     val mapPrefs: MapPrefs = koinInject()
     val tilePrefs: MapTileProviderPrefs = koinInject()
     val scope = rememberCoroutineScope()
