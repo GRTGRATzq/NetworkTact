@@ -66,3 +66,10 @@ jobs:
         with:
           name: apk-fdroid-debug
           path: androidApp/build/outputs/apk/fdroid/debug/*.apk
+      # Last, after the APK is uploaded: feature:map-maplibre carries the map's own tests (basemap choice, chip tags,
+      # position times; feat/carte-hors-ligne) next to its Compose UI tests, and the heaviest step should not cost
+      # the APK if it strains the runner.
+      - name: Tests feature:map-maplibre
+        run: >-
+          ./gradlew --init-script .github/ci/test-started.init.gradle.kts :feature:map-maplibre:allTests
+          --stacktrace
