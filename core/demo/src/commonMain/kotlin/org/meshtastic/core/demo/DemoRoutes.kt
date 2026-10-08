@@ -18,6 +18,7 @@ package org.meshtastic.core.demo
 
 import androidx.navigation3.runtime.NavKey
 import org.meshtastic.core.navigation.ContactsRoute
+import org.meshtastic.core.navigation.MapRoute
 import org.meshtastic.core.navigation.NodesRoute
 import org.meshtastic.core.navigation.SettingsRoute
 
@@ -26,7 +27,12 @@ import org.meshtastic.core.navigation.SettingsRoute
  * added later is unavailable until it is checked and added here, so none can mix real and demo data by default.
  */
 object DemoRoutes {
-    fun isAvailable(key: NavKey): Boolean = when (key) {
+    /**
+     * @param mapAvailable whether this build's map shows the screens' data sources (the MapLibre map of the F-Droid
+     *   flavor does; the Google map does not yet), and so may be shown over the demo's fictitious data. Even then a
+     *   Site Planner deep link stays unavailable: it works from the real radio's settings.
+     */
+    fun isAvailable(key: NavKey, mapAvailable: Boolean = false): Boolean = when (key) {
         // Conversations, a conversation and the coordinate converter (pure computation).
         is ContactsRoute.Contacts,
         is ContactsRoute.Messages,
@@ -43,6 +49,9 @@ object DemoRoutes {
 
         // The settings of this phone only: administering another node is radio configuration.
         is SettingsRoute.Settings -> key.destNum == null
+
+        // The map, over the demo's nodes and points, where the build's map supports it.
+        is MapRoute.Map -> mapAvailable && key.sitePlannerNodeNum == null
 
         else -> false
     }

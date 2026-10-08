@@ -71,4 +71,24 @@ class DemoRoutesTest {
     fun administeringAnotherNodeIsNot() {
         assertFalse(DemoRoutes.isAvailable(SettingsRoute.Settings(destNum = 42)))
     }
+
+    @Test
+    fun mapIsAvailableOnlyWhereTheBuildMapSupportsTheDemo() {
+        assertFalse(DemoRoutes.isAvailable(MapRoute.Map()))
+        assertFalse(DemoRoutes.isAvailable(MapRoute.Map(), mapAvailable = false))
+        assertTrue(DemoRoutes.isAvailable(MapRoute.Map(), mapAvailable = true))
+        assertTrue(DemoRoutes.isAvailable(MapRoute.Map(waypointId = 7), mapAvailable = true))
+    }
+
+    @Test
+    fun sitePlannerOnTheMapNeverIs() {
+        assertFalse(DemoRoutes.isAvailable(MapRoute.Map(sitePlannerNodeNum = 1), mapAvailable = true))
+    }
+
+    @Test
+    fun mapSupportChangesNothingElse() {
+        assertFalse(DemoRoutes.isAvailable(NodesRoute.Nodes, mapAvailable = true))
+        assertFalse(DemoRoutes.isAvailable(NodesRoute.NodeDetail(destNum = 1), mapAvailable = true))
+        assertTrue(DemoRoutes.isAvailable(NodesRoute.CommandPost, mapAvailable = true))
+    }
 }

@@ -113,6 +113,14 @@ open class BaseMapViewModel(
             .map { it is org.meshtastic.core.model.ConnectionState.Connected }
             .stateInWhileSubscribed(initialValue = false)
 
+    /**
+     * Whether the map may send to the mesh (create, edit or remove a waypoint for everyone): connected, and not in a
+     * demo, where the map shows fictitious data and nothing is ever sent.
+     */
+    val canSendToMesh: StateFlow<Boolean> =
+        combine(isConnected, isDemoActive) { connected, demo -> connected && !demo }
+            .stateInWhileSubscribed(initialValue = false)
+
     val nodes: StateFlow<List<Node>> =
         nodeRepository
             .getNodes()

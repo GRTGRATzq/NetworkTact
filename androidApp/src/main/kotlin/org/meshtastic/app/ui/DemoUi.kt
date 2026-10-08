@@ -24,6 +24,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.runtime.NavKey
 import org.koin.compose.koinInject
+import org.meshtastic.app.MAP_AVAILABLE_IN_DEMO
 import org.meshtastic.core.demo.DemoRoutes
 import org.meshtastic.core.repository.DemoMode
 import org.meshtastic.core.ui.component.demoGatedEntryProvider
@@ -35,7 +36,7 @@ class DemoUi(private val demoMode: DemoMode, val active: State<Boolean>) {
         demoGatedEntryProvider(
             entryProvider = entryProvider,
             demoActive = active,
-            isAvailableInDemo = DemoRoutes::isAvailable,
+            isAvailableInDemo = { key -> DemoRoutes.isAvailable(key, mapAvailable = MAP_AVAILABLE_IN_DEMO) },
             onExitDemo = demoMode::deactivate,
         )
 }

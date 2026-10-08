@@ -106,7 +106,6 @@ import org.meshtastic.core.repository.SCREEN_DATA
 import org.meshtastic.core.repository.TeamRosterPrefs
 import org.meshtastic.core.resources.Res
 import org.meshtastic.core.resources.archived_channel_read_only
-import org.meshtastic.core.resources.coords_map_unavailable_demo
 import org.meshtastic.core.resources.send
 import org.meshtastic.core.resources.tactmsg_too_long
 import org.meshtastic.core.resources.type_a_message
@@ -119,7 +118,6 @@ import org.meshtastic.core.ui.icon.MeshtasticIcons
 import org.meshtastic.core.ui.icon.Send
 import org.meshtastic.core.ui.theme.AppTheme
 import org.meshtastic.core.ui.util.MapFocusRequests
-import org.meshtastic.core.ui.util.SnackbarManager
 import org.meshtastic.core.ui.util.createClipEntry
 import org.meshtastic.core.ui.util.isFromSoftKeyboard
 import org.meshtastic.core.ui.util.nameWithTeam
@@ -230,8 +228,6 @@ fun MessageScreen(
     val sharePointOffer by viewModel.sharePointOffer.collectAsStateWithLifecycle()
     val isDemoActive by viewModel.isDemoActive.collectAsStateWithLifecycle()
     val mapFocusRequests = koinInject<MapFocusRequests>()
-    val snackbarManager = koinInject<SnackbarManager>()
-    val mapUnavailableInDemo = stringResource(Res.string.coords_map_unavailable_demo)
 
     // Seed the composer once the draft arrives, unless the screen was opened with a message to prefill.
     LaunchedEffect(storedDraft) {
@@ -617,14 +613,11 @@ fun MessageScreen(
                         onShowOnMap =
                         navigateToMap?.let { openMap ->
                             { point ->
-                                // The map is unavailable in a demo: nothing is opened, and nothing is ever
-                                // sent.
-                                if (isDemoActive) {
-                                    coroutineScope.launch { snackbarManager.showSnackbar(mapUnavailableInDemo) }
-                                } else {
-                                    mapFocusRequests.request(point)
-                                    openMap()
-                                }
+                                // Local display only, nothing is sent. In a demo the map shows the fictitious
+                                // data
+                                // where the build's map supports it; elsewhere the demo says it is unavailable.
+                                mapFocusRequests.request(point)
+                                openMap()
                             }
                         },
                     ),

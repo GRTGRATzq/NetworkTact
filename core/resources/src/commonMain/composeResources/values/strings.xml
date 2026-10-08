@@ -343,7 +343,6 @@
     <string name="coords_hint">e.g. %1$s</string>
     <string name="coords_input_format">Typed in</string>
     <string name="coords_input_label">Position</string>
-    <string name="coords_map_unavailable_demo">Map unavailable in demo mode: nothing is shown or sent.</string>
     <string name="coords_my_position">My position</string>
     <string name="coords_my_position_none">No position: my radio has none and the phone's location is unavailable or not allowed. Nothing was filled in.</string>
     <string name="coords_my_position_phone">My radio has no position: the phone's is used and the message says so.</string>

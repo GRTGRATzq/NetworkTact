@@ -58,7 +58,7 @@ internal fun WaypointDialogs(
     val waypoints by viewModel.waypoints.collectAsStateWithLifecycle()
     val displayUnits by viewModel.displayUnits.collectAsStateWithLifecycle()
     val alertOptIns by viewModel.geofenceAlertOptIns.collectAsStateWithLifecycle()
-    val isConnected by viewModel.isConnected.collectAsStateWithLifecycle()
+    val canSend by viewModel.canSendToMesh.collectAsStateWithLifecycle()
 
     var deletingId by remember { mutableStateOf<Int?>(null) }
 
@@ -69,7 +69,7 @@ internal fun WaypointDialogs(
                 waypoint = waypoint,
                 origin = packet.waypointOrigin(viewModel),
                 myNodeNum = viewModel.myNodeNum,
-                isConnected = isConnected,
+                canSend = canSend,
                 displayUnits = displayUnits,
                 alertsEnabled = waypoint.id in alertOptIns,
                 onToggleAlerts = { viewModel.setGeofenceAlertOptIn(waypoint.id, it) },
@@ -102,7 +102,7 @@ internal fun WaypointDialogs(
         waypoints[id]?.waypoint?.let { waypoint ->
             WaypointRemoval(
                 // Deleting for everyone re-broadcasts an expiry, so it needs a live connection.
-                canDeleteForEveryone = waypoint.removableForEveryone(viewModel.myNodeNum, isConnected),
+                canDeleteForEveryone = waypoint.removableForEveryone(viewModel.myNodeNum, canSend),
                 onDeleteForMe = { viewModel.deleteWaypoint(waypoint.id) },
                 onDeleteForEveryone = {
                     viewModel.sendWaypoint(waypoint.newBuilder().also { wb -> wb.expire = 1 }.build())
@@ -124,7 +124,7 @@ internal fun WaypointInfoSlot(
     waypoint: Waypoint,
     origin: WaypointOrigin?,
     myNodeNum: Int?,
-    isConnected: Boolean,
+    canSend: Boolean,
     displayUnits: MeasurementSystem,
     alertsEnabled: Boolean,
     onToggleAlerts: (Boolean) -> Unit,
@@ -140,7 +140,7 @@ internal fun WaypointInfoSlot(
         onDismissRequest = onDismiss,
         // Editing re-broadcasts, so it needs a connection and mesh-wide permission: unlocked, or locked to us.
         // `isLocked` alone made our own locked waypoint read-only, with no other route to the editor.
-        onEdit = if (waypoint.isModifiableBy(myNodeNum) && isConnected) onEdit else null,
+        onEdit = if (waypoint.isModifiableBy(myNodeNum) && canSend) onEdit else null,
         // Dropping our local copy is not a mesh operation, so a foreign lock does not withhold it.
         onDeleteForMe = onDeleteForMe,
         origin = origin,
@@ -208,7 +208,7 @@ internal class WaypointEditing(
 @Composable
 internal fun rememberWaypointEditing(): WaypointEditing {
     val viewModel: SharedMapViewModel = koinViewModel()
-    val isConnected by viewModel.isConnected.collectAsStateWithLifecycle()
+    val canSend by viewModel.canSendToMesh.collectAsStateWithLifecycle()
     var pending by remember { mutableStateOf<Waypoint?>(null) }
     val box = rememberBoxAuthoring(onApplyBox = { pending = it }, onReopenEditor = { pending = it })
 
@@ -217,7 +217,7 @@ internal fun rememberWaypointEditing(): WaypointEditing {
         // that flow. Without this a long press mid-box drops an unrelated waypoint into it, which is the one part of
         // the Google flavor's own guard (`isMainMode && isConnected && boxAuthoringDraft == null`) this had missed.
         onLongPress = { position ->
-            if (isConnected && box.draft == null) {
+            if (canSend && box.draft == null) {
                 pending =
                     Waypoint.Builder()
                         .also { wb ->
@@ -237,7 +237,7 @@ internal fun rememberWaypointEditing(): WaypointEditing {
             // Tell the mesh, not just ourselves. This dropped only the local copy, so deleting from inside the editor
             // left the waypoint on everyone else's map — while deleting the same waypoint from its info dialog, two
             // taps away, removed it properly. The Google flavor broadcasts from both.
-            if (toDelete.removableForEveryone(viewModel.myNodeNum, isConnected)) {
+            if (toDelete.removableForEveryone(viewModel.myNodeNum, canSend)) {
                 viewModel.sendWaypoint(toDelete.newBuilder().also { wb -> wb.expire = 1 }.build())
             }
             viewModel.deleteWaypoint(toDelete.id)
@@ -357,5 +357,5 @@ private const val DEG_SCALE = 1e-7
  * Removal travels as an expiry the other nodes honour, so it needs a waypoint we are allowed to modify, one that has
  * been sent at all, and a live connection to send it over.
  */
-private fun Waypoint.removableForEveryone(myNodeNum: Int?, isConnected: Boolean): Boolean =
-    isModifiableBy(myNodeNum) && isConnected && id != 0
+private fun Waypoint.removableForEveryone(myNodeNum: Int?, canSend: Boolean): Boolean =
+    isModifiableBy(myNodeNum) && canSend && id != 0

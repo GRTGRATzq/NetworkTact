@@ -1554,7 +1554,6 @@
     <string name="coords_share_done">Point partagé sur la carte : %1$s</string>
     <string name="coords_share_done_demo">Partage simulé (mode démo) : aucun point émis.</string>
     <string name="coords_show_on_map">Voir sur la carte</string>
-    <string name="coords_map_unavailable_demo">Carte indisponible en mode démo : rien n'est affiché ni émis.</string>
     <string name="waypoint_origin">De %1$s · reçu %2$s</string>
     <string name="waypoint_origin_me">moi</string>
     <string name="waypoint_origin_time_unknown">heure inconnue</string>

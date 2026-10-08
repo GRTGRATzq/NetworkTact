@@ -240,6 +240,8 @@ private fun rememberMapScreenMapState(
 ): MapState {
     val marked by koinInject<MapFocusRequests>().marked.collectAsState()
     val viewModel: SharedMapViewModel = koinViewModel()
+    // A demo shows fictitious nodes: the phone's own real position is not mixed in.
+    val demo by viewModel.isDemoActive.collectAsStateWithLifecycle()
     return rememberMeshMapState(
         viewModel = viewModel,
         navigateToNodeDetails = navigateToNodeDetails,
@@ -251,8 +253,8 @@ private fun rememberMapScreenMapState(
         onClusterMembers = { screen.clusterMembers = it },
         onWaypointClick = { screen.infoWaypointId = it },
         boxCorner = waypoints.firstCorner,
-        locationState = location.state,
-        followLocation = location.following,
+        locationState = location.state.takeUnless { demo },
+        followLocation = location.following && !demo,
         bearingUpdate = location.bearingUpdate,
         // Only when there was nothing stored: a remembered view is the user's own and is not yanked away. Nor when
         // the map was opened on a point: framing the mesh would move away from it.
@@ -417,6 +419,8 @@ private fun BoxScope.MapToolbar(
     // Hoisted out of the dropdown slot: the button's badge needs the same state the sheet does.
     val filterViewModel: SharedMapViewModel = koinViewModel()
     val filterState by filterViewModel.mapFilterStateFlow.collectAsStateWithLifecycle()
+    // In a demo: no phone position among fictitious nodes, and no Site Planner, which works from real radio settings.
+    val demo by filterViewModel.isDemoActive.collectAsStateWithLifecycle()
 
     MapControlsOverlay(
         modifier = Modifier.align(Alignment.TopCenter).padding(top = TOOLBAR_INSET.dp),
@@ -459,9 +463,9 @@ private fun BoxScope.MapToolbar(
                 extra = layersSheetExtra,
             )
         },
-        onSitePlannerClick = onSitePlannerClick,
-        isLocationTrackingEnabled = location.following,
-        onToggleLocationTracking = location.onToggleFollow,
+        onSitePlannerClick = onSitePlannerClick.takeUnless { demo },
+        isLocationTrackingEnabled = location.following && !demo,
+        onToggleLocationTracking = location.onToggleFollow.takeUnless { demo },
     )
 }
 
