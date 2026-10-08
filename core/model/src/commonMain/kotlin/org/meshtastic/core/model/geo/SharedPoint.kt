@@ -64,7 +64,6 @@ data class SharedPoint(
         private const val CLOCK_DIGITS = 2
         private const val FNV_OFFSET = -0x7ee3623b // 0x811C9DC5
         private const val FNV_PRIME = 0x01000193
-        private val CLOCK = Regex("""\d{2}:\d{2}""")
 
         /**
          * The point [message], sent by node [senderNum] whose call sign is [callsign] at [sentAtEpochSeconds], is
@@ -114,14 +113,10 @@ data class SharedPoint(
 
         /** `POS 14:32`, `POS ANC 14:07` or `POS --:--`, with the time part of the message as description. */
         private fun position(text: String): Pair<String, String> {
-            val parts = text.split(SEPARATOR)
-            val time = parts.last()
-            val old = time.startsWith("POSITION ANCIENNE")
-            val known = time.startsWith("relevée ") || (old && "relevée il y a" in time)
-            val clock = if (known) CLOCK.findAll(time).lastOrNull()?.value else null
-            val kind = listOfNotNull("POS", "ANC".takeIf { old }, clock ?: UNKNOWN_TIME).joinToString(" ")
-            val fromPhone = parts.first().endsWith("(téléphone)")
-            val description = if (fromPhone) "$time${SEPARATOR}position du téléphone" else time
+            val time = text.split(SEPARATOR).last()
+            val point = MessagePoint.of(text)
+            val kind = listOfNotNull("POS", "ANC".takeIf { point.old }, point.clock ?: UNKNOWN_TIME).joinToString(" ")
+            val description = if (point.fromPhone) "$time${SEPARATOR}position du téléphone" else time
             return kind to description
         }
 
