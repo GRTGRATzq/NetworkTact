@@ -422,6 +422,9 @@ carte : `.pmtiles`, `.mbtiles` ou fond en ligne. La carte Google (variante googl
   (`feature:map-maplibre`) ; `ScreenFacadesTest`, `DemoDataSetTest`, `DemoRoutesTest`
   (`core:demo`) ; `MapPrefsImplTest` (`core:prefs`) ; `CoordinateConverterContentTest`
   (`feature:messaging`). Tous ces modules tournent déjà dans `fork-apk`.
+- **CI** : `fork-apk` compile le Kotlin de l'APK fdroid (`:androidApp:compileFdroidDebugKotlin`)
+  juste après le Lint, avant les tests : une erreur de compilation dans un module que les
+  étapes de tests ne compilent pas pour Android échoue en quelques minutes, plus à l'étape APK.
 
 ## Marques
 
