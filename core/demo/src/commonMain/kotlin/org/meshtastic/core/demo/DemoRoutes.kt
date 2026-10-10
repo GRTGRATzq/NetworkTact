@@ -37,6 +37,9 @@ object DemoRoutes {
         is ContactsRoute.Contacts,
         is ContactsRoute.Messages,
         is ContactsRoute.CoordinateConverter,
+        // Choosing the conversation a text is inserted into; its list comes from the screens' data sources. Nothing
+        // is sent from it: the conversation opens with the text in its input.
+        is ContactsRoute.Share,
         // The command post view; in demo mode the Nodes tab opens on it, the node list itself is unavailable.
         is NodesRoute.CommandPost,
         // Teams, and the pages holding neither radio nor personal data.
