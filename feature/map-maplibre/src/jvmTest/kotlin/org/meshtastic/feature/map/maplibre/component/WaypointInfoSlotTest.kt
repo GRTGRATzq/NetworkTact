@@ -44,7 +44,8 @@ class WaypointInfoSlotTest {
         waypoint = waypoint,
         origin = null,
         myNodeNum = myNodeNum,
-        isConnected = isConnected,
+        // Connected and not in a demo: the one condition the dialog sees (canSendToMesh).
+        canSend = isConnected,
         displayUnits = MeasurementSystem.METRIC,
         alertsEnabled = false,
         onToggleAlerts = {},
