@@ -48,6 +48,16 @@ jobs:
       - name: Lint
         timeout-minutes: 10
         run: ./gradlew spotlessCheck detekt --stacktrace
+      # Right after Lint: compiles the Kotlin of the F-Droid debug app and of every module it depends on (their Android
+      # variants: compileAndroidMain for the KMP libraries), without the tests, resources or dexing. A compile error
+      # in a module no earlier step compiles for Android (feature:map-maplibre, run 52) then fails here in a few
+      # minutes instead of at the APK step, after the tests. The APK step reuses these outputs (up to date).
+      - name: Compile (Kotlin, fdroid debug)
+        timeout-minutes: 15
+        run: |
+          ./gradlew --stop
+          pkill -f KotlinCompileDaemon || true
+          ./gradlew :androidApp:compileFdroidDebugKotlin --stacktrace
       # Android and JVM tests only: NetworkTact ships on Android. allTests also compiled every module for iOS (its iOS
       # tests were always SKIPPED on Linux), so an iOS-only compile error blocked the APK; ios-check.yml compiles iOS
       # on its own instead. Per module: jvmTest (commonTest and jvmTest sources) everywhere, plus testAndroidHostTest
