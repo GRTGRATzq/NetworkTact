@@ -13,8 +13,9 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    # Each test step has its own 15-minute limit (a Gradle that freezes while configuring fails that step), and the
-    # job keeps room after it for the diagnostics step below.
+    # Every step that runs Gradle has its own limit (Lint 10 min, the others 15): a Gradle that freezes fails that
+    # step, the next ones are skipped, and the diagnostics step runs. A green run takes about 13 minutes, so a freeze
+    # in the last step still ends well before the job's 40 minutes.
     timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
@@ -42,7 +43,10 @@ jobs:
           kotlin.native.jvmArgs=-Xmx3g -XX:+UseG1GC
           EOF
           cat "${GRADLE_USER_HOME:-$HOME/.gradle}/gradle.properties"
+      # 10 minutes (2.5 when green, run 46): a Gradle that freezes here fails the step instead of using up the job,
+      # so the diagnostics step below still runs (run 48 froze in this step after compiling build-logic).
       - name: Lint
+        timeout-minutes: 10
         run: ./gradlew spotlessCheck detekt --stacktrace
       # Android and JVM tests only: NetworkTact ships on Android. allTests also compiled every module for iOS (its iOS
       # tests were always SKIPPED on Linux), so an iOS-only compile error blocked the APK; ios-check.yml compiles iOS
@@ -86,6 +90,7 @@ jobs:
           ./gradlew --init-script .github/ci/test-started.init.gradle.kts :feature:map:jvmTest \
             :feature:map:testAndroidHostTest --stacktrace
       - name: APK fdroid debug
+        timeout-minutes: 15
         run: |
           ./gradlew --stop
           pkill -f KotlinCompileDaemon || true
@@ -106,16 +111,21 @@ jobs:
           pkill -f KotlinCompileDaemon || true
           ./gradlew --init-script .github/ci/test-started.init.gradle.kts :feature:map-maplibre:jvmTest \
             :feature:map-maplibre:testAndroidHostTest --stacktrace
-      # Only when a step failed or timed out: what the machine and the Gradle daemons were doing, to tell a daemon
-      # short of memory (garbage collection taking the whole time) from a build waiting on something else.
+      # When a step failed, timed out or the job was cancelled (a job time-out is a cancellation, not a failure: run
+      # 48 skipped this step): what the machine and the Gradle daemons were doing, to tell a daemon short of memory
+      # (garbage collection taking the whole time) from one waiting on the network (open connections, a thread
+      # blocked in a socket read) or on a lock. Thread dumps are printed in full: the Gradle daemon's build thread
+      # ("Daemon worker") can sit past the first hundred lines.
       - name: Diagnostics after a failure
-        if: failure()
+        if: failure() || cancelled()
+        timeout-minutes: 5
         run: |
           free -m || true
           jps -lv || true
+          ss -tnp || true
           for pid in $(jps -q 2>/dev/null); do
             echo "=== JVM $pid"; jcmd "$pid" GC.heap_info || true; jstat -gcutil "$pid" || true
-            jcmd "$pid" Thread.print 2>/dev/null | head -n 120 || true
+            jcmd "$pid" Thread.print 2>/dev/null || true
           done
           for log in "${GRADLE_USER_HOME:-$HOME/.gradle}"/daemon/*/daemon-*.out.log; do
             [ -f "$log" ] && { echo "=== $log"; tail -n 80 "$log"; }
