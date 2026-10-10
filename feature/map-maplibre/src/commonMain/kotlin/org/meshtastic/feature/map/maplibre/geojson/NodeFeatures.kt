@@ -39,7 +39,7 @@ internal fun Int.toCssHex(): String {
  * Nodes without a usable fix are dropped rather than emitted at (0, 0) — that is what produced the "flying through the
  * ocean" jump on the OSMdroid map.
  */
-fun nodesToFeatureCollection(
+internal fun nodesToFeatureCollection(
     nodes: List<Node>,
     myNodeNum: Int? = null,
     alerts: Map<Int, ChipAlert> = emptyMap(),
