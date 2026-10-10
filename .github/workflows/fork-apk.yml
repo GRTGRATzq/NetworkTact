@@ -13,7 +13,9 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    # Each test step has its own 15-minute limit (a Gradle that freezes while configuring fails that step), and the
+    # job keeps room after it for the diagnostics step below.
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
         with:
@@ -47,29 +49,47 @@ jobs:
       # on its own instead. Per module: jvmTest (commonTest and jvmTest sources) everywhere, plus testAndroidHostTest
       # (commonTest and androidHostTest under Robolectric) where the module declares withHostTest.
       - name: Tests
-        run: >-
-          ./gradlew --init-script .github/ci/test-started.init.gradle.kts
-          :feature:messaging:jvmTest
-          :feature:node:jvmTest :feature:node:testAndroidHostTest
-          :feature:settings:jvmTest
-          :core:model:jvmTest :core:model:testAndroidHostTest
-          :core:prefs:jvmTest :core:prefs:testAndroidHostTest
-          :core:service:jvmTest :core:service:testAndroidHostTest
-          --stacktrace
+        timeout-minutes: 15
+        run: |
+          # A fresh Gradle daemon for each step: a daemon reused after the Robolectric host tests froze while
+          # configuring the next build (runs 45 and 47, no task started). The Kotlin daemon goes too.
+          ./gradlew --stop
+          pkill -f KotlinCompileDaemon || true
+          ./gradlew --init-script .github/ci/test-started.init.gradle.kts \
+            :feature:messaging:jvmTest \
+            :feature:node:jvmTest :feature:node:testAndroidHostTest \
+            :feature:settings:jvmTest \
+            :core:model:jvmTest :core:model:testAndroidHostTest \
+            :core:prefs:jvmTest :core:prefs:testAndroidHostTest \
+            :core:service:jvmTest :core:service:testAndroidHostTest \
+            --stacktrace
       # Own step, after the others: run in the same invocation, its JVM and Kotlin/Native compilations overlapped the
       # Robolectric host tests and froze the runner (runs 28 and 33).
-      # core:navigation is light (no Robolectric): it carries the demo's tab reset test.
+      # core:navigation stays out of fork-apk: its tests brought the runner down before (rule since task 4).
       - name: Tests core:demo
-        run: >-
-          ./gradlew --init-script .github/ci/test-started.init.gradle.kts :core:demo:jvmTest :core:navigation:jvmTest
-          --stacktrace
+        timeout-minutes: 15
+        run: |
+          # A fresh Gradle daemon for each step: a daemon reused after the Robolectric host tests froze while
+          # configuring the next build (runs 45 and 47, no task started). The Kotlin daemon goes too.
+          ./gradlew --stop
+          pkill -f KotlinCompileDaemon || true
+          ./gradlew --init-script .github/ci/test-started.init.gradle.kts :core:demo:jvmTest \
+            --stacktrace
       # Own step too: feature:map carries the shared-point dialog test (feat/fait-observe-carte).
       - name: Tests feature:map
-        run: >-
-          ./gradlew --init-script .github/ci/test-started.init.gradle.kts :feature:map:jvmTest
-          :feature:map:testAndroidHostTest --stacktrace
+        timeout-minutes: 15
+        run: |
+          # A fresh Gradle daemon for each step: a daemon reused after the Robolectric host tests froze while
+          # configuring the next build (runs 45 and 47, no task started). The Kotlin daemon goes too.
+          ./gradlew --stop
+          pkill -f KotlinCompileDaemon || true
+          ./gradlew --init-script .github/ci/test-started.init.gradle.kts :feature:map:jvmTest \
+            :feature:map:testAndroidHostTest --stacktrace
       - name: APK fdroid debug
-        run: ./gradlew :androidApp:assembleFdroidDebug --stacktrace
+        run: |
+          ./gradlew --stop
+          pkill -f KotlinCompileDaemon || true
+          ./gradlew :androidApp:assembleFdroidDebug --stacktrace
       - uses: actions/upload-artifact@v4
         with:
           name: apk-fdroid-debug
@@ -78,6 +98,25 @@ jobs:
       # position times; feat/carte-hors-ligne) next to its Compose UI tests, and the heaviest step should not cost
       # the APK if it strains the runner.
       - name: Tests feature:map-maplibre
-        run: >-
-          ./gradlew --init-script .github/ci/test-started.init.gradle.kts :feature:map-maplibre:jvmTest
-          :feature:map-maplibre:testAndroidHostTest --stacktrace
+        timeout-minutes: 15
+        run: |
+          # A fresh Gradle daemon for each step: a daemon reused after the Robolectric host tests froze while
+          # configuring the next build (runs 45 and 47, no task started). The Kotlin daemon goes too.
+          ./gradlew --stop
+          pkill -f KotlinCompileDaemon || true
+          ./gradlew --init-script .github/ci/test-started.init.gradle.kts :feature:map-maplibre:jvmTest \
+            :feature:map-maplibre:testAndroidHostTest --stacktrace
+      # Only when a step failed or timed out: what the machine and the Gradle daemons were doing, to tell a daemon
+      # short of memory (garbage collection taking the whole time) from a build waiting on something else.
+      - name: Diagnostics after a failure
+        if: failure()
+        run: |
+          free -m || true
+          jps -lv || true
+          for pid in $(jps -q 2>/dev/null); do
+            echo "=== JVM $pid"; jcmd "$pid" GC.heap_info || true; jstat -gcutil "$pid" || true
+            jcmd "$pid" Thread.print 2>/dev/null | head -n 120 || true
+          done
+          for log in "${GRADLE_USER_HOME:-$HOME/.gradle}"/daemon/*/daemon-*.out.log; do
+            [ -f "$log" ] && { echo "=== $log"; tail -n 80 "$log"; }
+          done
