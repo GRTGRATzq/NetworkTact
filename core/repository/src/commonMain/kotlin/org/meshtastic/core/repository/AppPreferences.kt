@@ -315,9 +315,23 @@ interface MapPrefs {
 
     /** Load the complete persisted camera, or null before the map has ever been positioned. */
     suspend fun awaitCameraPosition(): MapCameraPosition?
+
+    /** Which of this user's positions the map's "Recaler" button centres on; the radio's until chosen otherwise. */
+    val recenterTarget: StateFlow<RecenterTarget>
+
+    fun setRecenterTarget(target: RecenterTarget)
 }
 
 data class MapCameraPosition(val latitude: Double, val longitude: Double, val zoom: Double)
+
+/** The position "Recaler" centres the map on. */
+enum class RecenterTarget {
+    /** The radio's GPS position, the one the network receives. */
+    RADIO,
+
+    /** The phone's own GPS position, the blue dot. */
+    PHONE,
+}
 
 /** Reactive interface for map consent. */
 interface MapConsentPrefs {

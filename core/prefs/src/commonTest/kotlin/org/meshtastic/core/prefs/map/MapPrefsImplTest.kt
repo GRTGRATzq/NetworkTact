@@ -20,6 +20,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
@@ -28,6 +29,7 @@ import okio.Path
 import org.meshtastic.core.di.CoroutineDispatchers
 import org.meshtastic.core.prefs.di.asMapDataStore
 import org.meshtastic.core.repository.MapCameraPosition
+import org.meshtastic.core.repository.RecenterTarget
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -63,6 +65,26 @@ class MapPrefsImplTest {
     fun tearDown() {
         testScope.cancel()
         FileSystem.SYSTEM.deleteRecursively(tmpDir)
+    }
+
+    @Test
+    fun `recenter target is the radio until chosen otherwise, then remembered`() = testScope.runTest {
+        assertEquals(RecenterTarget.RADIO, prefs.recenterTarget.value)
+
+        prefs.setRecenterTarget(RecenterTarget.PHONE)
+        // The write goes through the store: wait for it to come back rather than read a value not yet updated.
+        prefs.recenterTarget.first { it == RecenterTarget.PHONE }
+
+        val reopened =
+            MapPrefsImpl(
+                dataStore.asMapDataStore(),
+                CoroutineDispatchers(
+                    UnconfinedTestDispatcher(testScheduler),
+                    UnconfinedTestDispatcher(testScheduler),
+                    UnconfinedTestDispatcher(testScheduler),
+                ),
+            )
+        assertEquals(RecenterTarget.PHONE, reopened.recenterTarget.first { it == RecenterTarget.PHONE })
     }
 
     @Test

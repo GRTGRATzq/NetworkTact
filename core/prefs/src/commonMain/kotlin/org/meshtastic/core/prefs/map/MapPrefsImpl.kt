@@ -23,6 +23,7 @@ import androidx.datastore.preferences.core.doublePreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
+import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
@@ -38,6 +39,7 @@ import org.meshtastic.core.prefs.di.MapDataStore
 import org.meshtastic.core.repository.MapCameraPosition
 import org.meshtastic.core.repository.MapFilterPrefs
 import org.meshtastic.core.repository.MapPrefs
+import org.meshtastic.core.repository.RecenterTarget
 
 @Single
 @Suppress("TooManyFunctions")
@@ -159,6 +161,16 @@ class MapPrefsImpl(private val dataStore: MapDataStore, dispatchers: CoroutineDi
         }
         .first()
 
+    override val recenterTarget: StateFlow<RecenterTarget> =
+        dataStore.data
+            .map { prefs -> RecenterTarget.entries.firstOrNull { it.name == prefs[KEY_RECENTER_TARGET] } }
+            .map { it ?: RecenterTarget.RADIO }
+            .stateIn(scope, SharingStarted.Eagerly, RecenterTarget.RADIO)
+
+    override fun setRecenterTarget(target: RecenterTarget) {
+        scope.launch { dataStore.edit { it[KEY_RECENTER_TARGET] = target.name } }
+    }
+
     companion object {
         val KEY_MAP_STYLE_PREF = intPreferencesKey("map_style_id")
         val KEY_SHOW_ONLY_FAVORITES_PREF = booleanPreferencesKey("show_only_favorites")
@@ -180,5 +192,6 @@ class MapPrefsImpl(private val dataStore: MapDataStore, dispatchers: CoroutineDi
         val KEY_CAMERA_LATITUDE = doublePreferencesKey("camera_latitude")
         val KEY_CAMERA_LONGITUDE = doublePreferencesKey("camera_longitude")
         val KEY_CAMERA_ZOOM = doublePreferencesKey("camera_zoom")
+        val KEY_RECENTER_TARGET = stringPreferencesKey("map_recenter_target")
     }
 }

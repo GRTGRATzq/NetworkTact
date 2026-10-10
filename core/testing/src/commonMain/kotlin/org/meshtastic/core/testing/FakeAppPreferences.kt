@@ -34,6 +34,7 @@ import org.meshtastic.core.repository.MapTileProviderPrefs
 import org.meshtastic.core.repository.MeshPrefs
 import org.meshtastic.core.repository.NodeFilterPrefs
 import org.meshtastic.core.repository.RadioPrefs
+import org.meshtastic.core.repository.RecenterTarget
 import org.meshtastic.core.repository.UiPrefs
 
 class FakeAnalyticsPrefs : AnalyticsPrefs {
@@ -290,6 +291,12 @@ class FakeMapPrefs : MapPrefs {
     }
 
     override suspend fun awaitCameraPosition(): MapCameraPosition? = cameraPosition
+
+    override val recenterTarget = MutableStateFlow(RecenterTarget.RADIO)
+
+    override fun setRecenterTarget(target: RecenterTarget) {
+        recenterTarget.value = target
+    }
 }
 
 class FakeMapConsentPrefs : MapConsentPrefs {
