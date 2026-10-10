@@ -117,9 +117,9 @@ internal fun NodePositionCard(node: Node, onDetails: () -> Unit, onDismiss: () -
     }
 }
 
-/** The command post view's position line, in its style. */
+/** The command post view's position line, in its style; also used by the "Recaler" card. */
 @Composable
-private fun PositionAge(state: PositionState) {
+internal fun PositionAge(state: PositionState) {
     val text = positionText(state)
     when {
         state.chipAlert != null ->
@@ -177,8 +177,9 @@ private fun positionText(state: PositionState): String = when (state) {
         stringResource(Res.string.command_post_position_inconsistent, formatAge(state.ahead))
 }
 
+/** "Relevée à 14:32", with the date when not today, or that the fix time is unknown. */
 @Composable
-private fun fixTimeText(fixEpochSeconds: Long?, sameDay: Boolean): String {
+internal fun fixTimeText(fixEpochSeconds: Long?, sameDay: Boolean): String {
     val fixMillis = fixEpochSeconds?.times(MILLIS_PER_SECOND) ?: return stringResource(Res.string.map_node_fix_unknown)
     return if (sameDay) {
         stringResource(Res.string.map_node_fix_at, DateFormatter.formatTime(fixMillis))
@@ -189,7 +190,7 @@ private fun fixTimeText(fixEpochSeconds: Long?, sameDay: Boolean): String {
 
 /** The command post view's durations: `45 s`, `25 min`, `2 h 05 min`, `3 d 4 h`. */
 @Composable
-private fun formatAge(duration: Duration): String {
+internal fun formatAge(duration: Duration): String {
     val totalMinutes = duration.inWholeMinutes
     return when {
         totalMinutes < 1 -> stringResource(Res.string.command_post_duration_seconds, duration.inWholeSeconds.toString())

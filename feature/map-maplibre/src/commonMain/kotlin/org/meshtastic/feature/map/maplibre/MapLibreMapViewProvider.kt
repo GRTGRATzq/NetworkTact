@@ -71,11 +71,15 @@ import org.meshtastic.feature.map.maplibre.component.MapLayersButton
 import org.meshtastic.feature.map.maplibre.component.MapPointSlot
 import org.meshtastic.feature.map.maplibre.component.MapZoom
 import org.meshtastic.feature.map.maplibre.component.OfflineMapTarget
+import org.meshtastic.feature.map.maplibre.component.RecenterButton
+import org.meshtastic.feature.map.maplibre.component.RecenterControls
+import org.meshtastic.feature.map.maplibre.component.RecenterSlot
 import org.meshtastic.feature.map.maplibre.component.WaypointDialogs
 import org.meshtastic.feature.map.maplibre.component.WaypointEditing
 import org.meshtastic.feature.map.maplibre.component.customRasterBasemaps
 import org.meshtastic.feature.map.maplibre.component.rememberBasemapSelection
 import org.meshtastic.feature.map.maplibre.component.rememberMapPointState
+import org.meshtastic.feature.map.maplibre.component.rememberRecenterControls
 import org.meshtastic.feature.map.maplibre.component.rememberWaypointEditing
 import org.meshtastic.feature.map.maplibre.geojson.ClusterMember
 import org.meshtastic.feature.map.maplibre.layers.CustomLayer
@@ -174,6 +178,7 @@ class MapLibreMapViewProvider(
                 pressedPoint = pressedPoint.pressed,
             )
 
+        val recenter = rememberRecenterControls(mapState)
         FocusCamera(mapState, focus, focusRequests)
         SaveCameraPosition(mapState)
 
@@ -190,11 +195,10 @@ class MapLibreMapViewProvider(
                 onMapClick = waypoints.onMapTap,
             )
 
-            MapZoom(mapState = mapState, basemap = basemaps.current)
-
-            OfflineIndicator(viewModel)
+            MapCornerControls(mapState, basemaps.current, viewModel, recenter)
 
             MapFootCards(focusRequests, screen.selectedNodeNum, navigateToNodeDetails, screen::clearNode) {
+                RecenterSlot(recenter)
                 MapPointSlot(pressedPoint, waypoints)
             }
 
@@ -212,13 +216,9 @@ class MapLibreMapViewProvider(
 
             ClusterMembersSlot(screen.clusterMembers, navigateToNodeDetails) { screen.clusterMembers = emptyList() }
 
-            SitePlannerSlot(
-                open = screen.plannerOpen,
-                nodeNum = sitePlannerNodeNum,
-                mapState = mapState,
-                planner = sitePlanner,
-                onDismiss = { screen.plannerOpen = false },
-            )
+            SitePlannerSlot(screen.plannerOpen, sitePlannerNodeNum, mapState, sitePlanner) {
+                screen.plannerOpen = false
+            }
 
             BoxAuthoringSlot(editing = waypoints, mapState = mapState)
 
@@ -287,6 +287,19 @@ private fun FocusCamera(mapState: MapState, focus: MapFocusPoint?, requests: Map
         // Only once the camera is there: clearing the request restarts this effect, which would cut the move short.
         requests.consume(focus)
     }
+}
+
+/** The controls in the map's corners: zoom, the offline pill and "Recaler". */
+@Composable
+private fun BoxScope.MapCornerControls(
+    mapState: MapState,
+    basemap: Basemap,
+    viewModel: SharedMapViewModel,
+    recenter: RecenterControls,
+) {
+    MapZoom(mapState = mapState, basemap = basemap)
+    OfflineIndicator(viewModel)
+    RecenterButton(recenter)
 }
 
 /** The "you're offline" pill, top-start so it never collides with the toolbar's top-center controls. */
