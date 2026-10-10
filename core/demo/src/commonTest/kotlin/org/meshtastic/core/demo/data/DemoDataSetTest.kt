@@ -20,6 +20,9 @@ import kotlinx.datetime.TimeZone
 import org.meshtastic.core.model.MessageStatus
 import org.meshtastic.core.model.freshness.NodeFreshness
 import org.meshtastic.core.model.freshness.PositionState
+import org.meshtastic.core.model.geo.LatLon
+import org.meshtastic.core.model.geo.PositionComparison
+import org.meshtastic.core.model.geo.RadioFixQuality
 import org.meshtastic.core.model.team.TeamSuffix
 import org.meshtastic.core.model.util.getChannel
 import kotlin.test.Test
@@ -48,6 +51,17 @@ class DemoDataSetTest {
         assertEquals("Bravo", TeamSuffix.teamOf(node(DemoDataSet.BRAVO2_NUM).user.long_name))
         assertEquals("Alpha", TeamSuffix.teamOf(node(DemoDataSet.CHARLIE3_NUM).user.long_name))
         assertEquals(listOf("Alpha", "Bravo"), data.roster.teams)
+    }
+
+    @Test
+    fun ownRadioHasAFreshFixWithItsQualityAndThePhoneIsAFewMetresAway() {
+        val pc0 = node(DemoDataSet.PC0_NUM)
+        assertIs<PositionState.Fresh>(NodeFreshness.position(pc0, nowSeconds))
+        val quality = RadioFixQuality.of(pc0.position.sats_in_view, pc0.position.HDOP, pc0.position.PDOP, 0)
+        assertEquals(9, quality.satellites)
+        assertEquals(1.2, quality.hdop)
+        val gap = PositionComparison.gapMeters(LatLon(pc0.latitude, pc0.longitude), DemoDataSet.PHONE_POINT)
+        assertTrue(gap in 20..40, "gap $gap m")
     }
 
     @Test

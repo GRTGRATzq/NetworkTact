@@ -27,6 +27,7 @@ import org.meshtastic.core.demo.DemoModeController
 import org.meshtastic.core.demo.data.DemoDataSet
 import org.meshtastic.core.demo.repository.DemoNodeRepository
 import org.meshtastic.core.demo.repository.DemoPacketRepository
+import org.meshtastic.core.demo.repository.DemoPhonePositionSource
 import org.meshtastic.core.demo.repository.DemoTeamRosterPrefs
 import org.meshtastic.core.demo.send.DemoMessagingController
 import org.meshtastic.core.demo.send.DemoSendMessageUseCase
@@ -35,10 +36,13 @@ import org.meshtastic.core.di.CoroutineDispatchers
 import org.meshtastic.core.model.DataPacket
 import org.meshtastic.core.model.Node
 import org.meshtastic.core.model.NodeAddress
+import org.meshtastic.core.model.geo.RadioPositionPacket
 import org.meshtastic.core.model.geo.SharedPoint
 import org.meshtastic.core.model.geo.toWaypoint
 import org.meshtastic.core.model.team.TeamRosterRecord
 import org.meshtastic.core.repository.MessagingController
+import org.meshtastic.core.repository.PhoneFix
+import org.meshtastic.core.repository.PhonePositionSource
 import org.meshtastic.core.repository.usecase.SendMessageUseCase
 import org.meshtastic.core.testing.FakeNodeRepository
 import org.meshtastic.core.testing.FakeRadioController
@@ -197,6 +201,38 @@ class ScreenFacadesTest {
         assertTrue(realRadio.sentPackets.isEmpty())
         assertTrue(store.packets.value.none { it.packet.dataType == PortNum.WAYPOINT_APP.value })
         assertTrue(realStore.packets.value.none { it.packet.dataType == PortNum.WAYPOINT_APP.value })
+    }
+
+    @Test
+    fun broadcastingThePositionDuringADemoEmitsNothing() = runTest(dispatcher) {
+        // Strict mock: the position packet reaching the real messaging controller fails the test.
+        val realMessaging = mock<MessagingController>()
+        val messaging = ScreenMessagingController(realMessaging, DemoMessagingController(), demoMode)
+        demoMode.activate()
+        val pc0 = assertNotNull(nodes.ourNodeInfo.value)
+
+        messaging.sendMessage(RadioPositionPacket.of(pc0.position))
+
+        assertTrue(realRadio.sentPackets.isEmpty())
+        assertTrue(store.packets.value.none { it.packet.dataType == PortNum.POSITION_APP.value })
+        assertTrue(realStore.packets.value.none { it.packet.dataType == PortNum.POSITION_APP.value })
+    }
+
+    @Test
+    fun phonePositionIsTheFictitiousOneDuringADemoOnly() = runTest(dispatcher) {
+        val realFix = PhoneFix(latitude = 45.0, longitude = 5.0, fixEpochSeconds = 1L)
+        val phone =
+            ScreenPhonePositionSource(PhonePositionSource { realFix }, DemoPhonePositionSource { 1_000L }, demoMode)
+        assertEquals(realFix, phone.lastFix())
+
+        demoMode.activate()
+        val demoFix = assertNotNull(phone.lastFix())
+        assertEquals(DemoDataSet.PHONE_POINT.latitude, demoFix.latitude)
+        assertEquals(DemoDataSet.PHONE_POINT.longitude, demoFix.longitude)
+        assertEquals(1_000L - DemoDataSet.PHONE_FIX_AGE.inWholeSeconds, demoFix.fixEpochSeconds)
+
+        demoMode.deactivate()
+        assertEquals(realFix, phone.lastFix())
     }
 
     @Test

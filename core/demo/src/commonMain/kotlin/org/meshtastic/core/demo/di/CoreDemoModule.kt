@@ -24,6 +24,7 @@ import org.koin.core.annotation.Single
 import org.meshtastic.core.demo.DemoModeController
 import org.meshtastic.core.demo.repository.DemoNodeRepository
 import org.meshtastic.core.demo.repository.DemoPacketRepository
+import org.meshtastic.core.demo.repository.DemoPhonePositionSource
 import org.meshtastic.core.demo.repository.DemoRadioConfigRepository
 import org.meshtastic.core.demo.repository.DemoTeamRosterPrefs
 import org.meshtastic.core.demo.send.DemoMessagingController
@@ -70,4 +71,6 @@ class CoreDemoModule {
         DemoSendMessageUseCase(store, packets, CoroutineScope(SupervisorJob() + dispatchers.default))
 
     @Single fun demoMessagingController(): DemoMessagingController = DemoMessagingController()
+
+    @Single fun demoPhonePositionSource(): DemoPhonePositionSource = DemoPhonePositionSource()
 }

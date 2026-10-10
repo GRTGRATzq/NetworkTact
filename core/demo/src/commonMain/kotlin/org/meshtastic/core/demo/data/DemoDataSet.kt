@@ -99,10 +99,37 @@ object DemoDataSet {
     private val observedFactAge = 10.minutes
     private val rosterAge = 30.minutes
 
+    /** Where this phone's own radio, PC-0, is. */
+    private val pc0Point = LatLon(48.858_400, 2.347_000)
+
+    /**
+     * Where the phone itself places its user, about 27 m from its radio's fix: the map's comparison of the two shows a
+     * gap, as two GPS receivers always do.
+     */
+    val PHONE_POINT = LatLon(48.858_600, 2.347_200)
+
+    /** How old the phone's fictitious fix is when asked for, and its accuracy as Android would give it. */
+    val PHONE_FIX_AGE = 20.seconds
+    const val PHONE_ACCURACY_METERS = 8f
+
+    /** What PC-0's radio says of its fix: 9 satellites, HDOP 1.2 (sent in hundredths). */
+    const val PC0_SATELLITES = 9
+    const val PC0_HDOP_HUNDREDTHS = 120
+
     /** The nodes: PC-0 is this phone's own; CHARLIE-3 has a position stored without any time. */
     private val nodeSpecs =
         listOf(
-            NodeSpec(PC0_NUM, "PC-0", "PC0", LatLon(48.858_400, 2.347_000), 1.minutes, Duration.ZERO, hops = 0),
+            NodeSpec(
+                PC0_NUM,
+                "PC-0",
+                "PC0",
+                pc0Point,
+                1.minutes,
+                Duration.ZERO,
+                hops = 0,
+                satellites = PC0_SATELLITES,
+                hdopHundredths = PC0_HDOP_HUNDREDTHS,
+            ),
             NodeSpec(ALPHA1_NUM, "ALPHA-1 [Alpha]", "A1", alpha1Point, alpha1PositionAge, 1.minutes, hops = 0),
             NodeSpec(BRAVO2_NUM, "BRAVO-2 [Bravo]", "B2", LatLon(48.860_100, 2.341_200), 25.minutes, 20.minutes, 2),
             NodeSpec(CHARLIE3_NUM, "CHARLIE-3 [Alpha]", "C3", LatLon(48.853_000, 2.360_000), null, 5.minutes, 1),
@@ -205,6 +232,9 @@ object DemoDataSet {
         val fixAge: Duration?,
         val heardAge: Duration,
         val hops: Int,
+        /** The fix quality the radio reports; 0 for "not sent". */
+        val satellites: Int = 0,
+        val hdopHundredths: Int = 0,
     ) {
         fun toNode(nowSeconds: Long): Node {
             val user =
@@ -226,6 +256,8 @@ object DemoDataSet {
                             it.timestamp = fixSeconds
                             it.time = fixSeconds
                         }
+                        it.sats_in_view = satellites
+                        it.HDOP = hdopHundredths
                     }
                     .build()
             val heard = (nowSeconds - heardAge.inWholeSeconds).toInt()

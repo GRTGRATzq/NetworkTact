@@ -22,12 +22,14 @@ import org.koin.core.annotation.Provided
 import org.koin.core.annotation.Single
 import org.meshtastic.core.demo.repository.DemoNodeRepository
 import org.meshtastic.core.demo.repository.DemoPacketRepository
+import org.meshtastic.core.demo.repository.DemoPhonePositionSource
 import org.meshtastic.core.demo.repository.DemoRadioConfigRepository
 import org.meshtastic.core.demo.repository.DemoTeamRosterPrefs
 import org.meshtastic.core.demo.screen.ScreenConnectionStateProvider
 import org.meshtastic.core.demo.screen.ScreenMessagingController
 import org.meshtastic.core.demo.screen.ScreenNodeRepository
 import org.meshtastic.core.demo.screen.ScreenPacketRepository
+import org.meshtastic.core.demo.screen.ScreenPhonePositionSource
 import org.meshtastic.core.demo.screen.ScreenRadioConfigRepository
 import org.meshtastic.core.demo.screen.ScreenRadioConfigUseCase
 import org.meshtastic.core.demo.screen.ScreenSendMessageUseCase
@@ -42,6 +44,7 @@ import org.meshtastic.core.repository.DemoMode
 import org.meshtastic.core.repository.MessagingController
 import org.meshtastic.core.repository.NodeRepository
 import org.meshtastic.core.repository.PacketRepository
+import org.meshtastic.core.repository.PhonePositionSource
 import org.meshtastic.core.repository.RadioConfigRepository
 import org.meshtastic.core.repository.RadioController
 import org.meshtastic.core.repository.SCREEN_DATA
@@ -122,4 +125,12 @@ class ScreenDataModule {
         store: DemoStore,
         demoMode: DemoMode,
     ): RadioConfigUseCase = ScreenRadioConfigUseCase(radioController, store, demoMode)
+
+    @Single
+    @Named(SCREEN_DATA)
+    fun screenPhonePositionSource(
+        @Provided real: PhonePositionSource,
+        demo: DemoPhonePositionSource,
+        demoMode: DemoMode,
+    ): PhonePositionSource = ScreenPhonePositionSource(real, demo, demoMode)
 }
