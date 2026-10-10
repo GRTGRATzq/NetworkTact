@@ -14,14 +14,23 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-package org.meshtastic.feature.messaging.coordinates
-
-/** The phone's last position fix: where, and when the fix was taken (epoch seconds, from the location provider). */
-data class PhoneFix(val latitude: Double, val longitude: Double, val fixEpochSeconds: Long)
+package org.meshtastic.core.repository
 
 /**
- * The phone's own last known position, used by "Ma position" only when the radio has none. Implementations read what
- * the system already holds and never start tracking; they return null without permission or without any fix.
+ * The phone's last position fix: where, when the fix was taken (epoch seconds, from the location provider) and, when
+ * the provider gives one, its estimated horizontal accuracy in metres.
+ */
+data class PhoneFix(
+    val latitude: Double,
+    val longitude: Double,
+    val fixEpochSeconds: Long,
+    val accuracyMeters: Float? = null,
+)
+
+/**
+ * The phone's own last known position, used by "Ma position" only when the radio has none, and shown beside the radio's
+ * on the map to compare them. Implementations read what the system already holds and never start tracking; they return
+ * null without permission or without any fix.
  */
 fun interface PhonePositionSource {
     suspend fun lastFix(): PhoneFix?

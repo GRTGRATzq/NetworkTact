@@ -22,6 +22,8 @@ import android.location.Location
 import android.location.LocationManager
 import org.koin.core.annotation.Single
 import org.meshtastic.core.common.hasLocationPermission
+import org.meshtastic.core.repository.PhoneFix
+import org.meshtastic.core.repository.PhonePositionSource
 
 /**
  * The most recent of the fixes Android already holds (GPS, network, fused). No location request is started, so nothing
@@ -43,7 +45,14 @@ class AndroidPhonePositionSource(private val context: Context) : PhonePositionSo
             } catch (_: SecurityException) {
                 null
             }
-        return latest?.let { PhoneFix(it.latitude, it.longitude, it.time / MILLIS_PER_SECOND) }
+        return latest?.let {
+            PhoneFix(
+                latitude = it.latitude,
+                longitude = it.longitude,
+                fixEpochSeconds = it.time / MILLIS_PER_SECOND,
+                accuracyMeters = if (it.hasAccuracy()) it.accuracy else null,
+            )
+        }
     }
 
     private companion object {

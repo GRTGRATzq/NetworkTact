@@ -18,6 +18,7 @@ package org.meshtastic.feature.messaging.coordinates
 
 import kotlinx.datetime.TimeZone
 import org.meshtastic.core.model.Node
+import org.meshtastic.core.repository.PhoneFix
 import org.meshtastic.feature.messaging.priority.MessagePriority
 import org.meshtastic.proto.Position
 import org.meshtastic.proto.User

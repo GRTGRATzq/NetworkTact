@@ -24,6 +24,7 @@ import org.meshtastic.core.model.geo.LatLon
 import org.meshtastic.core.model.geo.PositionMessage
 import org.meshtastic.core.model.geo.PositionSource
 import org.meshtastic.core.model.team.TeamSuffix
+import org.meshtastic.core.repository.PhoneFix
 
 /** What the "Ma position" shortcut can put in the input. */
 sealed interface MyPositionResult {

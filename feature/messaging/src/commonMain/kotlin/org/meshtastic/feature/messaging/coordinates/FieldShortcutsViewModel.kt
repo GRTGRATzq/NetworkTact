@@ -23,6 +23,7 @@ import org.meshtastic.core.common.util.nowSeconds
 import org.meshtastic.core.common.util.systemTimeZone
 import org.meshtastic.core.repository.DemoMode
 import org.meshtastic.core.repository.NodeRepository
+import org.meshtastic.core.repository.PhonePositionSource
 import org.meshtastic.core.repository.SCREEN_DATA
 
 /** Reads what the field shortcuts need. Builds text only: sending stays with the user. */

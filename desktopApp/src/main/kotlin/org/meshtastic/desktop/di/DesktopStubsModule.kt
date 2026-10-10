@@ -23,6 +23,7 @@ import org.meshtastic.core.repository.AppWidgetUpdater
 import org.meshtastic.core.repository.LocationRepository
 import org.meshtastic.core.repository.MeshLocationManager
 import org.meshtastic.core.repository.MeshWorkerManager
+import org.meshtastic.core.repository.PhonePositionSource
 import org.meshtastic.core.repository.PlatformAnalytics
 import org.meshtastic.desktop.stub.NoopAppWidgetUpdater
 import org.meshtastic.desktop.stub.NoopCompassHeadingProvider
@@ -33,7 +34,6 @@ import org.meshtastic.desktop.stub.NoopMeshLocationManager
 import org.meshtastic.desktop.stub.NoopMeshWorkerManager
 import org.meshtastic.desktop.stub.NoopPhoneLocationProvider
 import org.meshtastic.desktop.stub.NoopPlatformAnalytics
-import org.meshtastic.feature.messaging.coordinates.PhonePositionSource
 import org.meshtastic.feature.node.compass.CompassHeadingProvider
 import org.meshtastic.feature.node.compass.MagneticFieldProvider
 import org.meshtastic.feature.node.compass.PhoneLocationProvider
