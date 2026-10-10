@@ -23,7 +23,9 @@ import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.v2.runComposeUiTest
+import org.meshtastic.core.model.geo.CoordinateFormat
 import kotlin.test.Test
+import kotlin.test.assertEquals
 
 @OptIn(ExperimentalTestApi::class)
 class CoordinateConverterContentTest {
@@ -45,5 +47,21 @@ class CoordinateConverterContentTest {
         onNode(hasSetTextAction()).performTextInput("31U DQ 4825 1193")
 
         onNodeWithText("MGRS needs exactly 10 digits (5 + 5, 1 m).").assertIsDisplayed()
+    }
+
+    @Test
+    fun prefilled_input_is_converted_at_once() = runComposeUiTest {
+        setContent { MaterialTheme { CoordinateConverterContent(initialInput = "31U DQ 48251 11932") } }
+
+        onNodeWithText("31U 448251 5411932").assertIsDisplayed()
+        onNodeWithText("48°51'29\"N 002°17'40\"E").assertIsDisplayed()
+    }
+
+    @Test
+    fun initial_format_follows_the_prefilled_input() {
+        assertEquals(CoordinateFormat.MGRS, initialFormat("31U DQ 48251 11932"))
+        assertEquals(CoordinateFormat.UTM, initialFormat("31U 448251 5411932"))
+        assertEquals(CoordinateFormat.DMS, initialFormat("48°51'29\"N 002°17'40\"E"))
+        assertEquals(CoordinateFormat.MGRS, initialFormat(""))
     }
 }

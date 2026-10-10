@@ -51,8 +51,11 @@ sealed interface ContactsRoute : Route {
 
     @Serializable data object QuickChat : ContactsRoute
 
-    /** Offline MGRS / UTM / DMS converter, opened from a conversation. */
-    @Serializable data object CoordinateConverter : ContactsRoute
+    /**
+     * Offline MGRS / UTM / DMS converter, opened from a conversation or from a point of the map; [input] is a
+     * coordinate to start from, empty for none.
+     */
+    @Serializable data class CoordinateConverter(val input: String = "") : ContactsRoute
 }
 
 @Serializable

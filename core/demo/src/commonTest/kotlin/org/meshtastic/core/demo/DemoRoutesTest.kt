@@ -34,7 +34,7 @@ class DemoRoutesTest {
         listOf(
             ContactsRoute.Contacts,
             ContactsRoute.Messages(contactKey = "0^all"),
-            ContactsRoute.CoordinateConverter,
+            ContactsRoute.CoordinateConverter(),
             NodesRoute.CommandPost,
             SettingsRoute.Settings(),
             SettingsRoute.Teams,

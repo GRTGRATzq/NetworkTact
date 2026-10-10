@@ -76,7 +76,7 @@ fun EntryProviderScope<NavKey>.contactsGraph(
             dropUnlessResumed { backStack.add(org.meshtastic.core.navigation.ContactsRoute.QuickChat) },
             navigateToFilterSettings = dropUnlessResumed { backStack.add(SettingsRoute.FilterSettings) },
             onNavigateBack = dropUnlessResumed { backStack.removeLastOrNull() },
-            navigateToCoordinateConverter = dropUnlessResumed { backStack.add(ContactsRoute.CoordinateConverter) },
+            navigateToCoordinateConverter = dropUnlessResumed { backStack.add(ContactsRoute.CoordinateConverter()) },
             navigateToMap = dropUnlessResumed { backStack.add(MapRoute.Map()) },
         )
     }
@@ -91,8 +91,8 @@ fun EntryProviderScope<NavKey>.contactsGraph(
         )
     }
 
-    entry<ContactsRoute.CoordinateConverter>(metadata = { ListDetailSceneStrategy.extraPane() }) {
-        CoordinateConverterScreen(onNavigateUp = dropUnlessResumed { backStack.removeLastOrNull() })
+    entry<ContactsRoute.CoordinateConverter>(metadata = { ListDetailSceneStrategy.extraPane() }) { args ->
+        CoordinateConverterScreen(input = args.input, onNavigateUp = dropUnlessResumed { backStack.removeLastOrNull() })
     }
 
     entry<ContactsRoute.QuickChat>(metadata = { ListDetailSceneStrategy.extraPane() }) {

@@ -53,7 +53,7 @@ import org.meshtastic.core.ui.theme.AppTheme
 
 /** Offline converter: a position typed in MGRS, UTM or DMS, shown in the other two formats. */
 @Composable
-fun CoordinateConverterScreen(onNavigateUp: () -> Unit, modifier: Modifier = Modifier) {
+fun CoordinateConverterScreen(onNavigateUp: () -> Unit, modifier: Modifier = Modifier, input: String = "") {
     Scaffold(
         modifier = modifier,
         topBar = {
@@ -68,16 +68,16 @@ fun CoordinateConverterScreen(onNavigateUp: () -> Unit, modifier: Modifier = Mod
             )
         },
     ) { innerPadding ->
-        CoordinateConverterContent(modifier = Modifier.fillMaxSize().padding(innerPadding))
+        CoordinateConverterContent(modifier = Modifier.fillMaxSize().padding(innerPadding), initialInput = input)
     }
 }
 
 @Composable
-internal fun CoordinateConverterContent(modifier: Modifier = Modifier) {
+internal fun CoordinateConverterContent(modifier: Modifier = Modifier, initialInput: String = "") {
     // Saved by name: an enum is not saveable on every platform.
-    var formatName by rememberSaveable { mutableStateOf(CoordinateFormat.MGRS.name) }
+    var formatName by rememberSaveable { mutableStateOf(initialFormat(initialInput).name) }
     val format = CoordinateFormat.valueOf(formatName)
-    var text by rememberSaveable { mutableStateOf("") }
+    var text by rememberSaveable { mutableStateOf(initialInput) }
     val input = remember(text, format) { CoordinateParser.parse(text, format) }
 
     Column(
@@ -103,6 +103,11 @@ internal fun CoordinateConverterContent(modifier: Modifier = Modifier) {
         )
     }
 }
+
+/** The format [input] is written in, MGRS when it is empty or matches none, so the field opens on the right tab. */
+internal fun initialFormat(input: String): CoordinateFormat =
+    CoordinateFormat.entries.firstOrNull { CoordinateParser.parse(input, it) is CoordinateInput.Valid }
+        ?: CoordinateFormat.MGRS
 
 /** The two formats the user did not type, selectable so they can be copied. */
 @Composable
