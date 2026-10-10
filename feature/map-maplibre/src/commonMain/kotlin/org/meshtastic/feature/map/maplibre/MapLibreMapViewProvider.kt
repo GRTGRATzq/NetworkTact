@@ -195,7 +195,7 @@ class MapLibreMapViewProvider(
                 onMapClick = waypoints.onMapTap,
             )
 
-            MapCornerControls(mapState, basemaps.current, viewModel, recenter)
+            MapCornerControls(mapState, basemaps.current, recenter)
 
             MapFootCards(focusRequests, screen.selectedNodeNum, navigateToNodeDetails, screen::clearNode) {
                 RecenterSlot(recenter)
@@ -291,12 +291,8 @@ private fun FocusCamera(mapState: MapState, focus: MapFocusPoint?, requests: Map
 
 /** The controls in the map's corners: zoom, the offline pill and "Recaler". */
 @Composable
-private fun BoxScope.MapCornerControls(
-    mapState: MapState,
-    basemap: Basemap,
-    viewModel: SharedMapViewModel,
-    recenter: RecenterControls,
-) {
+private fun BoxScope.MapCornerControls(mapState: MapState, basemap: Basemap, recenter: RecenterControls) {
+    val viewModel: SharedMapViewModel = koinViewModel()
     MapZoom(mapState = mapState, basemap = basemap)
     OfflineIndicator(viewModel)
     RecenterButton(recenter)

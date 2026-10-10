@@ -153,31 +153,35 @@ internal fun RecenterCard(
 
 @Composable
 private fun TargetChoice(state: RecenterState, onTargetChange: (RecenterTarget) -> Unit) {
-    Text(stringResource(Res.string.recenter_centre_on), style = MaterialTheme.typography.labelLarge)
-    SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-        TARGETS.forEachIndexed { index, (target, label) ->
-            SegmentedButton(
-                shape = SegmentedButtonDefaults.itemShape(index, TARGETS.size),
-                onClick = { onTargetChange(target) },
-                selected = state.target == target,
-                label = { Text(stringResource(label)) },
-            )
-        }
-    }
-    if (state.centredOnOther) {
-        val note =
-            when (state.target) {
-                RecenterTarget.RADIO -> Res.string.recenter_centred_on_phone_instead
-                RecenterTarget.PHONE -> Res.string.recenter_centred_on_radio_instead
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(stringResource(Res.string.recenter_centre_on), style = MaterialTheme.typography.labelLarge)
+        SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+            TARGETS.forEachIndexed { index, (target, label) ->
+                SegmentedButton(
+                    shape = SegmentedButtonDefaults.itemShape(index, TARGETS.size),
+                    onClick = { onTargetChange(target) },
+                    selected = state.target == target,
+                    label = { Text(stringResource(label)) },
+                )
             }
-        SmallText(stringResource(note))
+        }
+        if (state.centredOnOther) {
+            val note =
+                when (state.target) {
+                    RecenterTarget.RADIO -> Res.string.recenter_centred_on_phone_instead
+                    RecenterTarget.PHONE -> Res.string.recenter_centred_on_radio_instead
+                }
+            SmallText(stringResource(note))
+        }
     }
 }
 
 @Composable
 private fun SideHeader(title: StringResource, source: StringResource) {
-    Text(stringResource(title), style = MaterialTheme.typography.labelLarge)
-    SmallText(stringResource(source))
+    Column {
+        Text(stringResource(title), style = MaterialTheme.typography.labelLarge)
+        SmallText(stringResource(source))
+    }
 }
 
 /** How old the position is in the command post view's words, when it was taken, and [accuracy]. */
@@ -188,13 +192,15 @@ private fun SideDetails(
     missing: StringResource,
     accuracy: @Composable () -> Unit,
 ) {
-    if (side == null) {
-        SmallText(stringResource(missing))
-        return
+    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        if (side == null) {
+            SmallText(stringResource(missing))
+        } else {
+            PositionAge(side.state)
+            SmallText(fixTimeText(side.fixEpochSeconds, sameDay(side.fixEpochSeconds, nowEpochSeconds)))
+            accuracy()
+        }
     }
-    PositionAge(side.state)
-    SmallText(fixTimeText(side.fixEpochSeconds, sameDay(side.fixEpochSeconds, nowEpochSeconds)))
-    accuracy()
 }
 
 @Composable
@@ -205,9 +211,13 @@ private fun RadioQualityLines(quality: RadioFixQuality?) {
             quality?.hdop?.let { stringResource(Res.string.recenter_hdop, NumberFormatter.format(it, 1)) },
             quality?.pdop?.let { stringResource(Res.string.recenter_pdop, NumberFormatter.format(it, 1)) },
         )
-    SmallText(if (parts.isEmpty()) stringResource(Res.string.recenter_quality_not_sent) else parts.joinToString(" · "))
-    quality?.channelPrecisionMeters?.let { radius ->
-        SmallText(stringResource(Res.string.recenter_channel_precision, NumberFormatter.format(radius, 0)))
+    Column {
+        SmallText(
+            if (parts.isEmpty()) stringResource(Res.string.recenter_quality_not_sent) else parts.joinToString(" · "),
+        )
+        quality?.channelPrecisionMeters?.let { radius ->
+            SmallText(stringResource(Res.string.recenter_channel_precision, NumberFormatter.format(radius, 0)))
+        }
     }
 }
 
@@ -220,21 +230,30 @@ private fun phoneAccuracyText(accuracyMeters: Float?): String =
 @Composable
 private fun BroadcastSection(state: RecenterState, onBroadcast: () -> Unit) {
     val check = state.broadcast
-    Button(onClick = onBroadcast, enabled = check is BroadcastCheck.Ready, modifier = Modifier.fillMaxWidth()) {
-        Text(stringResource(Res.string.recenter_broadcast))
-    }
-    when (check) {
-        is BroadcastCheck.Refused -> SmallText(stringResource(check.reason.text))
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Button(onClick = onBroadcast, enabled = check is BroadcastCheck.Ready, modifier = Modifier.fillMaxWidth()) {
+            Text(stringResource(Res.string.recenter_broadcast))
+        }
+        when (check) {
+            is BroadcastCheck.Refused -> SmallText(stringResource(check.reason.text))
 
-        is BroadcastCheck.CoolingDown ->
-            SmallText(stringResource(Res.string.recenter_broadcast_wait, check.remainingSeconds.toString()))
+            is BroadcastCheck.CoolingDown ->
+                SmallText(stringResource(Res.string.recenter_broadcast_wait, check.remainingSeconds.toString()))
 
-        is BroadcastCheck.Ready -> Unit
+            is BroadcastCheck.Ready -> Unit
+        }
+        BroadcastOutcome(state)
     }
-    if (state.sendFailed) {
-        SmallText(stringResource(Res.string.recenter_send_failed))
-    } else {
-        state.lastSent?.let { sent ->
+}
+
+/** "Position diffusée à 14:35 (relevée à 14:34)", or that the radio did not take the position. */
+@Composable
+private fun BroadcastOutcome(state: RecenterState) {
+    val sent = state.lastSent
+    when {
+        state.sendFailed -> SmallText(stringResource(Res.string.recenter_send_failed))
+
+        sent != null ->
             Text(
                 stringResource(
                     Res.string.recenter_sent,
@@ -243,7 +262,6 @@ private fun BroadcastSection(state: RecenterState, onBroadcast: () -> Unit) {
                 ),
                 style = MaterialTheme.typography.bodyMedium,
             )
-        }
     }
 }
 
