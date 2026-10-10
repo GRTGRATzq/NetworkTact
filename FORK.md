@@ -1,7 +1,7 @@
 # NetworkTact
 
 NetworkTact est un fork de [Meshtastic-Android](https://github.com/meshtastic/Meshtastic-Android),
-modifié à partir du 26 septembre 2026 (dernière mise à jour de ce fichier : 8 octobre 2026, branche `feat/carte-hors-ligne`).
+modifié à partir du 26 septembre 2026 (dernière mise à jour de ce fichier : 10 octobre 2026, branche `feat/carte-coordonnees`).
 
 - **Licence** : GPL-3.0-or-later (voir le fichier `LICENSE`, inchangé).
 - **Origine** : code de Meshtastic-Android, © Meshtastic LLC. Les mentions de copyright de
@@ -10,8 +10,9 @@ modifié à partir du 26 septembre 2026 (dernière mise à jour de ce fichier : 
 - **Code source** : https://github.com/GRTGRATzq/NetworkTact
 - **Radios** : le firmware des radios n'est pas modifié. Aucun nouveau protocole radio ni
   nouveau type de paquet : toutes les conventions ci-dessous sont du texte ordinaire, lisible
-  par l'application Meshtastic officielle. Seule exception, le partage d'un point sur la carte
-  (section 12) utilise le point de repère (waypoint) que Meshtastic sait déjà envoyer.
+  par l'application Meshtastic officielle. Deux exceptions, qui utilisent des paquets que
+  Meshtastic sait déjà envoyer : le partage d'un point sur la carte (section 12, point de repère)
+  et « Diffuser ma position maintenant » (section 15, position standard).
 
 Le détail de chaque changement est dans l'historique Git de ce dépôt.
 
@@ -136,11 +137,11 @@ quitter l'écran de l'application y met fin. La version bureau n'a pas d'interru
 
 | Écran | En mode démo |
 |---|---|
-| Conversations, une conversation, convertisseur de coordonnées | données fictives |
+| Conversations, une conversation, convertisseur de coordonnées, choix de la conversation où insérer un texte (depuis la section 15) | données fictives |
 | Vue PC (l'onglet Nœuds s'ouvre dessus), Équipes | données fictives |
 | Réglages du téléphone | fictifs. Réglages directs grisés « Indisponible en mode démo », sauf Terrain/PC (gardé en mémoire, le vrai choix est rétabli à la sortie) |
 | À propos, Remerciements, Aide | inchangés |
-| Carte (variante fdroid, depuis la section 14) | nœuds et points fictifs ; point GPS du téléphone, création et partage de points de repère, Site Planner masqués |
+| Carte (variante fdroid, depuis la section 14) | nœuds et points fictifs ; point GPS du téléphone, création et partage de points de repère, Site Planner masqués ; coordonnée à l'appui long et « Recaler » sur les positions fictives, sans diffusion (section 15) |
 | Liste des nœuds, fiche d'un nœud, carte de la variante google, connexions, configuration radio et modules, administration à distance, et tout autre écran | « Indisponible en mode démo » |
 
 La liste des écrans permis est fermée (`core/demo/.../DemoRoutes.kt`) : un écran ajouté plus
@@ -160,7 +161,8 @@ Liaisons Koin ajoutées (`CoreDemoModule`, `ScreenDataModule`) :
   `DemoTeamRosterPrefs`, `DemoSendMessageUseCase`, `DemoMessagingController` ;
 - sous `@Named(SCREEN_DATA)` : `NodeRepository`, `PacketRepository`,
   `RadioConfigRepository`, `TeamRosterPrefs`, `SendMessageUseCase`, `MessagingController`,
-  `ConnectionStateProvider`, `UiPrefs`, `RadioConfigUseCase`.
+  `ConnectionStateProvider`, `UiPrefs`, `RadioConfigUseCase`, et `PhonePositionSource` (depuis
+  la section 15, avec `DemoPhonePositionSource` sous sa seule classe).
 
 Exceptions detekt `@Suppress("TooManyFunctions")`, au niveau de la classe, avec le commentaire
 « Tous les membres sont imposés par l'interface » : `DemoNodeRepository`,
@@ -356,6 +358,70 @@ fichier MBTiles et sans carte locale. Rien n'est émis par radio.
   compilées à part par `.github/workflows/ios-check.yml`, lancé à la main et chaque lundi
   (le déclenchement hebdomadaire ne fonctionne que depuis la branche par défaut), sans jamais
   bloquer `fork-apk`.
+
+### 15. Coordonnée au toucher et recalage GPS (`feat/carte-coordonnees`)
+
+Carte MapLibre (variante fdroid ; bureau pour ce qui est commun). Rien ne dépend du fond de
+carte : `.pmtiles`, `.mbtiles` ou fond en ligne. La carte Google (variante google) ne change pas.
+
+- **Coordonnée à l'appui long** : un appui long ouvre un encart avec la coordonnée du point en
+  MGRS à 1 m, UTM et DMS (`MapPointCoordinate`, `core/model/.../geo`), marquée par le marqueur
+  de « Voir sur la carte ». L'encart rappelle que c'est un lieu choisi, sans heure, et non une
+  position GPS. Le simple toucher reste réservé à la sélection des marqueurs. Actions :
+  - « Copier » et « Insérer dans un message » donnent le texte
+    `Point carte · MGRS … · UTM … · DMS …` (MGRS en premier, relu par `MessageCoordinate`).
+    L'insertion passe par l'écran existant de choix d'une conversation, qui s'ouvre avec le texte
+    dans la zone de saisie ; rien n'est envoyé ;
+  - « Ouvrir dans le convertisseur » : la route `ContactsRoute.CoordinateConverter` prend un texte
+    de départ (le MGRS, ou le DMS au-delà de 84° N et 80° S) et s'ouvre sur l'onglet du format ;
+  - « Créer un point de repère ici » : l'ancienne action de l'appui long, gardée dans l'encart,
+    proposée seulement quand elle était possible (radio connectée, hors démo, hors tracé de zone).
+
+  La carte demande ces écrans par `MapNavigationRequests` (`core/ui`), que son entrée de
+  navigation ouvre ; le contrat `MapViewProvider` ne change pas.
+- **Bouton « Recaler »** (en haut à droite) : centre la carte sur la position choisie, au moins
+  au zoom de détail, et ouvre un encart rafraîchi chaque seconde (`RecenterViewModel`,
+  `feature/map/.../recenter`) :
+  - côte à côte, **Ma radio** (« GPS de la radio : la position que reçoit le réseau ») et **Ce
+    téléphone** (« GPS du téléphone : le point bleu de la carte »), chacune avec son âge dans les
+    mots et le style de la vue PC, son heure de relevé (« Relevée à 14:32 », la date si ce n'est
+    pas aujourd'hui, ou heure inconnue) et sa précision : satellites, HDOP et PDOP de la radio
+    (`RadioFixQuality`, « précision non transmise » s'ils manquent, rayon de la précision réduite
+    par le canal le cas échéant), précision horizontale d'Android pour le téléphone (`PhoneFix`
+    porte désormais `accuracyMeters` ; `PhonePositionSource` est passé dans `core/repository`) ;
+  - l'écart entre les deux en mètres (`PositionComparison`), et le rappel que diffuser ne rend
+    pas le GPS plus précis : la précision dépend des satellites reçus par chaque GPS ;
+  - « Centrer sur : Radio / Téléphone », mémorisé (`MapPrefs.recenterTarget`, radio par défaut) ;
+    sans la position choisie, la carte se centre sur l'autre et l'encart le dit.
+- **« Diffuser ma position maintenant »** : un seul paquet, jamais automatique ni périodique.
+  - Contenu (`RadioPositionPacket`) : une position Meshtastic standard (`POSITION_APP`, aucun
+    nouveau type), en diffusion sur le canal principal, sans demande d'accusé, envoyée par la
+    fonction d'envoi existante (celle des points de repère). Elle contient la dernière position
+    de **la radio** telle quelle, son heure de relevé GPS (`timestamp`) recopiée dans `time` :
+    un récepteur lit l'âge du relevé, jamais l'heure de diffusion. Le firmware peut réduire la
+    précision selon le réglage du canal. La position du téléphone n'est **jamais** diffusée.
+  - Refus (`RadioPositionBroadcast`), expliqués dans l'encart : mode démo, radio non connectée,
+    radio sans position, heure de relevé inconnue (une position sans `timestamp` passerait pour
+    actuelle ; l'encart propose d'activer l'horodatage dans les réglages de position de la radio)
+    ou dans le futur.
+  - Confirmation obligatoire : avertissement sur le temps d'antenne, heure de relevé, et, pour
+    une position ancienne (plus de 10 min), son âge.
+  - Après l'envoi : « Position diffusée à 14:35 (relevée à 14:34) » ; « diffusée » veut dire
+    remise à la radio pour diffusion, sans accusé. Si la radio refuse le paquet, l'encart le dit
+    et l'attente ne démarre pas. Ensuite le bouton est bloqué 30 s avec un compte à rebours.
+- **Mode démo** : coordonnée au toucher, insertion (écran de choix de la conversation ajouté à la
+  liste blanche, lu par les façades) et convertisseur disponibles ; « Recaler » sur PC-0
+  (9 satellites, HDOP 1,2) et une position fictive du téléphone à environ 27 m, relevée il y a
+  20 s, précision 8 m (façade `@Named(SCREEN_DATA)` `PhonePositionSource`) ; la diffusion est
+  refusée, et le contrôleur d'envoi de la démo ne transmettrait rien (testé dans
+  `ScreenFacadesTest`).
+- **Tests** : `MapPointCoordinateTest`, `PositionComparisonTest`, `RadioPositionBroadcastTest`,
+  `RadioPositionPacketTest` (`core:model`) ; `RecenterViewModelTest` (`feature:map` : refus
+  sans heure, sans connexion, sans position de la radio et en démo, position ancienne après
+  confirmation, attente de 30 s, échec d'envoi, contenu du paquet) ; `MapPointStateTest`
+  (`feature:map-maplibre`) ; `ScreenFacadesTest`, `DemoDataSetTest`, `DemoRoutesTest`
+  (`core:demo`) ; `MapPrefsImplTest` (`core:prefs`) ; `CoordinateConverterContentTest`
+  (`feature:messaging`). Tous ces modules tournent déjà dans `fork-apk`.
 
 ## Marques
 
