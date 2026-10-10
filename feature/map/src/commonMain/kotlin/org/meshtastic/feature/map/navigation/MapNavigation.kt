@@ -16,14 +16,18 @@
  */
 package org.meshtastic.feature.map.navigation
 
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import org.meshtastic.core.navigation.MapRoute
 import org.meshtastic.core.navigation.NodesRoute
+import org.meshtastic.core.ui.util.MapNavigationRequests
 
 fun EntryProviderScope<NavKey>.mapGraph(backStack: NavBackStack<NavKey>) {
     entry<MapRoute.Map> { args ->
+        OpenRequestedScreens(backStack)
         val mapScreen = org.meshtastic.core.ui.util.LocalMapMainScreenProvider.current
         mapScreen(
             { id -> backStack.add(NodesRoute.NodeDetail(id)) }, // onClickNodeChip
@@ -32,4 +36,10 @@ fun EntryProviderScope<NavKey>.mapGraph(backStack: NavBackStack<NavKey>) {
             args.sitePlannerNodeNum,
         )
     }
+}
+
+/** Opens the screens the map asks for, from a point of the map: the converter, the choice of a conversation. */
+@Composable
+private fun OpenRequestedScreens(backStack: NavBackStack<NavKey>) {
+    LaunchedEffect(backStack) { MapNavigationRequests.requests.collect { route -> backStack.add(route) } }
 }

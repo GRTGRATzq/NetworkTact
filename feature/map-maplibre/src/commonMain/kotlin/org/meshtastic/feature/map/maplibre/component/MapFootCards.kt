@@ -46,8 +46,9 @@ import org.meshtastic.core.ui.util.MapFocusRequests
 import org.meshtastic.feature.map.SharedMapViewModel
 
 /**
- * The cards over the foot of the main map: the point another screen asked to show, then the node whose chip was tapped.
- * Stacked, so neither hides the other; clear of the zoom buttons and the attribution along the bottom edge.
+ * The cards over the foot of the main map: [topCard] (the long-pressed point), the point another screen asked to show,
+ * then the node whose chip was tapped. Stacked, so none hides another; clear of the zoom buttons and the attribution
+ * along the bottom edge.
  */
 @Composable
 internal fun BoxScope.MapFootCards(
@@ -55,6 +56,7 @@ internal fun BoxScope.MapFootCards(
     selectedNode: Int?,
     onNodeDetails: (Int) -> Unit,
     onNodeDismiss: () -> Unit,
+    topCard: @Composable () -> Unit = {},
 ) {
     val marked by focusRequests.marked.collectAsStateWithLifecycle()
     Column(
@@ -62,6 +64,7 @@ internal fun BoxScope.MapFootCards(
         verticalArrangement = Arrangement.spacedBy(8.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
+        topCard()
         MarkedPointBanner(point = marked, onClear = focusRequests::clearMark)
         NodePositionCardSlot(nodeNum = selectedNode, onDetails = onNodeDetails, onDismiss = onNodeDismiss)
     }

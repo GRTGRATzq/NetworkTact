@@ -1072,9 +1072,16 @@
     <string name="map_overlay_hillshade">Hillshade</string>
     <string name="map_overlay_precipitation">Precipitation</string>
     <string name="map_overlay_weather_radar">Weather radar</string>
+    <string name="map_point_card_hint">A place picked on the map, with no time: not a GPS position.</string>
+    <string name="map_point_card_title">Point on the map</string>
+    <string name="map_point_copied">Copied</string>
+    <string name="map_point_copy">Copy</string>
+    <string name="map_point_create_waypoint">Create a waypoint here</string>
     <string name="map_point_hide">Hide the point</string>
+    <string name="map_point_insert">Insert in a message</string>
     <string name="map_point_observed_fact">Observed fact %1$s · %2$s</string>
     <string name="map_point_observed_fact_no_time">Observed fact · time unknown · %1$s</string>
+    <string name="map_point_open_converter">Open in the converter</string>
     <string name="map_point_other">Point from a message · time unknown · %1$s, received %2$s</string>
     <string name="map_point_position">Position taken %1$s · %2$s</string>
     <string name="map_point_position_inconsistent">Position · inconsistent fix time · %1$s</string>

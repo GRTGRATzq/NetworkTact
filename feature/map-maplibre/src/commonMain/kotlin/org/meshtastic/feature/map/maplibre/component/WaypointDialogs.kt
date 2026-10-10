@@ -177,14 +177,16 @@ private fun WaypointRemoval(
 }
 
 /**
- * Long-press placement, the waypoint currently being edited, and the geofence box being drawn for one.
+ * Placement at a pressed position, the waypoint currently being edited, and the geofence box being drawn for one.
  *
+ * @property canCreate Whether a waypoint can be placed now: connected, outside a demo, and not while a box is drawn.
  * @property boxDraft Non-null while the user is defining a bounding box by tapping the map. The editor is closed for
  *   the duration and reopens with the box applied.
  * @property firstCorner The first of the two corner taps, once made. Drawn on the map so the tap reads as registered.
  */
 @Stable
 internal class WaypointEditing(
+    val canCreate: Boolean,
     val onLongPress: (Position) -> Unit,
     val pending: Waypoint?,
     val onEdit: (Waypoint) -> Unit,
@@ -202,8 +204,9 @@ internal class WaypointEditing(
 /**
  * Tracks which waypoint the host is being asked to edit.
  *
- * A long press places a new one at the pressed position, which is how the Google flavor does it too. Creation needs a
- * live connection, since saving a waypoint means broadcasting it.
+ * A long press shows the pressed point's coordinate; its card's "Créer un point de repère ici" places a new waypoint
+ * there through [WaypointEditing.onLongPress]. Creation needs a live connection, since saving a waypoint means
+ * broadcasting it.
  */
 @Composable
 internal fun rememberWaypointEditing(): WaypointEditing {
@@ -213,6 +216,7 @@ internal fun rememberWaypointEditing(): WaypointEditing {
     val box = rememberBoxAuthoring(onApplyBox = { pending = it }, onReopenEditor = { pending = it })
 
     return WaypointEditing(
+        canCreate = canSend && box.draft == null,
         // Not while a box is being drawn: the map is the editor for the duration, and every press on it belongs to
         // that flow. Without this a long press mid-box drops an unrelated waypoint into it, which is the one part of
         // the Google flavor's own guard (`isMainMode && isConnected && boxAuthoringDraft == null`) this had missed.

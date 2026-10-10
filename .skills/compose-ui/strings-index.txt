@@ -1036,9 +1036,16 @@ map_offline_terrain_downloading_progress
 map_overlay_hillshade
 map_overlay_precipitation
 map_overlay_weather_radar
+map_point_card_hint
+map_point_card_title
+map_point_copied
+map_point_copy
+map_point_create_waypoint
 map_point_hide
+map_point_insert
 map_point_observed_fact
 map_point_observed_fact_no_time
+map_point_open_converter
 map_point_other
 map_point_position
 map_point_position_inconsistent

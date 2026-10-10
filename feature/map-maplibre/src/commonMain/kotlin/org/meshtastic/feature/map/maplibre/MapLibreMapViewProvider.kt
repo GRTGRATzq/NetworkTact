@@ -68,12 +68,14 @@ import org.meshtastic.feature.map.maplibre.component.BoxAuthoringBar
 import org.meshtastic.feature.map.maplibre.component.CustomTileSourcesMenuItem
 import org.meshtastic.feature.map.maplibre.component.MapFootCards
 import org.meshtastic.feature.map.maplibre.component.MapLayersButton
+import org.meshtastic.feature.map.maplibre.component.MapPointSlot
 import org.meshtastic.feature.map.maplibre.component.MapZoom
 import org.meshtastic.feature.map.maplibre.component.OfflineMapTarget
 import org.meshtastic.feature.map.maplibre.component.WaypointDialogs
 import org.meshtastic.feature.map.maplibre.component.WaypointEditing
 import org.meshtastic.feature.map.maplibre.component.customRasterBasemaps
 import org.meshtastic.feature.map.maplibre.component.rememberBasemapSelection
+import org.meshtastic.feature.map.maplibre.component.rememberMapPointState
 import org.meshtastic.feature.map.maplibre.component.rememberWaypointEditing
 import org.meshtastic.feature.map.maplibre.geojson.ClusterMember
 import org.meshtastic.feature.map.maplibre.layers.CustomLayer
@@ -152,6 +154,7 @@ class MapLibreMapViewProvider(
 
         val location = rememberLocationControls()
         val waypoints = rememberWaypointEditing()
+        val pressedPoint = rememberMapPointState()
         val screen = rememberMapScreenState(waypointId = waypointId, sitePlannerNodeNum = sitePlannerNodeNum)
         val focusRequests: MapFocusRequests = koinInject()
         val focus by focusRequests.pending.collectAsState()
@@ -168,6 +171,7 @@ class MapLibreMapViewProvider(
                 customLayers = customLayers(),
                 navigateToNodeDetails = screen::selectNode,
                 focused = openedOnPoint,
+                pressedPoint = pressedPoint.pressed,
             )
 
         FocusCamera(mapState, focus, focusRequests)
@@ -182,7 +186,7 @@ class MapLibreMapViewProvider(
                 mapState = mapState,
                 modifier = Modifier.fillMaxSize(),
                 basemap = basemaps.current,
-                onMapLongClick = waypoints.onLongPress,
+                onMapLongClick = pressedPoint.onLongPress(waypoints),
                 onMapClick = waypoints.onMapTap,
             )
 
@@ -190,7 +194,9 @@ class MapLibreMapViewProvider(
 
             OfflineIndicator(viewModel)
 
-            MapFootCards(focusRequests, screen.selectedNodeNum, navigateToNodeDetails) { screen.selectedNodeNum = null }
+            MapFootCards(focusRequests, screen.selectedNodeNum, navigateToNodeDetails, screen::clearNode) {
+                MapPointSlot(pressedPoint, waypoints)
+            }
 
             MapToolbar(
                 basemaps = basemaps,
@@ -238,6 +244,7 @@ private fun rememberMapScreenMapState(
     customLayers: List<CustomLayer>,
     navigateToNodeDetails: (Int) -> Unit,
     focused: Boolean,
+    pressedPoint: Position?,
 ): MapState {
     val marked by koinInject<MapFocusRequests>().marked.collectAsState()
     val viewModel: SharedMapViewModel = koinViewModel()
@@ -260,7 +267,8 @@ private fun rememberMapScreenMapState(
         // Only when there was nothing stored: a remembered view is the user's own and is not yanked away. Nor when
         // the map was opened on a point: framing the mesh would move away from it.
         frameOnNodes = restored.position == null && !focused,
-        markedPoint = marked?.let { Position(longitude = it.longitude, latitude = it.latitude) },
+        // The long-pressed point while its card is open, otherwise the point another screen asked to show.
+        markedPoint = pressedPoint ?: marked?.let { Position(longitude = it.longitude, latitude = it.latitude) },
     )
 }
 
@@ -300,6 +308,10 @@ private class MapScreenState {
     /** A tap on a chip first says how old that position is; the card it opens leads on to the node's page. */
     fun selectNode(nodeNum: Int) {
         selectedNodeNum = nodeNum
+    }
+
+    fun clearNode() {
+        selectedNodeNum = null
     }
 
     var clusterMembers by mutableStateOf(emptyList<ClusterMember>())

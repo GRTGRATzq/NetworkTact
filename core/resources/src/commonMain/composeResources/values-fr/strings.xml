@@ -825,6 +825,13 @@
     <string name="map_layer_formats">Les calques personnalisés prennent en charge les fichiers .kml, .kmz ou GeoJSON.</string>
     <string name="map_node_popup_details">%1$s&lt;br&gt;Dernière écoute : %2$s&lt;br&gt;Dernière position : %3$s&lt;br&gt;Batterie : %4$s</string>
     <string name="map_offline_manager">Gestionnaire hors-ligne</string>
+    <string name="map_point_card_hint">Lieu choisi sur la carte, sans heure : ce n'est pas une position GPS.</string>
+    <string name="map_point_card_title">Point de la carte</string>
+    <string name="map_point_copied">Copié</string>
+    <string name="map_point_copy">Copier</string>
+    <string name="map_point_create_waypoint">Créer un point de repère ici</string>
+    <string name="map_point_insert">Insérer dans un message</string>
+    <string name="map_point_open_converter">Ouvrir dans le convertisseur</string>
     <string name="map_purge_fail">La purge du cache SQL a échoué, consultez « logcat » pour plus de détails</string>
     <string name="map_purge_success">Cache SQL purgé pour %1$s</string>
     <string name="map_reporting_consent_header">Consentir au partage des données non chiffrées du nœud via MQTT</string>
