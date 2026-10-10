@@ -61,6 +61,7 @@ import org.meshtastic.core.resources.recenter_confirm_text
 import org.meshtastic.core.resources.recenter_confirm_title
 import org.meshtastic.core.ui.icon.MeshtasticIcons
 import org.meshtastic.core.ui.icon.MyLocation
+import org.meshtastic.feature.map.maplibre.DETAIL_ZOOM
 import org.meshtastic.feature.map.recenter.RecenterViewModel
 import kotlin.time.Duration.Companion.seconds
 
