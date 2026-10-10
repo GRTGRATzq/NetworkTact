@@ -348,7 +348,14 @@ fichier MBTiles et sans carte locale. Rien n'est émis par radio.
   point GPS du téléphone et suivi masqués, création, modification et suppression « pour tout
   le monde » des points de repère masquées, Site Planner masqué ; `sendWaypoint` n'envoie
   rien (testé). « Voir sur la carte » ouvre la carte aussi en démo.
-- CI : `:feature:map-maplibre:allTests` dans `fork-apk`, en dernière étape.
+- CI : les tests de `feature:map-maplibre` tournent dans `fork-apk`, en dernière étape.
+- **Règle CI : Android uniquement.** NetworkTact est publié sur Android. `fork-apk` ne lance
+  plus que les tests Android et JVM (`jvmTest` partout, plus `testAndroidHostTest` là où le
+  module déclare `withHostTest`) : plus aucune tâche iOS, donc une erreur propre à iOS ne
+  bloque plus l'APK. Les cibles iOS restent déclarées (`build-logic` inchangé) et sont
+  compilées à part par `.github/workflows/ios-check.yml`, lancé à la main et chaque lundi
+  (le déclenchement hebdomadaire ne fonctionne que depuis la branche par défaut), sans jamais
+  bloquer `fork-apk`.
 
 ## Marques
 
