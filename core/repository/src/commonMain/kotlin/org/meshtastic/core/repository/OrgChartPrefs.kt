@@ -1,0 +1,41 @@
+/*
+ * Copyright (c) 2026 Meshtastic LLC
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+package org.meshtastic.core.repository
+
+import kotlinx.coroutines.flow.StateFlow
+import org.meshtastic.core.model.orgchart.OrgChartRecord
+
+/**
+ * The organisation chart this phone uses, and the one before it (see
+ * [org.meshtastic.core.model.orgchart.OrgChartHistory]).
+ */
+interface OrgChartPrefs {
+    /** The chart in use, or null before any chart is made or adopted. */
+    val current: StateFlow<OrgChartRecord?>
+
+    /** The chart an adoption replaced, or null. */
+    val previous: StateFlow<OrgChartRecord?>
+
+    /** Saves a chart changed on this phone in place of the one in use; the previous one stays. */
+    fun save(record: OrgChartRecord)
+
+    /** Adopts a scanned chart; the one in use becomes the previous one. */
+    fun adopt(record: OrgChartRecord)
+
+    /** Swaps the chart in use and the previous one, when there is a previous one. */
+    fun revertToPrevious()
+}
