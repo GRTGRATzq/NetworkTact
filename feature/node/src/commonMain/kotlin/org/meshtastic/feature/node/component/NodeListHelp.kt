@@ -50,6 +50,8 @@ import org.meshtastic.core.resources.node_layout_signal_quality_indicator
 import org.meshtastic.core.resources.node_list_help_node_details
 import org.meshtastic.core.resources.node_list_help_title
 import org.meshtastic.core.ui.component.Quality
+import org.meshtastic.core.ui.component.qualityContentColor
+import org.meshtastic.core.ui.theme.statusAlert
 
 private const val ICON_SIZE = 24
 
@@ -114,8 +116,8 @@ private fun SignalQualityEntry(quality: Quality, description: String) {
         Icon(
             imageVector = vectorResource(quality.icon),
             contentDescription = stringResource(quality.nameRes),
-            modifier = Modifier.size(ICON_SIZE.dp),
-            tint = quality.color(),
+            modifier = Modifier.statusAlert(MaterialTheme.colorScheme, active = quality.alert).size(ICON_SIZE.dp),
+            tint = qualityContentColor(quality),
         )
         Column(modifier = Modifier.weight(1f)) {
             Text(text = stringResource(quality.nameRes), style = MaterialTheme.typography.titleSmall)

@@ -47,10 +47,9 @@ import org.meshtastic.core.ui.icon.SignalCellular3Bar
 import org.meshtastic.core.ui.icon.SignalCellular4Bar
 import org.meshtastic.core.ui.icon.SignalOff
 import org.meshtastic.core.ui.theme.AppTheme
+import org.meshtastic.core.ui.theme.StatusAlertContent
 import org.meshtastic.core.ui.theme.StatusColors.StatusGreen
-import org.meshtastic.core.ui.theme.StatusColors.StatusOrange
-import org.meshtastic.core.ui.theme.StatusColors.StatusRed
-import org.meshtastic.core.ui.theme.StatusColors.StatusYellow
+import org.meshtastic.core.ui.theme.statusAlert
 
 private const val SIZE_ICON = 20
 
@@ -76,14 +75,22 @@ fun MaterialSignalInfo(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(2.dp),
     ) {
-        val (iconVector, iconTint) =
+        // NetworkTact: 0 or 1 bar in inverted colours, 2 or 3 bars neutral, 4 bars green; no red, orange or yellow.
+        val alert = signalBars in 0..1
+        val iconVector =
             when (signalBars) {
-                0 -> MeshtasticIcons.SignalCellular0Bar to MaterialTheme.colorScheme.StatusRed
-                1 -> MeshtasticIcons.SignalCellular1Bar to MaterialTheme.colorScheme.StatusRed
-                2 -> MeshtasticIcons.SignalCellular2Bar to MaterialTheme.colorScheme.StatusOrange
-                3 -> MeshtasticIcons.SignalCellular3Bar to MaterialTheme.colorScheme.StatusYellow
-                4 -> MeshtasticIcons.SignalCellular4Bar to MaterialTheme.colorScheme.StatusGreen
-                else -> MeshtasticIcons.SignalOff to MaterialTheme.colorScheme.onSurfaceVariant
+                0 -> MeshtasticIcons.SignalCellular0Bar
+                1 -> MeshtasticIcons.SignalCellular1Bar
+                2 -> MeshtasticIcons.SignalCellular2Bar
+                3 -> MeshtasticIcons.SignalCellular3Bar
+                4 -> MeshtasticIcons.SignalCellular4Bar
+                else -> MeshtasticIcons.SignalOff
+            }
+        val iconTint =
+            when {
+                alert -> MaterialTheme.colorScheme.StatusAlertContent
+                signalBars == 4 -> MaterialTheme.colorScheme.StatusGreen
+                else -> MaterialTheme.colorScheme.onSurfaceVariant
             }
 
         val foregroundPainter = typeIcon?.let { rememberVectorPainter(typeIcon) }
@@ -92,7 +99,7 @@ fun MaterialSignalInfo(
             contentDescription = null,
             tint = iconTint,
             modifier =
-            Modifier.size(SIZE_ICON.dp).drawWithContent {
+            Modifier.statusAlert(MaterialTheme.colorScheme, active = alert).size(SIZE_ICON.dp).drawWithContent {
                 drawContent()
                 @Suppress("MagicNumber")
                 if (foregroundPainter != null) {

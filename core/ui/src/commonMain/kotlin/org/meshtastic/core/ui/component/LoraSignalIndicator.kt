@@ -53,10 +53,9 @@ import org.meshtastic.core.resources.signal
 import org.meshtastic.core.resources.signal_quality
 import org.meshtastic.core.resources.snr
 import org.meshtastic.core.resources.unknown
+import org.meshtastic.core.ui.theme.StatusAlertContent
 import org.meshtastic.core.ui.theme.StatusColors.StatusGreen
-import org.meshtastic.core.ui.theme.StatusColors.StatusOrange
-import org.meshtastic.core.ui.theme.StatusColors.StatusRed
-import org.meshtastic.core.ui.theme.StatusColors.StatusYellow
+import org.meshtastic.core.ui.theme.statusAlert
 import org.meshtastic.core.ui.util.LocalModemPreset
 import org.meshtastic.proto.Config.LoRaConfig.ModemPreset
 
@@ -70,17 +69,28 @@ const val RSSI_BAD_THRESHOLD = -126
 private const val SNR_FAIR_OFFSET = 5.5f
 private const val SNR_BAD_OFFSET = 7.5f
 
+/**
+ * NetworkTact: green for a good link, neutral otherwise (the bars of the icon and the label carry the level); [alert]
+ * marks the band drawn in inverted colours ([statusAlert]) where the indicator can show it. No red, orange or yellow:
+ * red is for urgent messages and amber for reports.
+ */
 @Stable
 enum class Quality(
     @Stable val nameRes: StringResource,
     @Stable val icon: DrawableResource,
     @Stable val color: @Composable () -> Color,
+    @Stable val alert: Boolean = false,
 ) {
-    NONE(Res.string.none_quality, Res.drawable.ic_signal_cellular_alt_1_bar, { colorScheme.StatusRed }),
-    BAD(Res.string.bad, Res.drawable.ic_signal_cellular_alt_2_bar, { colorScheme.StatusOrange }),
-    FAIR(Res.string.fair, Res.drawable.ic_signal_cellular_alt, { colorScheme.StatusYellow }),
+    NONE(Res.string.none_quality, Res.drawable.ic_signal_cellular_alt_1_bar, { colorScheme.onSurfaceVariant }, true),
+    BAD(Res.string.bad, Res.drawable.ic_signal_cellular_alt_2_bar, { colorScheme.onSurfaceVariant }),
+    FAIR(Res.string.fair, Res.drawable.ic_signal_cellular_alt, { colorScheme.onSurfaceVariant }),
     GOOD(Res.string.good, Res.drawable.ic_signal_cellular_4_bar, { colorScheme.StatusGreen }),
 }
+
+/** The colour of [quality]'s icon or value: its own, or the inverted content colour for an alert band. */
+@Composable
+fun qualityContentColor(quality: Quality): Color =
+    if (quality.alert) MaterialTheme.colorScheme.StatusAlertContent else quality.color.invoke()
 
 private const val SIZE_ICON_DP = 16
 
@@ -104,10 +114,11 @@ fun LoraSignalIndicator(
         modifier = modifier.fillMaxSize().padding(8.dp),
     ) {
         Icon(
-            modifier = Modifier.size(SIZE_ICON_DP.dp),
+            modifier =
+            Modifier.statusAlert(MaterialTheme.colorScheme, active = quality?.alert == true).size(SIZE_ICON_DP.dp),
             imageVector = vectorResource(quality?.icon ?: Res.drawable.ic_signal_cellular_alt),
             contentDescription = stringResource(Res.string.signal_quality),
-            tint = quality?.color?.invoke() ?: MaterialTheme.colorScheme.onSurfaceVariant,
+            tint = quality?.let { qualityContentColor(it) } ?: MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Text(
             text = "${stringResource(Res.string.signal)} " + stringResource(quality?.nameRes ?: Res.string.unknown),
@@ -121,12 +132,12 @@ fun LoraSignalIndicator(
 @Composable
 fun Snr(snr: Float?, modifier: Modifier = Modifier, modemPreset: ModemPreset? = LocalModemPreset.current) {
     if (snr == null) return
-    val color: Color = determineSignalQuality(snr, modemPreset).color.invoke()
+    val quality = determineSignalQuality(snr, modemPreset)
 
     Text(
-        modifier = modifier,
+        modifier = modifier.statusAlert(MaterialTheme.colorScheme, active = quality.alert),
         text = "${stringResource(Res.string.snr)} ${MetricFormatter.snr(snr, decimalPlaces = 2)}",
-        color = color,
+        color = qualityContentColor(quality),
         style = MaterialTheme.typography.labelSmall,
     )
 }
@@ -135,17 +146,17 @@ fun Snr(snr: Float?, modifier: Modifier = Modifier, modemPreset: ModemPreset? = 
 @Composable
 fun Rssi(rssi: Int?, modifier: Modifier = Modifier, label: String = stringResource(Res.string.rssi)) {
     if (rssi == null) return
-    val color: Color =
+    val quality =
         when {
-            rssi > RSSI_GOOD_THRESHOLD -> Quality.GOOD.color.invoke()
-            rssi > RSSI_FAIR_THRESHOLD -> Quality.FAIR.color.invoke()
-            rssi > RSSI_BAD_THRESHOLD -> Quality.BAD.color.invoke()
-            else -> Quality.NONE.color.invoke()
+            rssi > RSSI_GOOD_THRESHOLD -> Quality.GOOD
+            rssi > RSSI_FAIR_THRESHOLD -> Quality.FAIR
+            rssi > RSSI_BAD_THRESHOLD -> Quality.BAD
+            else -> Quality.NONE
         }
     Text(
-        modifier = modifier,
+        modifier = modifier.statusAlert(MaterialTheme.colorScheme, active = quality.alert),
         text = "$label ${MetricFormatter.rssi(rssi)}",
-        color = color,
+        color = qualityContentColor(quality),
         style = MaterialTheme.typography.labelSmall,
     )
 }

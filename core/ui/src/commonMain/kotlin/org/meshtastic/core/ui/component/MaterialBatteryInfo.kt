@@ -45,9 +45,9 @@ import org.meshtastic.core.ui.icon.BatteryUnknown
 import org.meshtastic.core.ui.icon.MeshtasticIcons
 import org.meshtastic.core.ui.icon.PowerSupply
 import org.meshtastic.core.ui.theme.AppTheme
+import org.meshtastic.core.ui.theme.StatusAlertContent
 import org.meshtastic.core.ui.theme.StatusColors.StatusGreen
-import org.meshtastic.core.ui.theme.StatusColors.StatusOrange
-import org.meshtastic.core.ui.theme.StatusColors.StatusRed
+import org.meshtastic.core.ui.theme.statusAlert
 
 private const val SIZE_ICON = 16
 
@@ -88,44 +88,53 @@ fun MaterialBatteryInfo(
                 style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold, fontSize = 12.sp),
             )
         } else {
-            // Map battery percentage to color
+            // NetworkTact: under 20 % in inverted colours, 20 to 39 % neutral, then green; no red nor orange.
+            val low = level in 0..19
+            val levelColor = if (low) MaterialTheme.colorScheme.StatusAlertContent else contentColor
             val fillColor =
                 when (level) {
-                    in 0..19 -> MaterialTheme.colorScheme.StatusRed
-                    in 20..39 -> MaterialTheme.colorScheme.StatusOrange
+                    in 0..19 -> levelColor
+                    in 20..39 -> MaterialTheme.colorScheme.onSurfaceVariant
                     else -> MaterialTheme.colorScheme.StatusGreen
                 }
 
-            Icon(
-                modifier =
-                Modifier.size(SIZE_ICON.dp).drawBehind {
-                    val insetVertical = size.height * .375f
-                    val insetLeft = size.width * .25f
-                    val insetRight = size.width * .167f
+            Row(
+                modifier = Modifier.statusAlert(MaterialTheme.colorScheme, active = low),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(1.dp),
+            ) {
+                Icon(
+                    modifier =
+                    Modifier.size(SIZE_ICON.dp).drawBehind {
+                        val insetVertical = size.height * .375f
+                        val insetLeft = size.width * .25f
+                        val insetRight = size.width * .167f
 
-                    val availableWidth = size.width - (insetLeft + insetRight)
-                    val availableHeight = size.height - (insetVertical * 2)
+                        val availableWidth = size.width - (insetLeft + insetRight)
+                        val availableHeight = size.height - (insetVertical * 2)
 
-                    // Fill grows from right (flat end) toward left (terminal)
-                    val fillWidth = availableWidth * (level / 100f)
-                    val fillX = insetLeft + availableWidth - fillWidth
+                        // Fill grows from right (flat end) toward left (terminal)
+                        val fillWidth = availableWidth * (level / 100f)
+                        val fillX = insetLeft + availableWidth - fillWidth
 
-                    drawRect(
-                        color = fillColor,
-                        topLeft = Offset(fillX, insetVertical),
-                        size = Size(fillWidth, availableHeight),
-                    )
-                },
-                imageVector = MeshtasticIcons.BatteryEmpty,
-                tint = contentColor.copy(alpha = 0.65f),
-                contentDescription = levelString,
-            )
+                        drawRect(
+                            color = fillColor,
+                            topLeft = Offset(fillX, insetVertical),
+                            size = Size(fillWidth, availableHeight),
+                        )
+                    },
+                    imageVector = MeshtasticIcons.BatteryEmpty,
+                    tint = levelColor.copy(alpha = 0.65f),
+                    contentDescription = levelString,
+                )
 
-            Text(
-                text = levelString,
-                color = contentColor.copy(alpha = 0.95f),
-                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold, fontSize = 12.sp),
-            )
+                Text(
+                    text = levelString,
+                    color = levelColor.copy(alpha = 0.95f),
+                    style =
+                    MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold, fontSize = 12.sp),
+                )
+            }
         }
         voltage
             ?.takeIf { it > 0 }
