@@ -61,12 +61,8 @@ class AboutScreenTest {
 
         // Apps section
         onNodeWithText("Apps").assertIsDisplayed()
-        onNodeWithText("Need Hardware?").assertIsDisplayed()
-        onNodeWithText(
-            "Meshtastic requires a compatible device. Our backers and partners offer ready-to-use hardware. " +
-                "Here are some of the most popular options.",
-        )
-            .assertIsDisplayed()
+        // NetworkTact: no hardware carousel (meshtastic.org/#hardware)
+        onNodeWithText("Need Hardware?").assertDoesNotExist()
         onNodeWithText("GitHub Repository").assertIsDisplayed()
         onNodeWithText("Version").assertIsDisplayed()
         onNodeWithText("2.5.0").assertIsDisplayed()
@@ -74,11 +70,15 @@ class AboutScreenTest {
 
         // Project information section
         onNodeWithText("Project information").assertIsDisplayed()
-        onNodeWithText("Website").assertIsDisplayed()
-        onNodeWithText("Documentation").assertIsDisplayed()
+        // NetworkTact: no links to the Meshtastic website and documentation
+        onNodeWithText("Website").assertDoesNotExist()
+        onNodeWithText("Documentation").assertDoesNotExist()
         onNodeWithText("License").performScrollTo().assertIsDisplayed()
 
         // Copyright footer
+        onNodeWithText("Based on Meshtastic-Android, © Meshtastic LLC, GPL-3.0. Modified by the NetworkTact project.")
+            .performScrollTo()
+            .assertIsDisplayed()
         onNodeWithText("Meshtastic® Copyright Meshtastic LLC").performScrollTo().assertIsDisplayed()
         onNodeWithText(
             "Free software under the GNU General Public License v3, with no warranty. " +
@@ -113,5 +113,26 @@ class AboutScreenTest {
         onNodeWithText("License").performScrollTo().performClick()
 
         assertEquals(listOf("https://www.gnu.org/licenses/gpl-3.0.html"), openedUris)
+    }
+
+    @Test
+    fun `repository row opens the NetworkTact source code`() = runComposeUiTest {
+        val openedUris = mutableListOf<String>()
+        val uriHandler =
+            object : UriHandler {
+                override fun openUri(uri: String) {
+                    openedUris += uri
+                }
+            }
+
+        setContent {
+            CompositionLocalProvider(LocalUriHandler provides uriHandler) {
+                AppTheme { AboutScreen(appVersionName = "2.5.0", onNavigateUp = {}, onNavigateToAcknowledgements = {}) }
+            }
+        }
+
+        onNodeWithText("GitHub Repository").performScrollTo().performClick()
+
+        assertEquals(listOf("https://github.com/GRTGRATzq/NetworkTact"), openedUris)
     }
 }
