@@ -37,10 +37,14 @@ import qrcode.raw.ErrorCorrectionLevel
  */
 @Suppress("MagicNumber")
 @Composable
-fun rememberQrCodePainter(text: String, size: Int = 512): Painter {
+fun rememberQrCodePainter(
+    text: String,
+    size: Int = 512,
+    errorCorrection: QrErrorCorrection = QrErrorCorrection.HIGH,
+): Painter {
     val qrCode =
-        androidx.compose.runtime.remember(text) {
-            QRCode.ofSquares().withErrorCorrectionLevel(ErrorCorrectionLevel.HIGH).build(text)
+        androidx.compose.runtime.remember(text, errorCorrection) {
+            QRCode.ofSquares().withErrorCorrectionLevel(errorCorrection.level).build(text)
         }
     val rawMatrix = androidx.compose.runtime.remember(qrCode) { qrCode.rawData }
     val matrixSize = androidx.compose.runtime.remember(qrCode) { rawMatrix.size }
@@ -82,4 +86,13 @@ fun rememberQrCodePainter(text: String, size: Int = 512): Painter {
         }
         BitmapPainter(bitmap)
     }
+}
+
+/**
+ * How much of a QR code may be damaged and still read. [HIGH] suits printed codes; [MEDIUM] holds about half as much
+ * again in the same size, for longer texts shown on a screen.
+ */
+enum class QrErrorCorrection(internal val level: ErrorCorrectionLevel) {
+    MEDIUM(ErrorCorrectionLevel.MEDIUM),
+    HIGH(ErrorCorrectionLevel.HIGH),
 }
