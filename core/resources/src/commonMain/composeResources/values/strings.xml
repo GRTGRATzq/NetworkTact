@@ -779,7 +779,7 @@
     <string name="firmware_update_success_wiped">The device was reset to factory defaults and needs to be set up (and paired) again.</string>
     <string name="firmware_update_taking_a_while">This might take a minute...</string>
     <string name="firmware_update_target">Target: %1$s</string>
-    <string name="firmware_update_title">Firmware Update</string>
+    <string name="firmware_update_title">Radio firmware update</string>
     <string name="firmware_update_unknown_error">Unknown error</string>
     <string name="firmware_update_unknown_hardware">Unknown hardware model: %1$d</string>
     <string name="firmware_update_unknown_release">Unknown remote release</string>
