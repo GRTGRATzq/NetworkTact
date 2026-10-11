@@ -19,16 +19,20 @@ package org.meshtastic.core.demo.screen
 import app.cash.turbine.test
 import dev.mokkery.mock
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import kotlinx.datetime.TimeZone
 import org.meshtastic.core.demo.DemoModeController
 import org.meshtastic.core.demo.data.DemoDataSet
+import org.meshtastic.core.demo.repository.DemoExpectedLoraPrefs
 import org.meshtastic.core.demo.repository.DemoNodeRepository
 import org.meshtastic.core.demo.repository.DemoOrgChartPrefs
 import org.meshtastic.core.demo.repository.DemoPacketRepository
 import org.meshtastic.core.demo.repository.DemoPhonePositionSource
+import org.meshtastic.core.demo.repository.DemoRadioActivityProvider
+import org.meshtastic.core.demo.repository.DemoRadioConfigRepository
 import org.meshtastic.core.demo.repository.DemoTeamRosterPrefs
 import org.meshtastic.core.demo.send.DemoMessagingController
 import org.meshtastic.core.demo.send.DemoSendMessageUseCase
@@ -37,6 +41,7 @@ import org.meshtastic.core.di.CoroutineDispatchers
 import org.meshtastic.core.model.DataPacket
 import org.meshtastic.core.model.Node
 import org.meshtastic.core.model.NodeAddress
+import org.meshtastic.core.model.diagnostic.LoraSetting
 import org.meshtastic.core.model.geo.RadioPositionPacket
 import org.meshtastic.core.model.geo.SharedPoint
 import org.meshtastic.core.model.geo.toWaypoint
@@ -47,17 +52,21 @@ import org.meshtastic.core.model.team.TeamRosterRecord
 import org.meshtastic.core.repository.MessagingController
 import org.meshtastic.core.repository.PhoneFix
 import org.meshtastic.core.repository.PhonePositionSource
+import org.meshtastic.core.repository.RadioActivityProvider
 import org.meshtastic.core.repository.usecase.SendMessageUseCase
+import org.meshtastic.core.testing.FakeExpectedLoraPrefs
 import org.meshtastic.core.testing.FakeNodeRepository
 import org.meshtastic.core.testing.FakeOrgChartPrefs
 import org.meshtastic.core.testing.FakeRadioController
 import org.meshtastic.core.testing.FakeTeamRosterPrefs
 import org.meshtastic.core.testing.FakeUiPrefs
+import org.meshtastic.proto.Config
 import org.meshtastic.proto.PortNum
 import org.meshtastic.proto.User
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 /**
@@ -280,6 +289,44 @@ class ScreenFacadesTest {
         }
         assertEquals(real, realOrgChart.current.value)
         assertEquals(null, realOrgChart.previous.value)
+    }
+
+    @Test
+    fun theExpectedLoraSettingShownIsTheDemoOneAndNoChangeReachesTheRealOne() = runTest(dispatcher) {
+        val realSetting = LoraSetting("US", "MEDIUM_FAST")
+        val realExpected = FakeExpectedLoraPrefs(realSetting)
+        val expected = ScreenExpectedLoraPrefs(realExpected, DemoExpectedLoraPrefs(store), demoMode)
+        assertEquals(realSetting, expected.expected.value)
+
+        demoMode.activate()
+        assertEquals(DemoDataSet.DEMO_LORA, expected.expected.value)
+        expected.setExpected(null)
+        assertNull(expected.expected.value)
+
+        demoMode.deactivate()
+        assertEquals(realSetting, expected.expected.value)
+        assertEquals(realSetting, realExpected.expected.value)
+    }
+
+    @Test
+    fun theDiagnosticReadsTheDemoRadioDuringADemoOnly() = runTest(dispatcher) {
+        val real =
+            object : RadioActivityProvider {
+                override val lastPacketFromRadioMillis = MutableStateFlow<Long?>(42L)
+            }
+        val activity = ScreenRadioActivityProvider(real, DemoRadioActivityProvider(store), demoMode)
+        assertEquals(42L, activity.lastPacketFromRadioMillis.value)
+
+        demoMode.activate()
+        val demoPacket = assertNotNull(activity.lastPacketFromRadioMillis.value)
+        assertTrue(demoPacket != 42L)
+        val lora = DemoRadioConfigRepository(store).localConfigFlow.first().lora
+        assertEquals(Config.LoRaConfig.RegionCode.EU_868, lora?.region)
+        assertEquals(Config.LoRaConfig.ModemPreset.LONG_FAST, lora?.modem_preset)
+        assertEquals(DemoDataSet.PC0_BATTERY_PERCENT, nodes.ourNodeInfo.value?.batteryLevel)
+
+        demoMode.deactivate()
+        assertEquals(42L, activity.lastPacketFromRadioMillis.value)
     }
 
     private companion object {

@@ -22,6 +22,7 @@ import org.meshtastic.core.model.MessageStatus
 import org.meshtastic.core.model.MyNodeInfo
 import org.meshtastic.core.model.Node
 import org.meshtastic.core.model.NodeAddress
+import org.meshtastic.core.model.diagnostic.LoraSetting
 import org.meshtastic.core.model.freshness.PositionState
 import org.meshtastic.core.model.geo.CoordinateFormat
 import org.meshtastic.core.model.geo.FormattedCoordinates
@@ -38,6 +39,8 @@ import org.meshtastic.core.model.team.TeamRoster
 import org.meshtastic.core.model.team.TeamRosterRecord
 import org.meshtastic.proto.ChannelSet
 import org.meshtastic.proto.ChannelSettings
+import org.meshtastic.proto.Config
+import org.meshtastic.proto.DeviceMetrics
 import org.meshtastic.proto.Position
 import org.meshtastic.proto.Routing
 import org.meshtastic.proto.User
@@ -64,6 +67,12 @@ data class DemoData(
     val roster: TeamRosterRecord,
     val packets: List<DemoPacket>,
     val orgChart: OrgChartRecord,
+    /** PC-0's LoRa configuration, as the radio would report it. */
+    val lora: Config.LoRaConfig,
+    /** The setting the command post entered, the same as PC-0's: the link diagnostic reads it as identical. */
+    val expectedLora: LoraSetting,
+    /** When the demo radio last passed a packet to the phone. */
+    val lastRadioPacketMillis: Long,
 )
 
 /**
@@ -122,6 +131,15 @@ object DemoDataSet {
     const val PC0_SATELLITES = 9
     const val PC0_HDOP_HUNDREDTHS = 120
 
+    /** PC-0's battery, for the link diagnostic. */
+    const val PC0_BATTERY_PERCENT = 76
+
+    /** PC-0's LoRa region and preset (proto enum names), and the setting the command post expects. */
+    val DEMO_LORA = LoraSetting(region = "EU_868", preset = "LONG_FAST")
+
+    /** How long ago the demo radio last passed a packet to the phone: when ALPHA-1 was last heard. */
+    val LAST_RADIO_PACKET_AGE = 1.minutes
+
     /** The nodes: PC-0 is this phone's own; CHARLIE-3 has a position stored without any time. */
     private val nodeSpecs =
         listOf(
@@ -135,6 +153,7 @@ object DemoDataSet {
                 hops = 0,
                 satellites = PC0_SATELLITES,
                 hdopHundredths = PC0_HDOP_HUNDREDTHS,
+                batteryPercent = PC0_BATTERY_PERCENT,
             ),
             NodeSpec(ALPHA1_NUM, "ALPHA-1 [Alpha]", "A1", alpha1Point, alpha1PositionAge, 1.minutes, hops = 0),
             NodeSpec(BRAVO2_NUM, "BRAVO-2 [Bravo]", "B2", LatLon(48.860_100, 2.341_200), 25.minutes, 20.minutes, 2),
@@ -190,6 +209,16 @@ object DemoDataSet {
                 OrgChartRecord.Source.EDITED,
                 timeSeconds = nowSeconds - orgChartAge.inWholeSeconds,
             ),
+            lora =
+            Config.LoRaConfig.Builder()
+                .also {
+                    it.use_preset = true
+                    it.region = Config.LoRaConfig.RegionCode.EU_868
+                    it.modem_preset = Config.LoRaConfig.ModemPreset.LONG_FAST
+                }
+                .build(),
+            expectedLora = DEMO_LORA,
+            lastRadioPacketMillis = nowMillis - LAST_RADIO_PACKET_AGE.inWholeMilliseconds,
         )
     }
 
@@ -259,6 +288,8 @@ object DemoDataSet {
         /** The fix quality the radio reports; 0 for "not sent". */
         val satellites: Int = 0,
         val hdopHundredths: Int = 0,
+        /** The battery the radio reports; null when it reports none. */
+        val batteryPercent: Int? = null,
     ) {
         fun toNode(nowSeconds: Long): Node {
             val user =
@@ -285,7 +316,15 @@ object DemoDataSet {
                     }
                     .build()
             val heard = (nowSeconds - heardAge.inWholeSeconds).toInt()
-            return Node(num = num, user = user, position = position, lastHeard = heard, hopsAway = hops)
+            val metrics = DeviceMetrics.Builder().also { it.battery_level = batteryPercent }.build()
+            return Node(
+                num = num,
+                user = user,
+                position = position,
+                lastHeard = heard,
+                deviceMetrics = metrics,
+                hopsAway = hops,
+            )
         }
     }
 

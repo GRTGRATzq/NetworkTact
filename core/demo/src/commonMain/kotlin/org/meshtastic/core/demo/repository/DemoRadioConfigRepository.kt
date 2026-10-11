@@ -18,6 +18,7 @@ package org.meshtastic.core.demo.repository
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import org.meshtastic.core.demo.store.DemoStore
 import org.meshtastic.core.repository.RadioConfigRepository
@@ -34,8 +35,9 @@ import org.meshtastic.proto.LocalModuleConfig
 import org.meshtastic.proto.ModuleConfig
 
 /**
- * [RadioConfigRepository] for the demo: its three channels, and default (empty) radio and module configuration. The
- * radio configuration screens are unavailable in demo mode; any write lands in memory, never on a radio.
+ * [RadioConfigRepository] for the demo: its three channels, PC-0's LoRa configuration (read by the link diagnostic),
+ * and otherwise default (empty) radio and module configuration. The radio configuration screens are unavailable in demo
+ * mode; any write lands in memory, never on a radio.
  */
 @Suppress("TooManyFunctions") // Tous les membres sont imposés par l'interface.
 class DemoRadioConfigRepository(private val store: DemoStore) : RadioConfigRepository {
@@ -57,7 +59,8 @@ class DemoRadioConfigRepository(private val store: DemoStore) : RadioConfigRepos
 
     override suspend fun updateChannelSettings(channel: Channel) = Unit
 
-    override val localConfigFlow: Flow<LocalConfig> = flowOf(LocalConfig.Builder().build())
+    override val localConfigFlow: Flow<LocalConfig> =
+        store.lora.map { lora -> LocalConfig.Builder().also { it.lora = lora }.build() }
 
     override suspend fun clearLocalConfig() = Unit
 

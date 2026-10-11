@@ -17,7 +17,15 @@
 package org.meshtastic.core.demo.data
 
 import kotlinx.datetime.TimeZone
+import org.meshtastic.core.model.ConnectionState
 import org.meshtastic.core.model.MessageStatus
+import org.meshtastic.core.model.diagnostic.BatteryFact
+import org.meshtastic.core.model.diagnostic.DiagnosticInput
+import org.meshtastic.core.model.diagnostic.HeardCounts
+import org.meshtastic.core.model.diagnostic.HeardNode
+import org.meshtastic.core.model.diagnostic.LinkDiagnostics
+import org.meshtastic.core.model.diagnostic.LoraCheck
+import org.meshtastic.core.model.diagnostic.LoraSetting
 import org.meshtastic.core.model.freshness.NodeFreshness
 import org.meshtastic.core.model.freshness.PositionState
 import org.meshtastic.core.model.geo.LatLon
@@ -30,6 +38,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertTrue
+import kotlin.time.Duration.Companion.minutes
 
 class DemoDataSetTest {
 
@@ -118,5 +127,30 @@ class DemoDataSetTest {
     fun agesFollowTheActivationTime() {
         val later = DemoDataSet.create(now + 3_600_000L, TimeZone.UTC)
         assertEquals(data.packets.map { it.receivedTime + 3_600_000L }, later.packets.map { it.receivedTime })
+    }
+
+    @Test
+    fun theLinkDiagnosticOfTheDemoReadsPc0AndTheOtherFictitiousNodes() {
+        val lora = LoraSetting(data.lora.region.name, data.lora.modem_preset.name)
+        val diagnostic =
+            LinkDiagnostics.build(
+                DiagnosticInput(
+                    connection = ConnectionState.Connected,
+                    lastRadioPacketMillis = data.lastRadioPacketMillis,
+                    myNodeNum = data.myNodeInfo.myNodeNum,
+                    nodes = data.nodes.map { HeardNode(it.num, it.user.long_name, it.lastHeard) },
+                    localLora = lora,
+                    expectedLora = data.expectedLora,
+                    batteryLevel = node(DemoDataSet.PC0_NUM).batteryLevel,
+                    nowMillis = now,
+                ),
+            )
+        // ALPHA-1 heard 1 min ago, CHARLIE-3 5 min ago, BRAVO-2 20 min ago; PC-0 itself is not counted.
+        assertEquals(HeardCounts(within5Min = 2, within15Min = 2, within60Min = 3), diagnostic.counts)
+        assertEquals("ALPHA-1 [Alpha]", diagnostic.lastHeard?.name)
+        assertEquals(1.minutes, diagnostic.lastRadioPacketAge)
+        assertEquals(LoraCheck.Same(DemoDataSet.DEMO_LORA), diagnostic.lora)
+        assertEquals(BatteryFact.Level(DemoDataSet.PC0_BATTERY_PERCENT, low = false), diagnostic.battery)
+        assertTrue(diagnostic.suggestions.isEmpty())
     }
 }

@@ -42,7 +42,7 @@ import org.meshtastic.core.repository.UiPrefs
  * nothing outside this module can get them by accident. The screens' sources are bound under [SCREEN_DATA]; every
  * unqualified binding (the one the radio service uses) stays the real implementation.
  */
-@Module(includes = [ScreenDataModule::class])
+@Module(includes = [ScreenDataModule::class, DiagnosticDemoModule::class])
 class CoreDemoModule {
     @Single fun demoStore(): DemoStore = DemoStore()
 

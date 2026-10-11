@@ -23,9 +23,11 @@ import org.meshtastic.core.demo.data.DemoPacket
 import org.meshtastic.core.model.ContactSettings
 import org.meshtastic.core.model.MyNodeInfo
 import org.meshtastic.core.model.Node
+import org.meshtastic.core.model.diagnostic.LoraSetting
 import org.meshtastic.core.model.orgchart.OrgChartRecord
 import org.meshtastic.core.model.team.TeamRosterRecord
 import org.meshtastic.proto.ChannelSet
+import org.meshtastic.proto.Config
 
 /**
  * The demo's whole state, in memory only. Loaded from a fresh data set at each activation and emptied when demo mode is
@@ -45,6 +47,11 @@ class DemoStore {
     val previousOrgChart = MutableStateFlow<OrgChartRecord?>(null)
     val packets = MutableStateFlow<List<DemoPacket>>(emptyList())
     val contactSettings = MutableStateFlow<Map<String, ContactSettings>>(emptyMap())
+
+    /** The demo radio's LoRa configuration, the expected setting, and when the radio last passed a packet. */
+    val lora = MutableStateFlow<Config.LoRaConfig?>(null)
+    val expectedLora = MutableStateFlow<LoraSetting?>(null)
+    val lastRadioPacketMillis = MutableStateFlow<Long?>(null)
 
     /**
      * Changes at every load and every clear. A simulated send started in one demo session checks it before each step,
@@ -68,6 +75,9 @@ class DemoStore {
         previousOrgChart.value = null
         packets.value = data.packets
         contactSettings.value = emptyMap()
+        lora.value = data.lora
+        expectedLora.value = data.expectedLora
+        lastRadioPacketMillis.value = data.lastRadioPacketMillis
         this.commandPostMode.value = commandPostMode
     }
 
@@ -83,6 +93,9 @@ class DemoStore {
         previousOrgChart.value = null
         packets.value = emptyList()
         contactSettings.value = emptyMap()
+        lora.value = null
+        expectedLora.value = null
+        lastRadioPacketMillis.value = null
         commandPostMode.value = false
     }
 
