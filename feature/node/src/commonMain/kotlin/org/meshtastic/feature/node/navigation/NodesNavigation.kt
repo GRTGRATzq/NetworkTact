@@ -60,6 +60,8 @@ import org.meshtastic.feature.node.commandpost.CommandPostViewModel
 import org.meshtastic.feature.node.compass.CompassViewModel
 import org.meshtastic.feature.node.detail.NodeDetailScreen
 import org.meshtastic.feature.node.detail.NodeDetailViewModel
+import org.meshtastic.feature.node.diagnostic.DiagnosticScreen
+import org.meshtastic.feature.node.diagnostic.DiagnosticViewModel
 import org.meshtastic.feature.node.metrics.AirQualityMetricsScreen
 import org.meshtastic.feature.node.metrics.DeviceMetricsScreen
 import org.meshtastic.feature.node.metrics.EnvironmentMetricsScreen
@@ -108,6 +110,13 @@ fun EntryProviderScope<NavKey>.nodesGraph(
             onNavigateUp = dropUnlessResumed { backStack.removeLastOrNull() },
             onOpenNode = { num -> backStack.add(NodesRoute.NodeDetail(num)) },
             onOpenMessages = { key -> backStack.add(ContactsRoute.Messages(key)) },
+        )
+    }
+
+    entry<NodesRoute.Diagnostic>(metadata = { ListDetailSceneStrategy.listPane() }) {
+        DiagnosticScreen(
+            viewModel = koinViewModel<DiagnosticViewModel>(),
+            onNavigateUp = dropUnlessResumed { backStack.removeLastOrNull() },
         )
     }
 
