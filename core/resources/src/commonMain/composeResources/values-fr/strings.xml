@@ -1738,10 +1738,8 @@
     <string name="diag_test_node">Nœud à tester</string>
     <string name="diag_test_no_node">Aucun nœud à tester : aucun n'a été entendu.</string>
     <string name="diag_test_traceroute">Traceroute</string>
-    <string name="diag_test_position">Demander sa position</string>
     <string name="diag_test_confirm_title">Émettre un test ?</string>
     <string name="diag_test_confirm_traceroute">Un traceroute va être émis vers %1$s. Il consomme du temps d'antenne partagé par tout le réseau, et chaque relais le réémet. Dans certaines régions, ce temps est limité par la réglementation : ne le répétez pas souvent.</string>
-    <string name="diag_test_confirm_position">Une demande de position va être émise vers %1$s, avec la position de cette radio. Elle consomme du temps d'antenne partagé par tout le réseau, et chaque relais la réémet. Dans certaines régions, ce temps est limité par la réglementation : ne la répétez pas souvent.</string>
     <string name="diag_test_transmit">Émettre</string>
     <string name="diag_test_sent">Demande remise à la radio à %1$s. Une éventuelle réponse s'affiche comme pour toute demande. Une absence de réponse ne prouve pas que la liaison est coupée.</string>
     <string name="diag_test_wait">Prochain test possible dans %1$d s</string>

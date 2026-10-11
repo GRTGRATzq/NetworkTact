@@ -503,7 +503,6 @@
     <string name="diag_suggest_move_higher">Move to a high point, away from buildings and vehicles.</string>
     <string name="diag_suggest_set_region">The radio's region is not set, so it does not transmit: set it in the radio's LoRa settings.</string>
     <string name="diag_suggestions">Things to try</string>
-    <string name="diag_test_confirm_position">A position request will be transmitted to %1$s, with this radio's position. It uses airtime shared by the whole network, and each relay transmits it again. In some regions airtime is limited by regulations: do not repeat it often.</string>
     <string name="diag_test_confirm_title">Transmit a test?</string>
     <string name="diag_test_confirm_traceroute">A traceroute will be transmitted to %1$s. It uses airtime shared by the whole network, and each relay transmits it again. In some regions airtime is limited by regulations: do not repeat it often.</string>
     <string name="diag_test_demo">Demo mode: the test is simulated, nothing is transmitted.</string>
@@ -512,7 +511,6 @@
     <string name="diag_test_no_node">No node to test: none was heard.</string>
     <string name="diag_test_node">Node to test</string>
     <string name="diag_test_not_connected">Radio not connected: nothing can be transmitted.</string>
-    <string name="diag_test_position">Request its position</string>
     <string name="diag_test_sent">Request handed to the radio at %1$s. A reply, if any, shows as for any request. No reply does not prove the link is down.</string>
     <string name="diag_test_title">Test the link</string>
     <string name="diag_test_traceroute">Traceroute</string>

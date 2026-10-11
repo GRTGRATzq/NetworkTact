@@ -473,7 +473,6 @@ diag_suggest_check_lora
 diag_suggest_move_higher
 diag_suggest_set_region
 diag_suggestions
-diag_test_confirm_position
 diag_test_confirm_title
 diag_test_confirm_traceroute
 diag_test_demo
@@ -482,7 +481,6 @@ diag_test_explain
 diag_test_no_node
 diag_test_node
 diag_test_not_connected
-diag_test_position
 diag_test_sent
 diag_test_title
 diag_test_traceroute
