@@ -29,6 +29,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
@@ -44,6 +45,7 @@ import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.compose.resources.vectorResource
 import org.meshtastic.core.common.util.NumberFormatter
 import org.meshtastic.core.model.freshness.ContactState
 import org.meshtastic.core.model.freshness.PositionState
@@ -66,7 +68,9 @@ import org.meshtastic.core.resources.command_post_position_stale
 import org.meshtastic.core.resources.command_post_position_stale_at_least
 import org.meshtastic.core.resources.command_post_read_only
 import org.meshtastic.core.resources.command_post_title
+import org.meshtastic.core.resources.ic_tactnav_orgchart
 import org.meshtastic.core.resources.message
+import org.meshtastic.core.resources.orgchart_open
 import org.meshtastic.core.ui.component.MainAppBar
 import org.meshtastic.core.ui.icon.MeshtasticIcons
 import org.meshtastic.core.ui.icon.Message
@@ -86,6 +90,7 @@ fun CommandPostScreen(
     onOpenNode: (Int) -> Unit,
     onOpenMessages: (String) -> Unit,
     modifier: Modifier = Modifier,
+    onOpenOrgChart: () -> Unit = {},
 ) {
     val rows by viewModel.rows.collectAsStateWithLifecycle()
     Scaffold(
@@ -98,7 +103,14 @@ fun CommandPostScreen(
                 canNavigateUp = true,
                 onNavigateUp = onNavigateUp,
                 onClickChip = {},
-                actions = {},
+                actions = {
+                    IconButton(onClick = onOpenOrgChart) {
+                        Icon(
+                            imageVector = vectorResource(Res.drawable.ic_tactnav_orgchart),
+                            contentDescription = stringResource(Res.string.orgchart_open),
+                        )
+                    }
+                },
             )
         },
     ) { padding ->

@@ -64,6 +64,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.compose.resources.vectorResource
 import org.meshtastic.core.model.ConnectionState
 import org.meshtastic.core.model.Node
 import org.meshtastic.core.model.NodeListDensity
@@ -72,6 +73,7 @@ import org.meshtastic.core.resources.Res
 import org.meshtastic.core.resources.channel_invalid
 import org.meshtastic.core.resources.command_post_open
 import org.meshtastic.core.resources.hop_histogram_title
+import org.meshtastic.core.resources.ic_tactnav_orgchart
 import org.meshtastic.core.resources.node_list_help_title
 import org.meshtastic.core.resources.nodes
 import org.meshtastic.core.resources.nodes_empty_disconnected_hint
@@ -82,6 +84,7 @@ import org.meshtastic.core.resources.nodes_unheard_banner
 import org.meshtastic.core.resources.nodes_unheard_banner_one
 import org.meshtastic.core.resources.nodes_unheard_keep
 import org.meshtastic.core.resources.nodes_unheard_remove
+import org.meshtastic.core.resources.orgchart_open
 import org.meshtastic.core.resources.set_up_connection
 import org.meshtastic.core.ui.component.MainAppBar
 import org.meshtastic.core.ui.component.MeshtasticImportFAB
@@ -132,6 +135,7 @@ fun NodeListScreen(
     // Non-null only in command post (PC) mode: shows the app bar action back to the command post view.
     onOpenCommandPost: (() -> Unit)? = null,
     onEditStatusMessage: () -> Unit = {},
+    onOpenOrgChart: (() -> Unit)? = null,
 ) {
     val showToast = org.meshtastic.core.ui.util.rememberShowToastResource()
     val scope = rememberCoroutineScope()
@@ -296,6 +300,14 @@ fun NodeListScreen(
                 canNavigateUp = false,
                 onNavigateUp = {},
                 actions = {
+                    onOpenOrgChart?.let { openOrgChart ->
+                        IconButton(onClick = openOrgChart) {
+                            Icon(
+                                imageVector = vectorResource(Res.drawable.ic_tactnav_orgchart),
+                                contentDescription = stringResource(Res.string.orgchart_open),
+                            )
+                        }
+                    }
                     onOpenCommandPost?.let { openCommandPost ->
                         IconButton(onClick = openCommandPost) {
                             Icon(

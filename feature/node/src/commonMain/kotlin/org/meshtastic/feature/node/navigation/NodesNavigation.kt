@@ -71,6 +71,8 @@ import org.meshtastic.feature.node.metrics.PositionLogScreen
 import org.meshtastic.feature.node.metrics.PowerMetricsScreen
 import org.meshtastic.feature.node.metrics.SignalMetricsScreen
 import org.meshtastic.feature.node.metrics.TracerouteLogScreen
+import org.meshtastic.feature.node.orgchart.OrgChartScreen
+import org.meshtastic.feature.node.orgchart.OrgChartViewModel
 import kotlin.reflect.KClass
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
@@ -93,6 +95,16 @@ fun EntryProviderScope<NavKey>.nodesGraph(
     entry<NodesRoute.CommandPost>(metadata = { ListDetailSceneStrategy.listPane() }) {
         CommandPostScreen(
             viewModel = koinViewModel<CommandPostViewModel>(),
+            onNavigateUp = dropUnlessResumed { backStack.removeLastOrNull() },
+            onOpenNode = { num -> backStack.add(NodesRoute.NodeDetail(num)) },
+            onOpenMessages = { key -> backStack.add(ContactsRoute.Messages(key)) },
+            onOpenOrgChart = { backStack.add(NodesRoute.OrgChart) },
+        )
+    }
+
+    entry<NodesRoute.OrgChart>(metadata = { ListDetailSceneStrategy.listPane() }) {
+        OrgChartScreen(
+            viewModel = koinViewModel<OrgChartViewModel>(),
             onNavigateUp = dropUnlessResumed { backStack.removeLastOrNull() },
             onOpenNode = { num -> backStack.add(NodesRoute.NodeDetail(num)) },
             onOpenMessages = { key -> backStack.add(ContactsRoute.Messages(key)) },
