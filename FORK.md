@@ -1,7 +1,7 @@
 # NetworkTact
 
 NetworkTact est un fork de [Meshtastic-Android](https://github.com/meshtastic/Meshtastic-Android),
-modifié à partir du 26 septembre 2026 (dernière mise à jour de ce fichier : 11 octobre 2026, branche `feat/organigramme`).
+modifié à partir du 26 septembre 2026 (dernière mise à jour de ce fichier : 11 octobre 2026, branche `feat/autodiagnostic`).
 
 - **Licence** : GPL-3.0-or-later (voir le fichier `LICENSE`, inchangé).
 - **Origine** : code de Meshtastic-Android, © Meshtastic LLC. Les mentions de copyright de
@@ -10,9 +10,10 @@ modifié à partir du 26 septembre 2026 (dernière mise à jour de ce fichier : 
 - **Code source** : https://github.com/GRTGRATzq/NetworkTact
 - **Radios** : le firmware des radios n'est pas modifié. Aucun nouveau protocole radio ni
   nouveau type de paquet : toutes les conventions ci-dessous sont du texte ordinaire, lisible
-  par l'application Meshtastic officielle. Deux exceptions, qui utilisent des paquets que
-  Meshtastic sait déjà envoyer : le partage d'un point sur la carte (section 12, point de repère)
-  et « Diffuser ma position maintenant » (section 15, position standard).
+  par l'application Meshtastic officielle. Trois exceptions, qui utilisent des paquets que
+  Meshtastic sait déjà envoyer : le partage d'un point sur la carte (section 12, point de repère),
+  « Diffuser ma position maintenant » (section 15, position standard) et « Tester la liaison »
+  (section 19, traceroute).
 
 Le détail de chaque changement est dans l'historique Git de ce dépôt.
 
@@ -562,6 +563,76 @@ PC) : qui est qui et où chacun se situe dans la chaîne de commandement. Rien n
   (environ 1 run sur 3), une telle série sans gel avait environ 9 % de chances d'arriver par
   hasard. L'argument principal est ailleurs : le code où le démon restait bloqué n'est plus
   exécuté. Si un gel revient, l'étape de diagnostic le montrera.
+
+### 19. Autodiagnostic quand aucun relais n'est disponible (`feat/autodiagnostic`)
+
+Onglet Réseau → icône « Ouvrir le diagnostic de liaison » (antenne relais), bandeau des Messages et
+du Réseau, ou bouton « Diagnostic » sous un envoi en échec. Le diagnostic n'émet rien : seul
+« Tester la liaison » émet, à la main, après confirmation.
+
+- **Déclencheurs** :
+  - un message envoyé passé en échec (aucun relais entendu, délai dépassé, etc.) affiche
+    « Diagnostic » sous sa carte ;
+  - un bandeau en haut des Messages, de la liste des nœuds et de la vue PC dit « Radio non
+    connectée » si ma radio n'est pas connectée en Bluetooth, sinon « Aucun nœud entendu depuis
+    18 min » (ou « Aucun autre nœud entendu ») quand aucun autre nœud n'a été entendu depuis le
+    seuil « contact récent » de la vue PC (15 min). Une connexion en cours ou une radio en veille
+    n'affichent rien.
+  - Le bandeau se ferme (croix) et ne revient que si la situation change : seuil suivant franchi
+    (30 min, 1 h, puis chaque heure), nœud entendu à nouveau puis nouveau silence, liaison perdue
+    puis retrouvée (`LinkAlerts`, clé de situation). La fermeture est gardée en mémoire, partagée
+    par les onglets, oubliée au lancement suivant.
+- **Constats** (`LinkDiagnostics`, `core/model/.../diagnostic`), en faits, sans conclusion :
+  liaison Bluetooth (OK, connexion en cours, radio en veille, non connectée), avec l'icône d'état de
+  la barre de navigation ; dernier paquet reçu de ma radio, avec son heure et son âge ; nombre de
+  nœuds entendus en 5, 15 et 60 min (sans ma radio, ni les nœuds ignorés) ; dernier nœud entendu,
+  par son indicatif sans suffixe d'équipe, et son heure (« Aucun nœud entendu depuis 18 min.
+  Dernier : BRAVO-2 à 14:02. ») ; réglages LoRa de ma radio (région et préréglage, ou
+  « paramètres personnalisés ») identiques ou non au réglage attendu ; batterie de la radio
+  (pourcentage, « sur alimentation externe » ou « non transmise »). Une heure de contact en avance
+  de plus de 2 min est écartée, comme dans la vue PC. Un constat à surveiller est en pastille
+  inversée (`statusAlert`), jamais en rouge ni en ambre.
+- **Suggestions**, jamais de verdict : vérifier la radio et la liaison Bluetooth, régler la région,
+  vérifier région et préréglage, recharger la radio, se rapprocher d'un point haut, vérifier
+  l'antenne. L'écran rappelle que ne rien entendre ne prouve pas que la radio est coupée du réseau.
+  Ni « réseau OK » ni « isolé » ne sont jamais affichés.
+- **Dernier paquet reçu de ma radio** : aucune heure de ce genre n'existait. `RadioActivityProvider`
+  (`core/repository`) est tenu par `ServiceRepositoryImpl.emitMeshPacket`, par où passent tous les
+  paquets que la radio transmet au téléphone. Gardé en mémoire : « aucun paquet depuis le
+  lancement de l'application » après chaque démarrage, jusqu'au premier paquet.
+- **Réglage LoRa attendu** : région et préréglage, saisis sur l'écran de diagnostic en mode PC
+  seulement (choix dans les listes, reprise du réglage de ma radio, effacement), affichés à tous.
+  Stocké sur le téléphone seulement, en texte (noms des énumérations du protobuf), par
+  `ExpectedLoraPrefs` / `ExpectedLoraPrefsImpl` (préférences d'interface). Rien n'est envoyé aux
+  radios. Le partager par le QR de l'organigramme demanderait un format `NTORGA2` (le décodeur
+  `NTORGA1` refuse en entier un code qu'il ne connaît pas) : reporté à une tâche suivante.
+- **Tester la liaison** : choix d'un nœud déjà entendu, puis Traceroute, la fonction existante de
+  la fiche d'un nœud (`NodeRequestActions.requestTraceroute`). Confirmation obligatoire :
+  temps d'antenne partagé par tout le réseau, réémis par chaque relais, limité par la
+  réglementation dans certaines régions. Un seul traceroute par confirmation, jamais automatique
+  ni périodique ; refusé si la radio n'est pas connectée ; puis 30 s d'attente, la même que sur la
+  fiche d'un nœud (temps du dernier traceroute de l'application). Après l'envoi : « Demande remise
+  à la radio à 14:05 », sans conclure de l'absence de réponse ; la réponse s'affiche comme pour
+  tout traceroute. **La demande de position n'est pas proposée** : la fonction existante joint la
+  position de ma radio datée de l'heure du téléphone, et non de son relevé.
+- **Mode démo** : écran permis (`DemoRoutes`). Données fictives : PC-0 réglé EU_868 / LONG_FAST,
+  le même réglage attendu (modifiable en mémoire seulement), batterie 76 %, dernier paquet il y a
+  1 min ; ALPHA-1, CHARLIE-3 et BRAVO-2 entendus il y a 1, 5 et 20 min. « Tester la liaison » est
+  simulé : rien n'atteint la radio. Le bandeau est calculé sur ces données seulement. Liaisons Koin
+  ajoutées, dans `DiagnosticDemoModule` (inclus par `CoreDemoModule`, pour rester sous la limite
+  detekt de 11 fonctions par classe) : `DemoExpectedLoraPrefs` et `DemoRadioActivityProvider` sous
+  leur seule classe, `ExpectedLoraPrefs` et `RadioActivityProvider` sous `@Named(SCREEN_DATA)`.
+  `DemoRadioConfigRepository` sert désormais la configuration LoRa de PC-0.
+- **Autres changements** : route `NodesRoute.Diagnostic` ; `formatElapsed` (`core/ui`), le format
+  d'âge de la vue PC ; `RadioActivityProvider` lié dans Koin sur Android et sur bureau ; textes
+  `diag_*` en anglais et en français.
+- **Tests** : `LinkDiagnosticsTest`, `LinkAlertsTest` (`core:model`) ;
+  `ServiceRepositoryImplTest` (`core:service`) ; `ExpectedLoraPrefsImplTest` (`core:prefs`) ;
+  `DiagnosticViewModelTest`, `LinkTestViewModelTest` (`feature:node`) ; `DemoDataSetTest`
+  (diagnostic construit sur les données fictives), `ScreenFacadesTest`, `DemoRoutesTest`
+  (`core:demo`). Tous ces modules tournent déjà dans `fork-apk`. `NavigationConfigTest`
+  (`core:navigation`) couvre la route mais ne tourne pas dans `fork-apk` ; le bandeau
+  (`LinkAlertViewModel`, `core:ui`) n'a pas de test propre, sa logique est dans `LinkAlerts`.
 
 ## Marques
 
