@@ -529,6 +529,40 @@ PC) : qui est qui et où chacun se situe dans la chaîne de commandement. Rien n
   `DemoDataSetTest`, `DemoRepositoriesTest`, `ScreenFacadesTest`, `DemoRoutesTest`.
   `NavigationConfigTest` (`core:navigation`) couvre la route mais ne tourne pas dans `fork-apk`.
 
+### 18. Gels de Gradle en configuration dans la CI (`feat/ci-gel`)
+
+- **Constat** : 5 runs de `fork-apk` sur une quinzaine (45, 47, 48, 54, 58) se sont figés pendant
+  la configuration. Le vidage de threads montrait le thread principal du démon Gradle en attente
+  sans fin dans `TaskPathProjectEvaluator.scheduleProjectsJustInTime`, c'est-à-dire dans la
+  configuration parallèle d'Isolated Projects. La mémoire et le réseau étaient normaux.
+- **Changement** : dans `fork-apk.yml` seulement, chaque commande Gradle passe
+  `-Dorg.gradle.unsafe.isolated-projects=false --no-configuration-cache`. Les deux drapeaux vont
+  ensemble, car Gradle refuse `--no-configuration-cache` tant qu'Isolated Projects est actif.
+  L'ancien nom de propriété (`unsafe`) reste pris en compte par Gradle 9.8 (vérifié en local).
+  `gradle.properties` et `build-logic` ne changent pas : les postes de développement gardent
+  Isolated Projects et le cache de configuration. Les limites de durée par étape et l'étape de
+  diagnostic sont conservées.
+- **Validation** : 6 runs de suite sur le même commit (59 au push, 60 à 64 lancés à la main),
+  tous verts, sans aucun gel. Durées en min:s :
+
+  | Run | Lint | Compile | Tests | core:demo | map | APK | map-maplibre | Job |
+  |---|---|---|---|---|---|---|---|---|
+  | 59 | 3:48 | 4:17 | 6:27 | 0:54 | 1:17 | 3:41 | 1:27 | 22:24 |
+  | 60 | 3:54 | 4:41 | 7:06 | 0:58 | 1:18 | 3:55 | 1:31 | 23:59 |
+  | 61 | 3:49 | 4:42 | 6:53 | 0:58 | 1:21 | 3:55 | 1:29 | 23:48 |
+  | 62 | 3:49 | 4:38 | 6:37 | 0:54 | 1:20 | 4:06 | 1:28 | 23:32 |
+  | 63 | 3:37 | 4:25 | 6:37 | 0:55 | 1:19 | 3:50 | 1:27 | 22:43 |
+  | 64 | 3:58 | 4:12 | 6:10 | 0:51 | 1:14 | 3:38 | 1:23 | 22:04 |
+  | Moyenne | 3:49 | 4:29 | 6:38 | 0:55 | 1:18 | 3:51 | 1:28 | 23:05 |
+  | Avant (56, 57) | 3:17 | 4:21 | 6:27 | 0:53 | 1:17 | 3:34 | 1:27 | 21:47 |
+
+  Coût : environ 1 min 20 de plus par run, surtout au Lint (+30 s) et à l'APK (+17 s), où la
+  configuration n'est plus mise en cache.
+- **Limite** : 6 runs sans gel ne prouvent pas que le gel a disparu. Avec le taux observé
+  (environ 1 run sur 3), une telle série sans gel avait environ 9 % de chances d'arriver par
+  hasard. L'argument principal est ailleurs : le code où le démon restait bloqué n'est plus
+  exécuté. Si un gel revient, l'étape de diagnostic le montrera.
+
 ## Marques
 
 Fonctionne avec les nœuds Meshtastic®. Meshtastic® est une marque déposée de Meshtastic LLC.
