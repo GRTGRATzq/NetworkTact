@@ -1,7 +1,7 @@
 # NetworkTact
 
 NetworkTact est un fork de [Meshtastic-Android](https://github.com/meshtastic/Meshtastic-Android),
-modifié à partir du 26 septembre 2026 (dernière mise à jour de ce fichier : 10 octobre 2026, branche `feat/carte-coordonnees`).
+modifié à partir du 26 septembre 2026 (dernière mise à jour de ce fichier : 11 octobre 2026, branche `feat/detachement`).
 
 - **Licence** : GPL-3.0-or-later (voir le fichier `LICENSE`, inchangé).
 - **Origine** : code de Meshtastic-Android, © Meshtastic LLC. Les mentions de copyright de
@@ -425,6 +425,61 @@ carte : `.pmtiles`, `.mbtiles` ou fond en ligne. La carte Google (variante googl
 - **CI** : `fork-apk` compile le Kotlin de l'APK fdroid (`:androidApp:compileFdroidDebugKotlin`)
   juste après le Lint, avant les tests : une erreur de compilation dans un module que les
   étapes de tests ne compilent pas pour Android échoue en quelques minutes, plus à l'étape APK.
+
+### 16. Détachement de Meshtastic (`feat/detachement`)
+
+Plus de marque ni de service en ligne Meshtastic dans l'usage courant, dans les limites de la
+licence : l'écran À propos, l'écran des licences, les en-têtes de copyright, `LICENSE` et ce
+fichier sont conservés. Le firmware des radios, la configuration des radios et MQTT ne changent pas.
+
+- **À propos** : le lien « Dépôt GitHub » ouvre le code source de NetworkTact
+  (`GRTGRATzq/NetworkTact`) et non plus celui de Meshtastic-Android ; nouvelle ligne
+  « Basé sur Meshtastic-Android, © Meshtastic LLC, GPL-3.0. Modifié par le projet NetworkTact. »
+  (`networktact_based_on`) au-dessus du copyright Meshtastic LLC et de l'avis de licence ;
+  rangées « Besoin de matériel », « Site web » et « Documentation » (meshtastic.org) retirées.
+- **Visuels** : l'encart mPWRD-OS de l'écran Wi-Fi montre le symbole NetworkTact au lieu de la
+  marque M-PWRD ; `img_mpwrd_logo.png`, `ic_meshtastic.xml` et `ic_launcher-114x114.png`,
+  non référencés, sont supprimés ; `ic_launcher2-playstore.png` (512 px) est redessiné à partir
+  du symbole.
+- **Services en ligne masqués** :
+  - encart et notification « Mise à jour du firmware disponible » de l'écran Connexion
+    (`FIRMWARE_UPDATE_NOTICES_ENABLED` dans `ConnectionsViewModel`) ; le dialogue « firmware trop
+    ancien / mise à jour conseillée », qui signale une radio sous la version minimale prise en
+    charge, est gardé ;
+  - réglages : section « Aide et documentation » (documentation Meshtastic, assistant Chirpy,
+    déjà inactif en fdroid) et « Liens vers les appareils » (boutiques, affiliation) ;
+  - fiche d'un nœud : section « J'en veux un » (liens d'achat) ;
+  - carte : planificateur de site (site.meshtastic.org), bouton et entrée de la fiche d'un nœud.
+- **Restent en ligne** (aucun affichage ne les annonce) : les requêtes de fond vers
+  api.meshtastic.org (catalogue du matériel, liste des versions de firmware, firmware des
+  événements), nécessaires à l'écran de mise à jour du firmware, conservé et renommé « Mise à
+  jour du firmware radio ». Sans Internet, elles échouent sans message et l'application garde
+  les listes embarquées dans l'APK ou déjà en cache ; seule la mise à jour du firmware, qui
+  télécharge le fichier, a besoin d'Internet.
+- **Textes** (anglais et français ; les 24 autres langues gardent leur traduction) : liens vers
+  meshtastic.org retirés (firmware trop ancien, application trop ancienne, confirmation d'un rôle
+  de relais, maintenance) ; « Meshtastic » remplacé par « radio », « réseau maillé » ou
+  « firmware radio » (recherche d'appareils, distances, firmware événement, mode radioamateur,
+  nom par défaut d'un appareil découvert, licences, partages, SNR, prise en charge du matériel,
+  serveur TAK). Les noms « Meshtastic xxxx » donnés par le firmware ne changent pas.
+- **Couleurs d'état** (rouge réservé à « urgent », ambre aux comptes rendus) :
+  - le vert d'état prend le vert « fraîche » de `TactColors` ;
+  - nouvelle pastille inversée réutilisable (`Modifier.statusAlert`, `StatusAlertContent`) ;
+  - signal LoRa, SNR et RSSI : bon en vert, moyen et mauvais en neutre, aucun en pastille
+    inversée ; barres Bluetooth 0-1 inversées, 2-3 neutres, 4 vertes ; batterie sous 20 %
+    inversée, 20-39 % neutre ;
+  - sécurité : clé incohérente et canal non chiffré avec position précise en pastille inversée,
+    cadenas ouvert neutre (textes d'aide adaptés) ;
+  - traceroutes et voisins : même échelle que le signal (`alertBackground` dans
+    `annotateTraceroute` / `annotateNeighborInfo`) ;
+  - favori, nœud non entendu sur ce préréglage, boussole au nord, version du firmware d'un
+    nœud (vert seulement si identique à la stable), matériel « communauté » : neutre ;
+  - « Ignorer » et « Supprimer » d'un nœud : neutre, toujours précédés d'une confirmation.
+  Le rouge d'erreur Material (`colorScheme.error`) des écrans d'origine (erreurs de saisie,
+  actions destructives des réglages) n'est pas modifié.
+- **Tests** : `ConnectionsViewModelTest` (aucun encart ni notification de mise à jour) et
+  `AnnotatedStringsTest` (fond d'alerte du SNR « aucun »), dans `core:ui`, qui ne tourne pas
+  dans `fork-apk`.
 
 ## Marques
 
