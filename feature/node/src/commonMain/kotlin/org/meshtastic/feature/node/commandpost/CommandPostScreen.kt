@@ -178,7 +178,7 @@ private fun CommandPostCard(row: CommandPostRow, onOpenNode: (Int) -> Unit, onOp
 }
 
 @Composable
-private fun ContactLine(state: ContactState) {
+internal fun ContactLine(state: ContactState) {
     val text =
         when (state) {
             ContactState.NeverHeard -> stringResource(Res.string.command_post_contact_never)
@@ -194,7 +194,7 @@ private fun ContactLine(state: ContactState) {
 }
 
 @Composable
-private fun PositionLine(state: PositionState) {
+internal fun PositionLine(state: PositionState) {
     val text =
         when (state) {
             PositionState.NoPosition -> stringResource(Res.string.command_post_position_none)
