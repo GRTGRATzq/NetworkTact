@@ -35,7 +35,6 @@ import org.meshtastic.core.common.util.safeCatchingAll
 import org.meshtastic.core.database.entity.FirmwareRelease
 import org.meshtastic.core.model.ConnectionState
 import org.meshtastic.core.model.DeviceHardware
-import org.meshtastic.core.model.FirmwareUpdateDestination
 import org.meshtastic.core.repository.ConnectionIdentity
 import org.meshtastic.core.repository.NodeManager
 import org.meshtastic.core.repository.NodeRestartTracker
@@ -64,6 +63,7 @@ import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ConnectionsViewModelTest {
@@ -336,7 +336,7 @@ class ConnectionsViewModelTest {
     }
 
     @Test
-    fun `connected older known node exposes Android firmware update notice`() = runTest {
+    fun `connected older known node gets no firmware update notice nor notification`() = runTest {
         val hardwareModel = HardwareModel.TBEAM.value
         val target = "tbeam"
         deviceHardwareRepository.setHardware(
@@ -359,19 +359,14 @@ class ConnectionsViewModelTest {
 
         advanceUntilIdle()
 
-        val notice = assertNotNull(viewModel.firmwareUpdateNotice.value)
-        assertEquals("2.7.0", notice.currentVersion)
-        assertEquals("2.8.0", notice.stableVersion)
-        assertEquals(FirmwareUpdateDestination.AndroidUpdate, notice.destination)
-        assertEquals(1, dispatchedNotifications.size)
-        assertEquals(setOf(notice.notificationKey), uiPrefs.firmwareUpdateNotificationKeys.value)
-        assertEquals("Firmware update available", dispatchedNotifications.single().title)
-        assertEquals(Notification.Type.Info, dispatchedNotifications.single().type)
-        assertEquals("meshtastic:///firmware/update", dispatchedNotifications.single().deepLinkUri)
+        // NetworkTact: the notice and its notification are switched off (FIRMWARE_UPDATE_NOTICES_ENABLED).
+        assertNull(viewModel.firmwareUpdateNotice.value)
+        assertEquals(emptyList(), dispatchedNotifications)
+        assertEquals(emptySet(), uiPrefs.firmwareUpdateNotificationKeys.value)
     }
 
     @Test
-    fun `a device saved with the legacy bang prefix gets the firmware update notice`() = runTest {
+    fun `a device saved with the legacy bang prefix gets no firmware update notice`() = runTest {
         val target = "tbeam"
         deviceHardwareRepository.setHardware(
             hwModel = HardwareModel.TBEAM.value,
@@ -393,7 +388,7 @@ class ConnectionsViewModelTest {
 
         advanceUntilIdle()
 
-        assertNotNull(viewModel.firmwareUpdateNotice.value)
+        assertNull(viewModel.firmwareUpdateNotice.value)
     }
 
     @Test
@@ -421,7 +416,7 @@ class ConnectionsViewModelTest {
 
         advanceUntilIdle()
 
-        assertNotNull(viewModel.firmwareUpdateNotice.value)
+        assertNull(viewModel.firmwareUpdateNotice.value)
         assertEquals(emptyList(), dispatchedNotifications)
         assertEquals(emptySet(), uiPrefs.firmwareUpdateNotificationKeys.value)
     }

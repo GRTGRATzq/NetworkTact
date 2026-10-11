@@ -262,6 +262,7 @@ class ConnectionsViewModel(
 
     val firmwareUpdateNotice: StateFlow<FirmwareUpdateNotice?> =
         firmwareUpdateCandidate
+            .map { candidate -> candidate?.takeIf { FIRMWARE_UPDATE_NOTICES_ENABLED } }
             .flatMapLatest { candidate ->
                 candidate?.let {
                     flow {
@@ -339,6 +340,13 @@ class ConnectionsViewModel(
             .launchIn(viewModelScope)
     }
 }
+
+/**
+ * NetworkTact: no card on the Connections screen and no notification suggesting Meshtastic's latest stable firmware.
+ * One firmware version is chosen for all the radios of the network; updating stays available, by hand, from the radio
+ * settings ("Radio firmware update"). The release manifest is no longer fetched for the notice.
+ */
+private const val FIRMWARE_UPDATE_NOTICES_ENABLED = false
 
 private data class FirmwareUpdateInputs(
     val connectionState: ConnectionState,
