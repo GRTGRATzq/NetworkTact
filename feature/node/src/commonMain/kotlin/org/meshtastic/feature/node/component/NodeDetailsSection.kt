@@ -105,7 +105,6 @@ import org.meshtastic.core.ui.icon.Person
 import org.meshtastic.core.ui.icon.Rssi
 import org.meshtastic.core.ui.icon.Snr
 import org.meshtastic.core.ui.icon.role
-import org.meshtastic.core.ui.theme.StatusColors.StatusYellow
 import org.meshtastic.core.ui.util.LocalModemPreset
 import org.meshtastic.core.ui.util.LocalNoiseFloor
 import org.meshtastic.core.ui.util.createClipEntry
@@ -465,7 +464,7 @@ private fun NoPublicKeyItem(onRequestUserInfo: (() -> Unit)?) {
                 imageVector = MeshtasticIcons.LockOpen,
                 contentDescription = null,
                 modifier = Modifier.size(14.dp),
-                tint = MaterialTheme.colorScheme.StatusYellow,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Spacer(Modifier.width(6.dp))
             Text(

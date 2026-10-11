@@ -84,9 +84,9 @@ import org.meshtastic.core.ui.icon.Nodes
 import org.meshtastic.core.ui.icon.Person
 import org.meshtastic.core.ui.icon.ShieldCheck
 import org.meshtastic.core.ui.theme.AppTheme
+import org.meshtastic.core.ui.theme.StatusAlertContent
 import org.meshtastic.core.ui.theme.StatusColors.StatusGreen
-import org.meshtastic.core.ui.theme.StatusColors.StatusRed
-import org.meshtastic.core.ui.theme.StatusColors.StatusYellow
+import org.meshtastic.core.ui.theme.statusAlert
 
 /** Key verified in person, by exchanging contact QR codes. Stronger than [SignedNodeIcon], the over-the-mesh one. */
 @Composable
@@ -166,13 +166,20 @@ fun NodeSecurityIndicator.Glyph(modifier: Modifier = Modifier) {
         NodeSecurityIndicator.SIGNED_NODE -> SignedNodeIcon(modifier)
 
         else -> {
+            // NetworkTact: a mismatched key in inverted colours, an open lock neutral; no red nor yellow.
+            val mismatch = this == NodeSecurityIndicator.KEY_MISMATCH
             val (icon, tint) =
                 when (this) {
-                    NodeSecurityIndicator.KEY_MISMATCH -> MeshtasticIcons.KeyOff to colorScheme.StatusRed
+                    NodeSecurityIndicator.KEY_MISMATCH -> MeshtasticIcons.KeyOff to colorScheme.StatusAlertContent
                     NodeSecurityIndicator.PUBLIC_KEY -> MeshtasticIcons.Lock to colorScheme.StatusGreen
-                    else -> MeshtasticIcons.LockOpen to colorScheme.StatusYellow
+                    else -> MeshtasticIcons.LockOpen to colorScheme.onSurfaceVariant
                 }
-            Icon(imageVector = icon, contentDescription = stringResource(title), tint = tint, modifier = modifier)
+            Icon(
+                imageVector = icon,
+                contentDescription = stringResource(title),
+                tint = tint,
+                modifier = modifier.statusAlert(colorScheme, active = mismatch),
+            )
         }
     }
 }

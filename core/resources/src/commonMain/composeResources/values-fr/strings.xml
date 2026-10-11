@@ -1235,13 +1235,13 @@
     <string name="security_icon_description">Statut de sécurité</string>
     <string name="security_icon_help_dismiss">Annuler</string>
     <string name="security_icon_help_green_lock">Un cadenas vert signifie que le canal est chiffré de façon sécurisée avec une clé AES 128 ou 256 bits.</string>
-    <string name="security_icon_help_red_open_lock">Un cadenas rouge ouvert signifie que le canal n'est pas crypté de manière sécurisée, est utilisé pour des données de localisation précises, et n'utilise aucune clé, ou une clé connue de 1 octet.</string>
+    <string name="security_icon_help_red_open_lock">Un cadenas ouvert sur fond inversé signifie que le canal n'est pas chiffré de manière sécurisée, est utilisé pour des données de localisation précises, et n'utilise aucune clé, ou une clé connue de 1 octet.</string>
     <string name="security_icon_help_show_all">Afficher toutes les significations</string>
     <string name="security_icon_help_show_less">Afficher l'état actuel</string>
     <string name="security_icon_help_title">Sécurité du canal</string>
     <string name="security_icon_help_title_all">Signification de la sécurité des canaux</string>
-    <string name="security_icon_help_warning_precise_mqtt">Un cadenas rouge ouvert avec un avertissement signifie que le canal n'est pas crypté de manière sécurisée, est utilisé pour des données de localisation précises qui sont diffusées sur Internet via MQTT, et n'utilise aucune clé, ou une clé connue de 1 octet.</string>
-    <string name="security_icon_help_yellow_open_lock">Un cadenas ouvert jaune signifie que le canal n'est pas crypté de manière sécurisée, n'est pas utilisé pour des données de localisation précises, et n'utilise aucune clé, ou une clé connue de 1 octet.</string>
+    <string name="security_icon_help_warning_precise_mqtt">Un cadenas ouvert sur fond inversé avec un avertissement signifie que le canal n'est pas chiffré de manière sécurisée, est utilisé pour des données de localisation précises qui sont diffusées sur Internet via MQTT, et n'utilise aucune clé, ou une clé connue de 1 octet.</string>
+    <string name="security_icon_help_yellow_open_lock">Un cadenas ouvert gris signifie que le canal n'est pas chiffré de manière sécurisée, n'est pas utilisé pour des données de localisation précises, et n'utilise aucune clé, ou une clé connue de 1 octet.</string>
     <string name="security_icon_insecure_no_precise">Canal non sécurisé, localisation non précise</string>
     <string name="security_icon_insecure_precise_only">Canal non sécurisé, localisation précise</string>
     <string name="security_icon_secure">Sécurisé</string>

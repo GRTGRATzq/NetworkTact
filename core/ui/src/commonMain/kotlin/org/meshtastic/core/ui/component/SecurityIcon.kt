@@ -79,9 +79,9 @@ import org.meshtastic.core.resources.security_icon_insecure_precise_only
 import org.meshtastic.core.resources.security_icon_secure
 import org.meshtastic.core.resources.security_icon_warning_precise_mqtt
 import org.meshtastic.core.ui.theme.AppTheme
+import org.meshtastic.core.ui.theme.StatusAlertContent
 import org.meshtastic.core.ui.theme.StatusColors.StatusGreen
-import org.meshtastic.core.ui.theme.StatusColors.StatusRed
-import org.meshtastic.core.ui.theme.StatusColors.StatusYellow
+import org.meshtastic.core.ui.theme.statusAlert
 import org.meshtastic.proto.ChannelSet
 import org.meshtastic.proto.ChannelSettings
 import org.meshtastic.proto.Config.LoRaConfig
@@ -98,6 +98,7 @@ private const val PRECISE_POSITION_BITS = 32
  * @property helpTextResId The string resource ID for the detailed help text associated with this state.
  * @property badgeIcon Optional vector graphic for a badge to be displayed on the icon.
  * @property badgeIconColor Optional tint color for the badge icon.
+ * @property alert NetworkTact: drawn in inverted colours ([statusAlert]) instead of red; neutral replaces yellow.
  */
 @Immutable
 enum class SecurityState(
@@ -107,6 +108,7 @@ enum class SecurityState(
     val helpTextResId: StringResource,
     @Stable val badgeIcon: DrawableResource? = null,
     @Stable val badgeIconColor: @Composable () -> Color? = { null },
+    val alert: Boolean = false,
 ) {
     /** State for a secure channel (green lock). */
     SECURE(
@@ -122,7 +124,7 @@ enum class SecurityState(
      */
     INSECURE_NO_PRECISE(
         icon = Res.drawable.ic_lock_open,
-        color = { colorScheme.StatusYellow },
+        color = { colorScheme.onSurfaceVariant },
         descriptionResId = Res.string.security_icon_insecure_no_precise,
         helpTextResId = Res.string.security_icon_help_yellow_open_lock,
     ),
@@ -133,9 +135,10 @@ enum class SecurityState(
      */
     INSECURE_PRECISE_ONLY(
         icon = Res.drawable.ic_lock_open,
-        color = { colorScheme.StatusRed },
+        color = { colorScheme.StatusAlertContent },
         descriptionResId = Res.string.security_icon_insecure_precise_only,
         helpTextResId = Res.string.security_icon_help_red_open_lock,
+        alert = true,
     ),
 
     /**
@@ -144,11 +147,12 @@ enum class SecurityState(
      */
     INSECURE_PRECISE_MQTT_WARNING(
         icon = Res.drawable.ic_lock_open,
-        color = { colorScheme.StatusRed },
+        color = { colorScheme.StatusAlertContent },
         descriptionResId = Res.string.security_icon_warning_precise_mqtt,
         helpTextResId = Res.string.security_icon_help_warning_precise_mqtt,
         badgeIcon = Res.drawable.ic_warning,
-        badgeIconColor = { colorScheme.StatusYellow },
+        badgeIconColor = { colorScheme.onSurface },
+        alert = true,
     ),
 }
 
@@ -161,6 +165,7 @@ enum class SecurityState(
  * @param modifier Modifier for this composable.
  * @param badgeIcon Optional vector graphic for the badge.
  * @param badgeIconColor Optional tint color for the badge icon.
+ * @param alert Draws the main icon in inverted colours ([statusAlert]).
  */
 @Composable
 private fun SecurityIconDisplay(
@@ -170,6 +175,7 @@ private fun SecurityIconDisplay(
     modifier: Modifier = Modifier,
     badgeIcon: ImageVector? = null,
     badgeIconColor: Color? = null,
+    alert: Boolean = false,
 ) {
     BadgedBox(
         badge = {
@@ -188,7 +194,12 @@ private fun SecurityIconDisplay(
         },
         modifier = modifier,
     ) {
-        Icon(imageVector = icon, contentDescription = contentDescription, tint = mainIconTint)
+        Icon(
+            imageVector = icon,
+            contentDescription = contentDescription,
+            tint = mainIconTint,
+            modifier = Modifier.statusAlert(colorScheme, active = alert),
+        )
     }
 }
 
@@ -242,6 +253,7 @@ fun SecurityIcon(
             contentDescription = fullContentDescription,
             badgeIcon = securityState.badgeIcon?.let { vectorResource(it) },
             badgeIconColor = securityState.badgeIconColor(),
+            alert = securityState.alert,
         )
     }
 
@@ -458,6 +470,7 @@ private fun ContextualSecurityState(securityState: SecurityState) {
             modifier = Modifier.size(48.dp),
             badgeIcon = securityState.badgeIcon?.let { vectorResource(it) },
             badgeIconColor = securityState.badgeIconColor(),
+            alert = securityState.alert,
         )
         Spacer(Modifier.height(16.dp))
         Text(text = stringResource(securityState.helpTextResId), style = MaterialTheme.typography.bodyMedium)
@@ -484,6 +497,7 @@ private fun AllSecurityStates() {
                     modifier = Modifier.size(48.dp),
                     badgeIcon = state.badgeIcon?.let { vectorResource(it) },
                     badgeIconColor = state.badgeIconColor(),
+                    alert = state.alert,
                 )
                 Column(modifier = Modifier.padding(start = 16.dp)) {
                     Text(text = stringResource(state.descriptionResId), style = MaterialTheme.typography.titleMedium)
