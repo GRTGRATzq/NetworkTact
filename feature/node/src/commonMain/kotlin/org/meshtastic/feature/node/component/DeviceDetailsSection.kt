@@ -58,7 +58,6 @@ import org.meshtastic.core.ui.icon.MeshtasticIcons
 import org.meshtastic.core.ui.icon.Verified
 import org.meshtastic.core.ui.icon.Wrench
 import org.meshtastic.core.ui.theme.StatusColors.StatusGreen
-import org.meshtastic.core.ui.theme.StatusColors.StatusRed
 import org.meshtastic.core.ui.theme.StatusColors.StatusSky
 
 /**
@@ -130,7 +129,7 @@ private fun SupportStatusBadge(tier: HardwareSupportTier) {
             when (tier) {
                 HardwareSupportTier.SUPPORTED -> colorScheme.StatusGreen
                 HardwareSupportTier.MAKER -> colorScheme.StatusSky
-                HardwareSupportTier.COMMUNITY -> colorScheme.StatusRed
+                HardwareSupportTier.COMMUNITY -> colorScheme.onSurfaceVariant
             },
         )
         Spacer(Modifier.width(4.dp))

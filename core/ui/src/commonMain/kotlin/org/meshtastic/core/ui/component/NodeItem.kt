@@ -77,7 +77,6 @@ import org.meshtastic.core.ui.icon.MeshtasticIcons
 import org.meshtastic.core.ui.icon.Notes
 import org.meshtastic.core.ui.icon.SignalOff
 import org.meshtastic.core.ui.theme.StatusColors.StatusGreen
-import org.meshtastic.core.ui.theme.StatusColors.StatusOrange
 import org.meshtastic.core.ui.util.LocalModemPreset
 
 private const val GRID_COLUMNS = 3
@@ -479,14 +478,14 @@ internal fun StatusAwareLastHeard(
             Icon(
                 imageVector = MeshtasticIcons.SignalOff,
                 contentDescription = stringResource(Res.string.node_not_heard_on_current_lora),
-                tint = MaterialTheme.colorScheme.StatusOrange,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(14.dp),
             )
             LastHeardInfo(
                 lastHeard = lastHeard,
                 showLabel = false,
                 relative = relative,
-                contentColor = MaterialTheme.colorScheme.StatusOrange,
+                contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
         return

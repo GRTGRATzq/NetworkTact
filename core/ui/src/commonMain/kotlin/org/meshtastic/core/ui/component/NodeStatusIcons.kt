@@ -54,7 +54,6 @@ import org.meshtastic.core.ui.icon.MeshtasticIcons
 import org.meshtastic.core.ui.icon.PersonQuestion
 import org.meshtastic.core.ui.icon.Unmessageable
 import org.meshtastic.core.ui.icon.VolumeOff
-import org.meshtastic.core.ui.theme.StatusColors.StatusYellow
 import org.meshtastic.core.ui.util.LocalMeshActivity
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -100,7 +99,7 @@ fun NodeStatusIcons(
                 imageVector = MeshtasticIcons.Favorite,
                 contentDescription = Res.string.favorite,
                 tooltipText = Res.string.favorite,
-                tint = MaterialTheme.colorScheme.StatusYellow,
+                tint = MaterialTheme.colorScheme.onSurface,
             )
         }
         if (isThisNode) {

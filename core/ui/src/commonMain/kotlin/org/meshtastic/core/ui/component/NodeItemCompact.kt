@@ -88,7 +88,6 @@ import org.meshtastic.core.ui.icon.Pressure
 import org.meshtastic.core.ui.icon.Temperature
 import org.meshtastic.core.ui.icon.Unmessageable
 import org.meshtastic.core.ui.icon.role
-import org.meshtastic.core.ui.theme.StatusColors.StatusYellow
 import org.meshtastic.core.ui.util.LocalModemPreset
 
 private const val COMPACT_ICON_SIZE_DP = 16
@@ -300,7 +299,7 @@ private fun CompactNameRow(
                 imageVector = MeshtasticIcons.Favorite,
                 contentDescription = null,
                 modifier = Modifier.size(18.dp),
-                tint = MaterialTheme.colorScheme.StatusYellow,
+                tint = MaterialTheme.colorScheme.onSurface,
             )
         }
     }

@@ -60,9 +60,6 @@ import org.meshtastic.core.ui.icon.Memory
 import org.meshtastic.core.ui.icon.MeshtasticIcons
 import org.meshtastic.core.ui.icon.Settings
 import org.meshtastic.core.ui.theme.StatusColors.StatusGreen
-import org.meshtastic.core.ui.theme.StatusColors.StatusOrange
-import org.meshtastic.core.ui.theme.StatusColors.StatusRed
-import org.meshtastic.core.ui.theme.StatusColors.StatusYellow
 import org.meshtastic.feature.node.model.MetricsState
 import org.meshtastic.feature.node.model.NodeDetailAction
 import org.meshtastic.proto.FirmwareEdition
@@ -231,7 +228,7 @@ private fun FirmwareVersionItems(
     val latestAlpha = metricsState.latestAlphaFirmware
 
     val deviceVersion = DeviceVersion(version.substringBeforeLast("."))
-    val statusColor = deviceVersion.determineFirmwareStatusColor(latestStable, latestAlpha)
+    val statusColor = deviceVersion.determineFirmwareStatusColor(latestStable)
 
     if (hasEdition) SectionDivider()
 
@@ -263,24 +260,17 @@ private fun FirmwareVersionItems(
         leadingIcon = MeshtasticIcons.Memory,
         supportingText = latestAlpha.id.substringBeforeLast(".").replace("v", ""),
         copyable = true,
-        leadingIconTint = MaterialTheme.colorScheme.StatusYellow,
+        leadingIconTint = MaterialTheme.colorScheme.onSurfaceVariant,
         trailingIcon = null,
         onClick = { onFirmwareSelect(latestAlpha) },
     )
 }
 
 @Composable
-private fun DeviceVersion.determineFirmwareStatusColor(
-    latestStable: FirmwareRelease,
-    latestAlpha: FirmwareRelease,
-): Color {
-    val stableVersion = latestStable.asDeviceVersion()
-    val alphaVersion = latestAlpha.asDeviceVersion()
-    return when {
-        this < stableVersion -> MaterialTheme.colorScheme.StatusRed
-        this == stableVersion -> MaterialTheme.colorScheme.StatusGreen
-        this in stableVersion..alphaVersion -> MaterialTheme.colorScheme.StatusYellow
-        this > alphaVersion -> MaterialTheme.colorScheme.StatusOrange
-        else -> MaterialTheme.colorScheme.onSurface
+private fun DeviceVersion.determineFirmwareStatusColor(latestStable: FirmwareRelease): Color =
+    // NetworkTact: green when on the stable release, neutral otherwise (the text gives the version).
+    if (this == latestStable.asDeviceVersion()) {
+        MaterialTheme.colorScheme.StatusGreen
+    } else {
+        MaterialTheme.colorScheme.onSurfaceVariant
     }
-}
