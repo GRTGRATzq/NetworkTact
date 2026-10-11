@@ -96,6 +96,7 @@ fun DiagnosticScreen(
                 canNavigateUp = true,
                 onNavigateUp = onNavigateUp,
                 onClickChip = {},
+                actions = {},
             )
         },
     ) { padding ->
