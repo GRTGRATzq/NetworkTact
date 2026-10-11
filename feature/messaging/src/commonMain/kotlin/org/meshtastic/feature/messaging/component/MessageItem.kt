@@ -88,6 +88,7 @@ import org.meshtastic.core.model.geo.MessageCoordinate
 import org.meshtastic.core.resources.Res
 import org.meshtastic.core.resources.a11y_message_from
 import org.meshtastic.core.resources.coords_show_on_map
+import org.meshtastic.core.resources.diag_banner_action
 import org.meshtastic.core.resources.filter_message_label
 import org.meshtastic.core.resources.message_translated_label
 import org.meshtastic.core.resources.reply
@@ -112,6 +113,7 @@ import org.meshtastic.core.ui.util.MapFocusPoint
 import org.meshtastic.core.ui.util.createClipEntry
 import org.meshtastic.core.ui.util.nameWithTeam
 import org.meshtastic.feature.messaging.priority.MessagePriority
+import org.meshtastic.feature.messaging.status.SentStatus
 import org.meshtastic.feature.messaging.status.sentStatusOf
 
 internal const val MESSAGE_STATUS_LABEL_TEST_TAG = "message_status_label"
@@ -178,6 +180,8 @@ fun MessageItem(
     onToggleTranslation: () -> Unit = {},
     /** Opens the map on a coordinate a received message holds; null hides the button. Nothing is sent. */
     onShowOnMap: ((MapFocusPoint) -> Unit)? = null,
+    /** Opens the link diagnostic from a failed send; null hides the button. Nothing is sent. */
+    onOpenDiagnostic: (() -> Unit)? = null,
 ) = Column(
     modifier =
     modifier
@@ -506,6 +510,16 @@ fun MessageItem(
 
                             if (onShowOnMap != null && !message.fromLocal) {
                                 ShowOnMapButton(message = message, onShowOnMap = onShowOnMap)
+                            }
+
+                            // NetworkTact: a failed send offers the link diagnostic, which only reads local data.
+                            if (onOpenDiagnostic != null && message.fromLocal && sentStatus is SentStatus.Failed) {
+                                TextButton(onClick = onOpenDiagnostic) {
+                                    Text(
+                                        text = stringResource(Res.string.diag_banner_action),
+                                        style = MaterialTheme.typography.labelLarge,
+                                    )
+                                }
                             }
 
                             Row(

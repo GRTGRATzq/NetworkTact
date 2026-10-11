@@ -99,6 +99,8 @@ internal data class MessageListHandlers(
     val onToggleTranslation: (Message) -> Unit = {},
     /** Opens the map on a coordinate of a received message; null hides "Show on map". */
     val onShowOnMap: ((MapFocusPoint) -> Unit)? = null,
+    /** Opens the link diagnostic from a failed send; null hides the button. */
+    val onOpenDiagnostic: (() -> Unit)? = null,
 )
 
 internal data class MessageListPagedState(
@@ -444,6 +446,7 @@ private fun RenderPagedChatMessageRow(
         onDelete = { handlers.onDeleteMessages(listOf(message.uuid)) },
         onClickChip = handlers.onClickChip,
         onShowOnMap = handlers.onShowOnMap,
+        onOpenDiagnostic = handlers.onOpenDiagnostic,
         resolveMention = resolveMention,
         onStatusClick = { onShowStatusDialog(message) },
         recipientName = recipientName,

@@ -78,6 +78,7 @@ fun EntryProviderScope<NavKey>.contactsGraph(
             onNavigateBack = dropUnlessResumed { backStack.removeLastOrNull() },
             navigateToCoordinateConverter = dropUnlessResumed { backStack.add(ContactsRoute.CoordinateConverter()) },
             navigateToMap = dropUnlessResumed { backStack.add(MapRoute.Map()) },
+            navigateToDiagnostic = dropUnlessResumed { backStack.add(NodesRoute.Diagnostic) },
         )
     }
 

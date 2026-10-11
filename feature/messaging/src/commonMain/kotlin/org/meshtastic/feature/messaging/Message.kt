@@ -176,6 +176,7 @@ fun MessageScreen(
     onNavigateBack: () -> Unit,
     navigateToCoordinateConverter: (() -> Unit)? = null,
     navigateToMap: (() -> Unit)? = null,
+    navigateToDiagnostic: (() -> Unit)? = null,
 ) {
     val coroutineScope = rememberCoroutineScope()
     val clipboardManager = LocalClipboard.current
@@ -620,6 +621,7 @@ fun MessageScreen(
                                 openMap()
                             }
                         },
+                        onOpenDiagnostic = navigateToDiagnostic,
                     ),
                     quickEmojis = viewModel.frequentEmojis,
                 )
