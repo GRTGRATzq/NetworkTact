@@ -1751,4 +1751,9 @@
     <string name="diag_banner_no_node_ever">Aucun autre nœud entendu</string>
     <string name="diag_banner_action">Diagnostic</string>
     <string name="diag_banner_close">Fermer jusqu'au prochain changement</string>
+    <string name="intro_insignia_4th_battery">4ème batterie</string>
+    <string name="intro_insignia_4th_battery_description">Insigne de la 4ème batterie</string>
+    <string name="intro_insignia_acquisition_battery">Batterie d'acquisition spécialisée</string>
+    <string name="intro_insignia_acquisition_battery_description">Insigne de la batterie d'acquisition spécialisée</string>
+    <string name="intro_insignia_joint_project">NetworkTact, un projet d'innovation porté conjointement par deux batteries.</string>
 </resources>

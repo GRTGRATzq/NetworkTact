@@ -915,6 +915,12 @@ installed_firmware_version
 internal
 interval_always_on
 interval_unset
+### INTRO ###
+intro_insignia_4th_battery
+intro_insignia_4th_battery_description
+intro_insignia_acquisition_battery
+intro_insignia_acquisition_battery_description
+intro_insignia_joint_project
 intro_show
 intro_welcome
 ip

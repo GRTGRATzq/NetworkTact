@@ -945,6 +945,12 @@
     <string name="internal">Internal</string>
     <string name="interval_always_on">Always On</string>
     <string name="interval_unset">Unset</string>
+    <!-- INTRO -->
+    <string name="intro_insignia_4th_battery">4th battery</string>
+    <string name="intro_insignia_4th_battery_description">Insignia of the 4th battery</string>
+    <string name="intro_insignia_acquisition_battery">Specialised acquisition battery</string>
+    <string name="intro_insignia_acquisition_battery_description">Insignia of the specialised acquisition battery</string>
+    <string name="intro_insignia_joint_project">NetworkTact, an innovation project jointly led by two batteries.</string>
     <string name="intro_show">Show Introduction</string>
     <string name="intro_welcome">Welcome to</string>
     <string name="ip">IP</string>
