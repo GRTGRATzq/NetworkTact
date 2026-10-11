@@ -43,11 +43,16 @@ jobs:
           kotlin.native.jvmArgs=-Xmx3g -XX:+UseG1GC
           EOF
           cat "${GRADLE_USER_HOME:-$HOME/.gradle}/gradle.properties"
+      # Every Gradle command below runs with -Dorg.gradle.unsafe.isolated-projects=false --no-configuration-cache
+      # (feat/ci-gel): 5 runs out of about 15 (45, 47, 48, 54, 58) froze while configuring, the daemon's main thread
+      # waiting forever in TaskPathProjectEvaluator.scheduleProjectsJustInTime (Isolated Projects' parallel
+      # configuration), memory and network normal. gradle.properties keeps both for workstations; CI turns them off
+      # here only. Both go together: Gradle refuses --no-configuration-cache while Isolated Projects is on.
       # 10 minutes (2.5 when green, run 46): a Gradle that freezes here fails the step instead of using up the job,
       # so the diagnostics step below still runs (run 48 froze in this step after compiling build-logic).
       - name: Lint
         timeout-minutes: 10
-        run: ./gradlew spotlessCheck detekt --stacktrace
+        run: ./gradlew spotlessCheck detekt -Dorg.gradle.unsafe.isolated-projects=false --no-configuration-cache --stacktrace
       # Right after Lint: compiles the Kotlin of the F-Droid debug app and of every module it depends on (their Android
       # variants: compileAndroidMain for the KMP libraries), without the tests, resources or dexing. A compile error
       # in a module no earlier step compiles for Android (feature:map-maplibre, run 52) then fails here in a few
@@ -57,7 +62,7 @@ jobs:
         run: |
           ./gradlew --stop
           pkill -f KotlinCompileDaemon || true
-          ./gradlew :androidApp:compileFdroidDebugKotlin --stacktrace
+          ./gradlew :androidApp:compileFdroidDebugKotlin -Dorg.gradle.unsafe.isolated-projects=false --no-configuration-cache --stacktrace
       # Android and JVM tests only: NetworkTact ships on Android. allTests also compiled every module for iOS (its iOS
       # tests were always SKIPPED on Linux), so an iOS-only compile error blocked the APK; ios-check.yml compiles iOS
       # on its own instead. Per module: jvmTest (commonTest and jvmTest sources) everywhere, plus testAndroidHostTest
@@ -76,7 +81,7 @@ jobs:
             :core:model:jvmTest :core:model:testAndroidHostTest \
             :core:prefs:jvmTest :core:prefs:testAndroidHostTest \
             :core:service:jvmTest :core:service:testAndroidHostTest \
-            --stacktrace
+            -Dorg.gradle.unsafe.isolated-projects=false --no-configuration-cache --stacktrace
       # Own step, after the others: run in the same invocation, its JVM and Kotlin/Native compilations overlapped the
       # Robolectric host tests and froze the runner (runs 28 and 33).
       # core:navigation stays out of fork-apk: its tests brought the runner down before (rule since task 4).
@@ -88,7 +93,7 @@ jobs:
           ./gradlew --stop
           pkill -f KotlinCompileDaemon || true
           ./gradlew --init-script .github/ci/test-started.init.gradle.kts :core:demo:jvmTest \
-            --stacktrace
+            -Dorg.gradle.unsafe.isolated-projects=false --no-configuration-cache --stacktrace
       # Own step too: feature:map carries the shared-point dialog test (feat/fait-observe-carte).
       - name: Tests feature:map
         timeout-minutes: 15
@@ -98,13 +103,13 @@ jobs:
           ./gradlew --stop
           pkill -f KotlinCompileDaemon || true
           ./gradlew --init-script .github/ci/test-started.init.gradle.kts :feature:map:jvmTest \
-            :feature:map:testAndroidHostTest --stacktrace
+            :feature:map:testAndroidHostTest -Dorg.gradle.unsafe.isolated-projects=false --no-configuration-cache --stacktrace
       - name: APK fdroid debug
         timeout-minutes: 15
         run: |
           ./gradlew --stop
           pkill -f KotlinCompileDaemon || true
-          ./gradlew :androidApp:assembleFdroidDebug --stacktrace
+          ./gradlew :androidApp:assembleFdroidDebug -Dorg.gradle.unsafe.isolated-projects=false --no-configuration-cache --stacktrace
       - uses: actions/upload-artifact@v4
         with:
           name: apk-fdroid-debug
@@ -120,7 +125,7 @@ jobs:
           ./gradlew --stop
           pkill -f KotlinCompileDaemon || true
           ./gradlew --init-script .github/ci/test-started.init.gradle.kts :feature:map-maplibre:jvmTest \
-            :feature:map-maplibre:testAndroidHostTest --stacktrace
+            :feature:map-maplibre:testAndroidHostTest -Dorg.gradle.unsafe.isolated-projects=false --no-configuration-cache --stacktrace
       # When a step failed, timed out or the job was cancelled (a job time-out is a cancellation, not a failure: run
       # 48 skipped this step): what the machine and the Gradle daemons were doing, to tell a daemon short of memory
       # (garbage collection taking the whole time) from one waiting on the network (open connections, a thread
