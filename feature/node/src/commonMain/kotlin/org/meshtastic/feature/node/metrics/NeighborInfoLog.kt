@@ -48,10 +48,8 @@ import org.meshtastic.core.ui.icon.Groups
 import org.meshtastic.core.ui.icon.MeshtasticIcons
 import org.meshtastic.core.ui.icon.PersonOff
 import org.meshtastic.core.ui.icon.Refresh
+import org.meshtastic.core.ui.theme.StatusAlertContent
 import org.meshtastic.core.ui.theme.StatusColors.StatusGreen
-import org.meshtastic.core.ui.theme.StatusColors.StatusOrange
-import org.meshtastic.core.ui.theme.StatusColors.StatusRed
-import org.meshtastic.core.ui.theme.StatusColors.StatusYellow
 import org.meshtastic.core.ui.util.LocalModemPreset
 import org.meshtastic.core.ui.util.annotateNeighborInfo
 import org.meshtastic.feature.node.component.CooldownIconButton
@@ -64,10 +62,11 @@ fun NeighborInfoLogScreen(modifier: Modifier = Modifier, viewModel: MetricsViewM
 
     fun getUsername(nodeNum: Int): String = with(viewModel.getUser(nodeNum)) { "$long_name ($short_name)" }
 
+    // NetworkTact: SNR good in green, fair and bad neutral, none in inverted colours; no red, orange or yellow.
     val statusGreen = MaterialTheme.colorScheme.StatusGreen
-    val statusYellow = MaterialTheme.colorScheme.StatusYellow
-    val statusOrange = MaterialTheme.colorScheme.StatusOrange
-    val statusRed = MaterialTheme.colorScheme.StatusRed
+    val statusNeutral = MaterialTheme.colorScheme.onSurfaceVariant
+    val statusAlert = MaterialTheme.colorScheme.StatusAlertContent
+    val alertBackground = MaterialTheme.colorScheme.inverseSurface
     val modemPreset = LocalModemPreset.current
 
     Scaffold(
@@ -133,10 +132,11 @@ fun NeighborInfoLogScreen(modifier: Modifier = Modifier, viewModel: MetricsViewM
                                         annotateNeighborInfo(
                                             it,
                                             statusGreen = statusGreen,
-                                            statusYellow = statusYellow,
-                                            statusOrange = statusOrange,
-                                            statusRed = statusRed,
+                                            statusYellow = statusNeutral,
+                                            statusOrange = statusNeutral,
+                                            statusRed = statusAlert,
                                             modemPreset = modemPreset,
+                                            alertBackground = alertBackground,
                                         )
                                     viewModel.showLogDetail(Res.string.neighbor_info, message)
                                 }

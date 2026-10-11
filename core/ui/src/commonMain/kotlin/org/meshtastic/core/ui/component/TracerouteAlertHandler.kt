@@ -36,10 +36,8 @@ import org.meshtastic.core.resources.Res
 import org.meshtastic.core.resources.okay
 import org.meshtastic.core.resources.traceroute
 import org.meshtastic.core.resources.view_on_map
+import org.meshtastic.core.ui.theme.StatusAlertContent
 import org.meshtastic.core.ui.theme.StatusColors.StatusGreen
-import org.meshtastic.core.ui.theme.StatusColors.StatusOrange
-import org.meshtastic.core.ui.theme.StatusColors.StatusRed
-import org.meshtastic.core.ui.theme.StatusColors.StatusYellow
 import org.meshtastic.core.ui.util.LocalModemPreset
 import org.meshtastic.core.ui.util.annotateTraceroute
 import org.meshtastic.core.ui.util.toMessageRes
@@ -70,11 +68,13 @@ fun TracerouteAlertHandler(
                             text =
                             annotateTraceroute(
                                 response.message,
+                                // NetworkTact: fair and bad neutral, none inverted; no red, orange or yellow.
                                 statusGreen = colorScheme.StatusGreen,
-                                statusYellow = colorScheme.StatusYellow,
-                                statusOrange = colorScheme.StatusOrange,
-                                statusRed = colorScheme.StatusRed,
+                                statusYellow = colorScheme.onSurfaceVariant,
+                                statusOrange = colorScheme.onSurfaceVariant,
+                                statusRed = colorScheme.StatusAlertContent,
                                 modemPreset = LocalModemPreset.current,
+                                alertBackground = colorScheme.inverseSurface,
                             ),
                         )
                     }

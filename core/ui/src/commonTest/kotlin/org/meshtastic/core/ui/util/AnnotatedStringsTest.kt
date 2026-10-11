@@ -68,4 +68,32 @@ class AnnotatedStringsTest {
         assertTrue(unknown.spanStyles.isEmpty())
         assertEquals(Color.Green, zero.spanStyles.single().item.color)
     }
+
+    @Test
+    fun `only an SNR below the demodulation floor gets the alert background`() {
+        val below =
+            annotateNeighborInfo(
+                "• Node B (SNR: -30.0)",
+                Color.Green,
+                Color.Gray,
+                Color.Gray,
+                Color.White,
+                ModemPreset.LONG_FAST,
+                alertBackground = Color.Black,
+            )
+        val good =
+            annotateTraceroute(
+                "⇊ 0.0 dB",
+                Color.Green,
+                Color.Gray,
+                Color.Gray,
+                Color.White,
+                ModemPreset.LONG_FAST,
+                alertBackground = Color.Black,
+            )
+
+        assertEquals(Color.White, below.spanStyles.single().item.color)
+        assertEquals(Color.Black, below.spanStyles.single().item.background)
+        assertEquals(Color.Unspecified, good.spanStyles.single().item.background)
+    }
 }

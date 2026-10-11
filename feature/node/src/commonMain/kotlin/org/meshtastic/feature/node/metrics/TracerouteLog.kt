@@ -81,10 +81,8 @@ import org.meshtastic.core.ui.icon.PersonOff
 import org.meshtastic.core.ui.icon.Refresh
 import org.meshtastic.core.ui.icon.Route
 import org.meshtastic.core.ui.theme.GraphColors
+import org.meshtastic.core.ui.theme.StatusAlertContent
 import org.meshtastic.core.ui.theme.StatusColors.StatusGreen
-import org.meshtastic.core.ui.theme.StatusColors.StatusOrange
-import org.meshtastic.core.ui.theme.StatusColors.StatusRed
-import org.meshtastic.core.ui.theme.StatusColors.StatusYellow
 import org.meshtastic.core.ui.util.LocalModemPreset
 import org.meshtastic.core.ui.util.annotateTraceroute
 import org.meshtastic.feature.node.component.CooldownIconButton
@@ -112,10 +110,11 @@ fun TracerouteLogScreen(
 
     fun getUsername(nodeNum: Int): String = with(viewModel.getUser(nodeNum)) { "$long_name ($short_name)" }
 
+    // NetworkTact: SNR good in green, fair and bad neutral, none in inverted colours; no red, orange or yellow.
     val statusGreen = MaterialTheme.colorScheme.StatusGreen
-    val statusYellow = MaterialTheme.colorScheme.StatusYellow
-    val statusOrange = MaterialTheme.colorScheme.StatusOrange
-    val statusRed = MaterialTheme.colorScheme.StatusRed
+    val statusNeutral = MaterialTheme.colorScheme.onSurfaceVariant
+    val statusAlert = MaterialTheme.colorScheme.StatusAlertContent
+    val alertBackground = MaterialTheme.colorScheme.inverseSurface
     val modemPreset = LocalModemPreset.current
 
     val headerTowardsStr = stringResource(Res.string.traceroute_route_towards_dest)
@@ -185,9 +184,9 @@ fun TracerouteLogScreen(
                                 headerBack = headerBackStr,
                                 durationTemplate = durationFormatStr,
                                 statusGreen = statusGreen,
-                                statusYellow = statusYellow,
-                                statusOrange = statusOrange,
-                                statusRed = statusRed,
+                                statusNeutral = statusNeutral,
+                                statusAlert = statusAlert,
+                                alertBackground = alertBackground,
                                 modemPreset = modemPreset,
                                 onViewOnMap = onViewOnMap,
                             )
@@ -325,9 +324,9 @@ private fun showTracerouteDetail(
     headerBack: String,
     durationTemplate: String,
     statusGreen: Color,
-    statusYellow: Color,
-    statusOrange: Color,
-    statusRed: Color,
+    statusNeutral: Color,
+    statusAlert: Color,
+    alertBackground: Color,
     modemPreset: ModemPreset?,
     onViewOnMap: (requestId: Int, responseLogUuid: String) -> Unit,
 ) {
@@ -345,10 +344,11 @@ private fun showTracerouteDetail(
                         headerBack = headerBack,
                     ),
                     statusGreen = statusGreen,
-                    statusYellow = statusYellow,
-                    statusOrange = statusOrange,
-                    statusRed = statusRed,
+                    statusYellow = statusNeutral,
+                    statusOrange = statusNeutral,
+                    statusRed = statusAlert,
                     modemPreset = modemPreset,
+                    alertBackground = alertBackground,
                 )
             val durationText = formatString(durationTemplate, NumberFormatter.format(seconds, 1))
             buildAnnotatedString {

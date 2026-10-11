@@ -36,6 +36,7 @@ fun annotateTraceroute(
     statusOrange: Color,
     statusRed: Color,
     modemPreset: ModemPreset?,
+    alertBackground: Color = Color.Unspecified,
 ): AnnotatedString {
     if (inString == null) return buildAnnotatedString { append("") }
 
@@ -51,7 +52,12 @@ fun annotateTraceroute(
                 if (snrValue != null) {
                     val snrColor =
                         snrTierColor(snrValue, modemPreset, statusGreen, statusYellow, statusOrange, statusRed)
-                    withStyle(style = SpanStyle(color = snrColor, fontWeight = FontWeight.Bold)) { append(line) }
+                    val background = snrTierBackground(snrValue, modemPreset, alertBackground)
+                    withStyle(
+                        style = SpanStyle(color = snrColor, fontWeight = FontWeight.Bold, background = background),
+                    ) {
+                        append(line)
+                    }
                 } else {
                     append(line)
                 }
@@ -72,6 +78,7 @@ fun annotateNeighborInfo(
     statusOrange: Color,
     statusRed: Color,
     modemPreset: ModemPreset?,
+    alertBackground: Color = Color.Unspecified,
 ): AnnotatedString {
     if (inString == null) return buildAnnotatedString { append("") }
 
@@ -87,9 +94,14 @@ fun annotateNeighborInfo(
                 if (snrValue != null) {
                     val snrColor =
                         snrTierColor(snrValue, modemPreset, statusGreen, statusYellow, statusOrange, statusRed)
+                    val background = snrTierBackground(snrValue, modemPreset, alertBackground)
                     val snrPrefix = "(SNR: "
                     append(line.substring(0, line.indexOf(snrPrefix) + snrPrefix.length))
-                    withStyle(style = SpanStyle(color = snrColor, fontWeight = FontWeight.Bold)) { append("$snrValue") }
+                    withStyle(
+                        style = SpanStyle(color = snrColor, fontWeight = FontWeight.Bold, background = background),
+                    ) {
+                        append("$snrValue")
+                    }
                     append(")")
                 } else {
                     append(line)
@@ -114,3 +126,10 @@ private fun snrTierColor(
     Quality.BAD -> statusOrange
     Quality.NONE -> statusRed
 }
+
+/**
+ * NetworkTact: the background behind an SNR of the [Quality.NONE] band, so that a caller passing the inverted surface
+ * as [alertBackground] (and its content colour as `statusRed`) shows that band as an inverted pill instead of red.
+ */
+private fun snrTierBackground(snr: Float, modemPreset: ModemPreset?, alertBackground: Color): Color =
+    if (determineSignalQuality(snr, modemPreset) == Quality.NONE) alertBackground else Color.Unspecified
