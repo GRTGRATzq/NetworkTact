@@ -72,7 +72,9 @@ import org.meshtastic.core.model.excludes
 import org.meshtastic.core.resources.Res
 import org.meshtastic.core.resources.channel_invalid
 import org.meshtastic.core.resources.command_post_open
+import org.meshtastic.core.resources.diag_open
 import org.meshtastic.core.resources.hop_histogram_title
+import org.meshtastic.core.resources.ic_cell_tower
 import org.meshtastic.core.resources.ic_tactnav_orgchart
 import org.meshtastic.core.resources.node_list_help_title
 import org.meshtastic.core.resources.nodes
@@ -304,6 +306,14 @@ fun NodeListScreen(
                     canNavigateUp = false,
                     onNavigateUp = {},
                     actions = {
+                        onOpenDiagnostic?.let { openDiagnostic ->
+                            IconButton(onClick = openDiagnostic) {
+                                Icon(
+                                    imageVector = vectorResource(Res.drawable.ic_cell_tower),
+                                    contentDescription = stringResource(Res.string.diag_open),
+                                )
+                            }
+                        }
                         onOpenOrgChart?.let { openOrgChart ->
                             IconButton(onClick = openOrgChart) {
                                 Icon(

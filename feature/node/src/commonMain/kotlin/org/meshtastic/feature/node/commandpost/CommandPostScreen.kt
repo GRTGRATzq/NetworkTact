@@ -68,6 +68,8 @@ import org.meshtastic.core.resources.command_post_position_stale
 import org.meshtastic.core.resources.command_post_position_stale_at_least
 import org.meshtastic.core.resources.command_post_read_only
 import org.meshtastic.core.resources.command_post_title
+import org.meshtastic.core.resources.diag_open
+import org.meshtastic.core.resources.ic_cell_tower
 import org.meshtastic.core.resources.ic_tactnav_orgchart
 import org.meshtastic.core.resources.message
 import org.meshtastic.core.resources.orgchart_open
@@ -107,6 +109,14 @@ fun CommandPostScreen(
                     onNavigateUp = onNavigateUp,
                     onClickChip = {},
                     actions = {
+                        onOpenDiagnostic?.let { openDiagnostic ->
+                            IconButton(onClick = openDiagnostic) {
+                                Icon(
+                                    imageVector = vectorResource(Res.drawable.ic_cell_tower),
+                                    contentDescription = stringResource(Res.string.diag_open),
+                                )
+                            }
+                        }
                         IconButton(onClick = onOpenOrgChart) {
                             Icon(
                                 imageVector = vectorResource(Res.drawable.ic_tactnav_orgchart),
