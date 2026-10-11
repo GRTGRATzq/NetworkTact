@@ -59,6 +59,7 @@ class NavigationConfigTest {
             NodesRoute.NodeDetail(),
             NodesRoute.CommandPost,
             NodesRoute.OrgChart,
+            NodesRoute.Diagnostic,
             // NodeDetailRoute
             NodeDetailRoute.DeviceMetrics(destNum = 100),
             NodeDetailRoute.PositionLog(destNum = 100),

@@ -44,6 +44,8 @@ object DemoRoutes {
         is NodesRoute.CommandPost,
         // The org chart, over the demo's chart and nodes; adopting or changing it stays in the demo.
         is NodesRoute.OrgChart,
+        // The link diagnostic, over the demo's radio and nodes; its link test is simulated.
+        is NodesRoute.Diagnostic,
         // Teams, and the pages holding neither radio nor personal data.
         is SettingsRoute.Teams,
         is SettingsRoute.About,

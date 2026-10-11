@@ -74,6 +74,9 @@ sealed interface NodesRoute : Route {
 
     /** The chain of command: command post, teams and members, each tied to the radio carrying its call sign. */
     @Serializable data object OrgChart : NodesRoute
+
+    /** The link diagnostic: local facts on my radio and the nodes heard, and a manual link test. */
+    @Serializable data object Diagnostic : NodesRoute
 }
 
 @Serializable
