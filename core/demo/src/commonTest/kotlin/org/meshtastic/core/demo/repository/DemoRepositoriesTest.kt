@@ -21,10 +21,12 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.datetime.TimeZone
 import org.meshtastic.core.demo.data.DemoDataSet
 import org.meshtastic.core.demo.store.DemoStore
+import org.meshtastic.core.model.orgchart.OrgChartRecord
 import org.meshtastic.core.model.team.TeamRosterRecord
 import org.meshtastic.core.model.util.getChannel
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
@@ -36,6 +38,7 @@ class DemoRepositoriesTest {
     private val packets = DemoPacketRepository(store)
     private val radioConfig = DemoRadioConfigRepository(store)
     private val teams = DemoTeamRosterPrefs(store)
+    private val orgChart = DemoOrgChartPrefs(store)
 
     private val getNode: suspend (String?) -> org.meshtastic.core.model.Node = { nodes.getNode(it.orEmpty()) }
 
@@ -100,5 +103,24 @@ class DemoRepositoriesTest {
         assertNull(teams.pendingRoster.value)
         assertNull(teams.roster.value)
         assertTrue(radioConfig.channelSetFlow.first().settings.isEmpty())
+    }
+
+    @Test
+    fun theChartIsTheDemoOneAndChangesStayInTheStore() {
+        val chart = assertNotNull(orgChart.current.value).chart
+        assertEquals("PC-0", chart.author)
+        assertEquals(listOf("Alpha", "Bravo"), chart.teams.map { it.name })
+        assertEquals(listOf("ALPHA-1", "CHARLIE-3"), chart.membersOf("Alpha").map { it.callsign })
+
+        val scanned = OrgChartRecord(chart.copy(teams = emptyList()), OrgChartRecord.Source.SCANNED, 1L)
+        orgChart.adopt(scanned)
+        assertEquals(scanned, store.orgChart.value)
+        assertEquals(chart, store.previousOrgChart.value?.chart)
+        orgChart.revertToPrevious()
+        assertEquals(chart, orgChart.current.value?.chart)
+
+        store.clear()
+        assertNull(orgChart.current.value)
+        assertNull(orgChart.previous.value)
     }
 }

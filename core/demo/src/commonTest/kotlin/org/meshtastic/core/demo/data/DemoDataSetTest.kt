@@ -23,6 +23,7 @@ import org.meshtastic.core.model.freshness.PositionState
 import org.meshtastic.core.model.geo.LatLon
 import org.meshtastic.core.model.geo.PositionComparison
 import org.meshtastic.core.model.geo.RadioFixQuality
+import org.meshtastic.core.model.orgchart.OrgChartLinks
 import org.meshtastic.core.model.team.TeamSuffix
 import org.meshtastic.core.model.util.getChannel
 import kotlin.test.Test
@@ -51,6 +52,14 @@ class DemoDataSetTest {
         assertEquals("Bravo", TeamSuffix.teamOf(node(DemoDataSet.BRAVO2_NUM).user.long_name))
         assertEquals("Alpha", TeamSuffix.teamOf(node(DemoDataSet.CHARLIE3_NUM).user.long_name))
         assertEquals(listOf("Alpha", "Bravo"), data.roster.teams)
+    }
+
+    @Test
+    fun theChartPlacesEveryDemoRadioAndOneMemberWithoutRadio() {
+        val links = OrgChartLinks.link(data.orgChart.chart, data.nodes) { it.user.long_name }
+        assertEquals(listOf("DELTA-4"), links.members.filter { it.radios.isEmpty() }.map { it.member.callsign })
+        assertTrue(links.unlisted.isEmpty())
+        assertTrue(links.members.flatMap { it.radios }.all { it.teamMatches })
     }
 
     @Test

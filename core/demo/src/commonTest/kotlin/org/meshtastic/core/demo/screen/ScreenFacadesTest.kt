@@ -26,6 +26,7 @@ import kotlinx.datetime.TimeZone
 import org.meshtastic.core.demo.DemoModeController
 import org.meshtastic.core.demo.data.DemoDataSet
 import org.meshtastic.core.demo.repository.DemoNodeRepository
+import org.meshtastic.core.demo.repository.DemoOrgChartPrefs
 import org.meshtastic.core.demo.repository.DemoPacketRepository
 import org.meshtastic.core.demo.repository.DemoPhonePositionSource
 import org.meshtastic.core.demo.repository.DemoTeamRosterPrefs
@@ -39,12 +40,16 @@ import org.meshtastic.core.model.NodeAddress
 import org.meshtastic.core.model.geo.RadioPositionPacket
 import org.meshtastic.core.model.geo.SharedPoint
 import org.meshtastic.core.model.geo.toWaypoint
+import org.meshtastic.core.model.orgchart.OrgChart
+import org.meshtastic.core.model.orgchart.OrgChartRecord
+import org.meshtastic.core.model.orgchart.OrgMember
 import org.meshtastic.core.model.team.TeamRosterRecord
 import org.meshtastic.core.repository.MessagingController
 import org.meshtastic.core.repository.PhoneFix
 import org.meshtastic.core.repository.PhonePositionSource
 import org.meshtastic.core.repository.usecase.SendMessageUseCase
 import org.meshtastic.core.testing.FakeNodeRepository
+import org.meshtastic.core.testing.FakeOrgChartPrefs
 import org.meshtastic.core.testing.FakeRadioController
 import org.meshtastic.core.testing.FakeTeamRosterPrefs
 import org.meshtastic.core.testing.FakeUiPrefs
@@ -72,6 +77,7 @@ class ScreenFacadesTest {
     private val realStore = DemoStore().apply { load(DemoDataSet.create(REAL_TIME, TimeZone.UTC), false) }
     private val realPackets = DemoPacketRepository(realStore)
     private val realTeams = FakeTeamRosterPrefs()
+    private val realOrgChart = FakeOrgChartPrefs()
     private val realUiPrefs = FakeUiPrefs()
     private val realRadio = FakeRadioController()
 
@@ -81,6 +87,7 @@ class ScreenFacadesTest {
     private val nodes = ScreenNodeRepository(realNodes, DemoNodeRepository(store), demoMode)
     private val packets = ScreenPacketRepository(realPackets, DemoPacketRepository(store), demoMode)
     private val teams = ScreenTeamRosterPrefs(realTeams, DemoTeamRosterPrefs(store), demoMode)
+    private val orgChart = ScreenOrgChartPrefs(realOrgChart, DemoOrgChartPrefs(store), demoMode)
     private val uiPrefs = ScreenUiPrefs(realUiPrefs, store, demoMode)
     private val owner = ScreenRadioConfigUseCase(realRadio, store, demoMode)
 
@@ -245,6 +252,34 @@ class ScreenFacadesTest {
 
         demoMode.deactivate()
         assertEquals(received, teams.pendingRoster.value)
+    }
+
+    @Test
+    fun theChartShownIsTheDemoOneAndNoChangeReachesTheRealOne() = runTest(dispatcher) {
+        val real =
+            OrgChartRecord(
+                OrgChart("REAL-1", 1L, listOf(OrgMember("REAL-1")), emptyList()),
+                OrgChartRecord.Source.EDITED,
+                1L,
+            )
+        realOrgChart.save(real)
+        orgChart.current.test {
+            assertEquals(real, awaitItem())
+
+            demoMode.activate()
+            assertEquals("PC-0", awaitItem()?.chart?.author)
+            val scanned = OrgChartRecord(real.chart.copy(author = "PC-9"), OrgChartRecord.Source.SCANNED, 2L)
+            orgChart.adopt(scanned)
+            assertEquals(scanned, awaitItem())
+            orgChart.save(scanned.copy(source = OrgChartRecord.Source.EDITED))
+            awaitItem()
+
+            demoMode.deactivate()
+            assertEquals(real, awaitItem())
+            expectNoEvents()
+        }
+        assertEquals(real, realOrgChart.current.value)
+        assertEquals(null, realOrgChart.previous.value)
     }
 
     private companion object {

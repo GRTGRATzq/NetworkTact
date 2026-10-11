@@ -23,6 +23,7 @@ import org.meshtastic.core.demo.data.DemoPacket
 import org.meshtastic.core.model.ContactSettings
 import org.meshtastic.core.model.MyNodeInfo
 import org.meshtastic.core.model.Node
+import org.meshtastic.core.model.orgchart.OrgChartRecord
 import org.meshtastic.core.model.team.TeamRosterRecord
 import org.meshtastic.proto.ChannelSet
 
@@ -40,6 +41,8 @@ class DemoStore {
     val channelSet = MutableStateFlow(ChannelSet.Builder().build())
     val roster = MutableStateFlow<TeamRosterRecord?>(null)
     val pendingRoster = MutableStateFlow<TeamRosterRecord?>(null)
+    val orgChart = MutableStateFlow<OrgChartRecord?>(null)
+    val previousOrgChart = MutableStateFlow<OrgChartRecord?>(null)
     val packets = MutableStateFlow<List<DemoPacket>>(emptyList())
     val contactSettings = MutableStateFlow<Map<String, ContactSettings>>(emptyMap())
 
@@ -61,6 +64,8 @@ class DemoStore {
         channelSet.value = data.channelSet
         roster.value = data.roster
         pendingRoster.value = null
+        orgChart.value = data.orgChart
+        previousOrgChart.value = null
         packets.value = data.packets
         contactSettings.value = emptyMap()
         this.commandPostMode.value = commandPostMode
@@ -74,6 +79,8 @@ class DemoStore {
         channelSet.value = ChannelSet.Builder().build()
         roster.value = null
         pendingRoster.value = null
+        orgChart.value = null
+        previousOrgChart.value = null
         packets.value = emptyList()
         contactSettings.value = emptyMap()
         commandPostMode.value = false

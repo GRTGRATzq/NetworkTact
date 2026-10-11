@@ -30,6 +30,10 @@ import org.meshtastic.core.model.geo.ObservedFactMessage
 import org.meshtastic.core.model.geo.ObservedTime
 import org.meshtastic.core.model.geo.PositionMessage
 import org.meshtastic.core.model.geo.PositionSource
+import org.meshtastic.core.model.orgchart.OrgChart
+import org.meshtastic.core.model.orgchart.OrgChartRecord
+import org.meshtastic.core.model.orgchart.OrgMember
+import org.meshtastic.core.model.orgchart.OrgTeam
 import org.meshtastic.core.model.team.TeamRoster
 import org.meshtastic.core.model.team.TeamRosterRecord
 import org.meshtastic.proto.ChannelSet
@@ -59,6 +63,7 @@ data class DemoData(
     val channelSet: ChannelSet,
     val roster: TeamRosterRecord,
     val packets: List<DemoPacket>,
+    val orgChart: OrgChartRecord,
 )
 
 /**
@@ -98,6 +103,7 @@ object DemoDataSet {
     private val alpha1PositionAge = 2.minutes
     private val observedFactAge = 10.minutes
     private val rosterAge = 30.minutes
+    private val orgChartAge = 25.minutes
 
     /** Where this phone's own radio, PC-0, is. */
     private val pc0Point = LatLon(48.858_400, 2.347_000)
@@ -178,8 +184,26 @@ object DemoDataSet {
                 timeSeconds = nowSeconds - rosterAge.inWholeSeconds,
             ),
             packets = history.mapIndexed { index, entry -> entry.toPacket(index, nowMillis, timeZone) },
+            orgChart =
+            OrgChartRecord(
+                orgChart(nowSeconds - orgChartAge.inWholeSeconds),
+                OrgChartRecord.Source.EDITED,
+                timeSeconds = nowSeconds - orgChartAge.inWholeSeconds,
+            ),
         )
     }
+
+    /** The chain of command made on PC-0. DELTA-4 has no radio: the chart shows a member without one. */
+    private fun orgChart(createdSeconds: Long) = OrgChart(
+        author = "PC-0",
+        createdSeconds = createdSeconds,
+        commandPost = listOf(OrgMember("PC-0", "Chef PC")),
+        teams =
+        listOf(
+            OrgTeam("Alpha", listOf(OrgMember("ALPHA-1", "Chef d'équipe"), OrgMember("CHARLIE-3", "Radio"))),
+            OrgTeam("Bravo", listOf(OrgMember("BRAVO-2", "Chef d'équipe"), OrgMember("DELTA-4", "Éclaireur"))),
+        ),
+    )
 
     private fun alpha1Position(nowSeconds: Long, timeZone: TimeZone): String = PositionMessage.build(
         name = "ALPHA-1",

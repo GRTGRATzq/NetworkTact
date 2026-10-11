@@ -21,6 +21,7 @@ import org.koin.core.annotation.Named
 import org.koin.core.annotation.Provided
 import org.koin.core.annotation.Single
 import org.meshtastic.core.demo.repository.DemoNodeRepository
+import org.meshtastic.core.demo.repository.DemoOrgChartPrefs
 import org.meshtastic.core.demo.repository.DemoPacketRepository
 import org.meshtastic.core.demo.repository.DemoPhonePositionSource
 import org.meshtastic.core.demo.repository.DemoRadioConfigRepository
@@ -28,6 +29,7 @@ import org.meshtastic.core.demo.repository.DemoTeamRosterPrefs
 import org.meshtastic.core.demo.screen.ScreenConnectionStateProvider
 import org.meshtastic.core.demo.screen.ScreenMessagingController
 import org.meshtastic.core.demo.screen.ScreenNodeRepository
+import org.meshtastic.core.demo.screen.ScreenOrgChartPrefs
 import org.meshtastic.core.demo.screen.ScreenPacketRepository
 import org.meshtastic.core.demo.screen.ScreenPhonePositionSource
 import org.meshtastic.core.demo.screen.ScreenRadioConfigRepository
@@ -43,6 +45,7 @@ import org.meshtastic.core.repository.ConnectionStateProvider
 import org.meshtastic.core.repository.DemoMode
 import org.meshtastic.core.repository.MessagingController
 import org.meshtastic.core.repository.NodeRepository
+import org.meshtastic.core.repository.OrgChartPrefs
 import org.meshtastic.core.repository.PacketRepository
 import org.meshtastic.core.repository.PhonePositionSource
 import org.meshtastic.core.repository.RadioConfigRepository
@@ -89,6 +92,11 @@ class ScreenDataModule {
         demo: DemoTeamRosterPrefs,
         demoMode: DemoMode,
     ): TeamRosterPrefs = ScreenTeamRosterPrefs(real, demo, demoMode)
+
+    @Single
+    @Named(SCREEN_DATA)
+    fun screenOrgChartPrefs(@Provided real: OrgChartPrefs, demo: DemoOrgChartPrefs, demoMode: DemoMode): OrgChartPrefs =
+        ScreenOrgChartPrefs(real, demo, demoMode)
 
     @Single
     @Named(SCREEN_DATA)

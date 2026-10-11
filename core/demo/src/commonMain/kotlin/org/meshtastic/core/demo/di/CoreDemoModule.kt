@@ -23,6 +23,7 @@ import org.koin.core.annotation.Provided
 import org.koin.core.annotation.Single
 import org.meshtastic.core.demo.DemoModeController
 import org.meshtastic.core.demo.repository.DemoNodeRepository
+import org.meshtastic.core.demo.repository.DemoOrgChartPrefs
 import org.meshtastic.core.demo.repository.DemoPacketRepository
 import org.meshtastic.core.demo.repository.DemoPhonePositionSource
 import org.meshtastic.core.demo.repository.DemoRadioConfigRepository
@@ -61,6 +62,8 @@ class CoreDemoModule {
     fun demoRadioConfigRepository(store: DemoStore): DemoRadioConfigRepository = DemoRadioConfigRepository(store)
 
     @Single fun demoTeamRosterPrefs(store: DemoStore): DemoTeamRosterPrefs = DemoTeamRosterPrefs(store)
+
+    @Single fun demoOrgChartPrefs(store: DemoStore): DemoOrgChartPrefs = DemoOrgChartPrefs(store)
 
     @Single
     fun demoSendMessageUseCase(
