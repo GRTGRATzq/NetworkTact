@@ -73,10 +73,19 @@ import org.meshtastic.core.ui.theme.statusAlert
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
-/** The link diagnostic screen: facts, suggestions and the expected LoRa setting. Nothing on it transmits. */
+/**
+ * The link diagnostic screen: facts, suggestions, the expected LoRa setting and the manual link test. Nothing on it
+ * transmits except the link test, after a confirmation.
+ */
 @Composable
-fun DiagnosticScreen(viewModel: DiagnosticViewModel, onNavigateUp: () -> Unit, modifier: Modifier = Modifier) {
+fun DiagnosticScreen(
+    viewModel: DiagnosticViewModel,
+    linkTestViewModel: LinkTestViewModel,
+    onNavigateUp: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val testState by linkTestViewModel.uiState.collectAsStateWithLifecycle()
     Scaffold(
         modifier = modifier,
         topBar = {
@@ -98,7 +107,9 @@ fun DiagnosticScreen(viewModel: DiagnosticViewModel, onNavigateUp: () -> Unit, m
         } else {
             DiagnosticContent(
                 state = current,
+                testState = testState,
                 onExpectedChange = { viewModel.setExpected(it) },
+                onTraceroute = { linkTestViewModel.traceroute(it) },
                 modifier = Modifier.padding(padding),
             )
         }
@@ -109,7 +120,9 @@ fun DiagnosticScreen(viewModel: DiagnosticViewModel, onNavigateUp: () -> Unit, m
 @Composable
 fun DiagnosticContent(
     state: DiagnosticUiState,
+    testState: LinkTestUiState,
     onExpectedChange: (LoraSetting?) -> Unit,
+    onTraceroute: (TestTarget) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -129,6 +142,7 @@ fun DiagnosticContent(
             commandPostMode = state.commandPostMode,
             onExpectedChange = onExpectedChange,
         )
+        LinkTestCard(targets = state.targets, testState = testState, onTraceroute = onTraceroute)
     }
 }
 
@@ -248,5 +262,14 @@ private fun DiagnosticContentPreview() {
             commandPostMode = true,
             targets = listOf(TestTarget(2, "BRAVO-2", 0), TestTarget(3, "CHARLIE-3", 0)),
         )
-    AppTheme { Surface { DiagnosticContent(state = state, onExpectedChange = {}) } }
+    AppTheme {
+        Surface {
+            DiagnosticContent(
+                state = state,
+                testState = LinkTestUiState(connected = true, demo = false, waitSeconds = 0, lastSent = null),
+                onExpectedChange = {},
+                onTraceroute = {},
+            )
+        }
+    }
 }

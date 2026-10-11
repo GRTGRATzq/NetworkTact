@@ -62,6 +62,7 @@ import org.meshtastic.feature.node.detail.NodeDetailScreen
 import org.meshtastic.feature.node.detail.NodeDetailViewModel
 import org.meshtastic.feature.node.diagnostic.DiagnosticScreen
 import org.meshtastic.feature.node.diagnostic.DiagnosticViewModel
+import org.meshtastic.feature.node.diagnostic.LinkTestViewModel
 import org.meshtastic.feature.node.metrics.AirQualityMetricsScreen
 import org.meshtastic.feature.node.metrics.DeviceMetricsScreen
 import org.meshtastic.feature.node.metrics.EnvironmentMetricsScreen
@@ -116,6 +117,7 @@ fun EntryProviderScope<NavKey>.nodesGraph(
     entry<NodesRoute.Diagnostic>(metadata = { ListDetailSceneStrategy.listPane() }) {
         DiagnosticScreen(
             viewModel = koinViewModel<DiagnosticViewModel>(),
+            linkTestViewModel = koinViewModel<LinkTestViewModel>(),
             onNavigateUp = dropUnlessResumed { backStack.removeLastOrNull() },
         )
     }
