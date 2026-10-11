@@ -1,7 +1,7 @@
 # NetworkTact
 
 NetworkTact est un fork de [Meshtastic-Android](https://github.com/meshtastic/Meshtastic-Android),
-modifié à partir du 26 septembre 2026 (dernière mise à jour de ce fichier : 11 octobre 2026, branche `feat/detachement`).
+modifié à partir du 26 septembre 2026 (dernière mise à jour de ce fichier : 11 octobre 2026, branche `feat/organigramme`).
 
 - **Licence** : GPL-3.0-or-later (voir le fichier `LICENSE`, inchangé).
 - **Origine** : code de Meshtastic-Android, © Meshtastic LLC. Les mentions de copyright de
@@ -480,6 +480,54 @@ fichier sont conservés. Le firmware des radios, la configuration des radios et 
 - **Tests** : `ConnectionsViewModelTest` (aucun encart ni notification de mise à jour) et
   `AnnotatedStringsTest` (fond d'alerte du SNR « aucun »), dans `core:ui`, qui ne tourne pas
   dans `fork-apk`.
+
+### 17. Organigramme (`feat/organigramme`)
+
+Onglet Réseau → icône « Ouvrir l'organigramme » (barre du haut de la liste des nœuds et de la vue
+PC) : qui est qui et où chacun se situe dans la chaîne de commandement. Rien n'est émis par radio.
+
+- **Structure** : PC, puis les équipes (celles de la liste adoptée en section 6, dans son ordre),
+  puis leurs membres. Chaque membre a un indicatif (39 octets UTF-8 au plus), une fonction libre
+  (24 octets au plus) et un rang, son ordre dans la liste. Modèle `OrgChart`, `OrgChartEditor`
+  dans `core/model/.../orgchart`.
+- **Édition** : en mode PC seulement (ajouter, modifier, retirer avec confirmation, monter,
+  descendre). Chaque modification est enregistrée sur le téléphone, signée de l'indicatif de sa
+  radio et datée. Une équipe absente de la liste des équipes reste affichée et signalée.
+- **Rattachement aux radios** : par l'indicatif seul, c'est-à-dire le nom long sans son suffixe
+  d'équipe (`ALPHA-1 [Alpha]` → `ALPHA-1`), sans tenir compte de la casse ; jamais par
+  l'identifiant matériel : une radio remplacée qui reprend l'indicatif retrouve sa place
+  (`OrgChartLinks`). Pour chaque radio : dernier contact et âge de la position, mêmes règles et
+  mêmes couleurs que la vue PC (rafraîchis toutes les 15 s). Sans radio : « Aucune radio
+  associée ». Plusieurs radios au même indicatif : toutes listées, aucune choisie. Une radio qui
+  déclare une autre équipe que celle de l'organigramme : signalé, rien n'est corrigé. Les radios
+  sans membre sont listées à part. Toucher un membre ouvre sa fiche, Message sa conversation.
+- **Partage par QR** (aucune émission radio) : le PC affiche le code (texte `NTORGA1`, une ligne
+  par entrée, ASCII pur, correction d'erreur moyenne), avec « Organigramme de PC-0, créé à
+  HH:MM ». Limite de 770 caractères, soit un QR de version 22 (105 × 105 modules) : 9 membres aux
+  indicatifs et fonctions de longueur maximale tiennent en 720 caractères ; au-delà, l'ajout est
+  refusé avec la longueur atteinte. Les autres téléphones scannent le code ; une confirmation
+  montre l'auteur, l'heure de création, les équipes et leurs membres avant toute adoption. Un
+  code abîmé est refusé en entier.
+- **Organigramme précédent** : l'adoption garde l'organigramme qu'elle remplace ; « Revenir au
+  précédent » échange les deux (et peut donc être annulé).
+- **Limite** : aucune authentification. N'importe quel téléphone peut afficher un QR
+  d'organigramme ; la confirmation le rappelle. Voir l'écran du PC limite le risque sans
+  l'éliminer.
+- **Stockage** : `OrgChartPrefs` (`core/repository`), `OrgChartPrefsImpl` (préférences
+  d'interface, JSON).
+- **Mode démo** : écran permis (`DemoRoutes`), sur un organigramme fictif (PC-0 ; Alpha :
+  ALPHA-1, CHARLIE-3 ; Bravo : BRAVO-2, et DELTA-4 sans radio) servi par la façade
+  `ScreenOrgChartPrefs` sous `@Named(SCREEN_DATA)` ; modifications et adoptions restent en
+  mémoire et disparaissent à la sortie. Liaisons Koin ajoutées : `DemoOrgChartPrefs` (sous sa
+  seule classe) et `OrgChartPrefs` sous `@Named(SCREEN_DATA)`.
+- **Autres changements** : `rememberQrCodePainter` accepte un niveau de correction d'erreur
+  (`QrErrorCorrection`, HIGH par défaut, inchangé ailleurs) ; `ContactLine` et `PositionLine` de
+  la vue PC passent `internal` pour être réutilisées ; icône `ic_tactnav_orgchart`.
+- **Tests** : `OrgChartCodeTest`, `OrgChartTest`, `OrgChartLinksTest`, `OrgChartEditorTest`,
+  `OrgChartHistoryTest` (`core:model`), `OrgChartPrefsImplTest` (`core:prefs`),
+  `OrgChartStateTest`, `OrgChartViewModelTest` (`feature:node`), et dans `core:demo`
+  `DemoDataSetTest`, `DemoRepositoriesTest`, `ScreenFacadesTest`, `DemoRoutesTest`.
+  `NavigationConfigTest` (`core:navigation`) couvre la route mais ne tourne pas dans `fork-apk`.
 
 ## Marques
 
