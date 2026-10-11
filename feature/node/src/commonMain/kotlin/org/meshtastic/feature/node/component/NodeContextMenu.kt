@@ -20,12 +20,9 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuGroup
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LocalContentColor
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.Color
 import org.jetbrains.compose.resources.stringResource
 import org.meshtastic.core.model.Node
 import org.meshtastic.core.resources.Res
@@ -49,7 +46,6 @@ import org.meshtastic.core.ui.icon.Notes
 import org.meshtastic.core.ui.icon.Route
 import org.meshtastic.core.ui.icon.VolumeOff
 import org.meshtastic.core.ui.icon.VolumeUp
-import org.meshtastic.core.ui.theme.StatusColors.StatusRed
 
 /**
  * Shared context menu for node actions (favorite, mute, message, trace route, ignore, remove).
@@ -132,15 +128,10 @@ private fun IgnoreMenuItem(node: Node, onIgnore: () -> Unit, onDismiss: () -> Un
             Icon(
                 imageVector = if (isIgnored) MeshtasticIcons.DoDisturb else MeshtasticIcons.DoDisturb,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.StatusRed,
             )
         },
-        text = {
-            Text(
-                text = stringResource(if (isIgnored) Res.string.remove_ignored else Res.string.ignore),
-                color = MaterialTheme.colorScheme.StatusRed,
-            )
-        },
+        // NetworkTact: neutral, not red (reserved for urgent messages); a confirmation dialog follows.
+        text = { Text(text = stringResource(if (isIgnored) Res.string.remove_ignored else Res.string.ignore)) },
     )
 }
 
@@ -196,18 +187,8 @@ private fun RemoveMenuItem(node: Node, onRemove: () -> Unit, onDismiss: () -> Un
             onDismiss()
         },
         enabled = !node.isIgnored,
-        leadingIcon = {
-            Icon(
-                imageVector = MeshtasticIcons.DeleteNode,
-                contentDescription = null,
-                tint = if (node.isIgnored) LocalContentColor.current else MaterialTheme.colorScheme.StatusRed,
-            )
-        },
-        text = {
-            Text(
-                text = stringResource(Res.string.remove),
-                color = if (node.isIgnored) Color.Unspecified else MaterialTheme.colorScheme.StatusRed,
-            )
-        },
+        leadingIcon = { Icon(imageVector = MeshtasticIcons.DeleteNode, contentDescription = null) },
+        // NetworkTact: neutral, not red (reserved for urgent messages); a confirmation dialog follows.
+        text = { Text(text = stringResource(Res.string.remove)) },
     )
 }
