@@ -28,6 +28,7 @@ import kotlinx.coroutines.withTimeoutOrNull
 import org.meshtastic.core.model.ConnectionEpochs
 import org.meshtastic.core.model.ConnectionState
 import org.meshtastic.core.model.service.TracerouteResponse
+import org.meshtastic.proto.MeshPacket
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -134,5 +135,19 @@ class ServiceRepositoryImplTest {
         repository.clearTracerouteResponse()
 
         assertNull(repository.tracerouteResponse.value)
+    }
+
+    @Test
+    fun lastPacketFromRadioIsNullUntilAPacketThenItsReceptionTime() = runTest {
+        var now = 1_000L
+        val repository = ServiceRepositoryImpl(clock = { now })
+        assertNull(repository.lastPacketFromRadioMillis.value)
+
+        repository.emitMeshPacket(MeshPacket.Builder().also { it.from = 2 }.build())
+        assertEquals(1_000L, repository.lastPacketFromRadioMillis.value)
+
+        now = 5_000L
+        repository.emitMeshPacket(MeshPacket.Builder().also { it.from = 3 }.build())
+        assertEquals(5_000L, repository.lastPacketFromRadioMillis.value)
     }
 }

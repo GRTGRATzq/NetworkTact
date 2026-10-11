@@ -61,6 +61,7 @@ import org.meshtastic.core.repository.NotificationPrefs
 import org.meshtastic.core.repository.PacketRepository
 import org.meshtastic.core.repository.PlatformAnalytics
 import org.meshtastic.core.repository.QueryController
+import org.meshtastic.core.repository.RadioActivityProvider
 import org.meshtastic.core.repository.RadioConfigRepository
 import org.meshtastic.core.repository.RadioController
 import org.meshtastic.core.repository.RadioInterfaceService
@@ -98,6 +99,7 @@ class DesktopRuntimeModule {
             TracerouteResponseProvider::class,
             NeighborInfoResponseProvider::class,
             ServiceStateWriter::class,
+            RadioActivityProvider::class,
         ],
     )
     fun serviceRepository(): ServiceRepository = ServiceRepositoryImpl()

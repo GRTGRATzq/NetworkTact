@@ -23,11 +23,13 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asFlow
+import org.meshtastic.core.common.util.nowMillis
 import org.meshtastic.core.model.ConnectionState
 import org.meshtastic.core.model.service.LockdownState
 import org.meshtastic.core.model.service.LockdownTokenInfo
 import org.meshtastic.core.model.service.TracerouteResponse
 import org.meshtastic.core.repository.ConnectionStateHolder
+import org.meshtastic.core.repository.RadioActivityProvider
 import org.meshtastic.core.repository.ServiceRepository
 import org.meshtastic.proto.ClientNotification
 import org.meshtastic.proto.MeshPacket
@@ -38,9 +40,13 @@ import org.meshtastic.proto.MeshPacket
  * Manages reactive state for connection status, error messages, mesh packets, and service actions using only
  * KMP-compatible primitives (StateFlow, SharedFlow, Channel, Kermit Logger). This implementation can be used directly
  * on any KMP target.
+ *
+ * @param clock epoch milliseconds, for [lastPacketFromRadioMillis]; replaced in tests.
  */
 @Suppress("TooManyFunctions")
-open class ServiceRepositoryImpl : ServiceRepository {
+open class ServiceRepositoryImpl(private val clock: () -> Long = { nowMillis }) :
+    ServiceRepository,
+    RadioActivityProvider {
 
     // Canonical app-level connection state — written exclusively by MeshConnectionManager.
     private val connectionStateHolder = ConnectionStateHolder()
@@ -91,7 +97,13 @@ open class ServiceRepositoryImpl : ServiceRepository {
     override val meshPacketFlow: Flow<MeshPacket>
         get() = _meshPacketFlow.asFlow()
 
+    // NetworkTact: every packet emitted here came from my radio over the current link (link diagnostic).
+    private val _lastPacketFromRadioMillis = MutableStateFlow<Long?>(null)
+    override val lastPacketFromRadioMillis: StateFlow<Long?>
+        get() = _lastPacketFromRadioMillis
+
     override suspend fun emitMeshPacket(packet: MeshPacket) {
+        _lastPacketFromRadioMillis.value = clock()
         _meshPacketFlow.emit(packet)
     }
 

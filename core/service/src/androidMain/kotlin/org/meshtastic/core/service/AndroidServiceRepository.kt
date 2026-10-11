@@ -19,6 +19,7 @@ package org.meshtastic.core.service
 import org.koin.core.annotation.Single
 import org.meshtastic.core.repository.ConnectionStateProvider
 import org.meshtastic.core.repository.NeighborInfoResponseProvider
+import org.meshtastic.core.repository.RadioActivityProvider
 import org.meshtastic.core.repository.ServiceRepository
 import org.meshtastic.core.repository.ServiceStateWriter
 import org.meshtastic.core.repository.TracerouteResponseProvider
@@ -32,6 +33,7 @@ import org.meshtastic.core.repository.TracerouteResponseProvider
         TracerouteResponseProvider::class,
         NeighborInfoResponseProvider::class,
         ServiceStateWriter::class,
+        RadioActivityProvider::class,
     ],
 )
 class AndroidServiceRepository : ServiceRepositoryImpl()
