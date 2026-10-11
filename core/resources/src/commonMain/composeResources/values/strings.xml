@@ -688,19 +688,19 @@
     <string name="firmware_event_ended_button">Update firmware</string>
     <string name="firmware_maintenance_cdc_unblock_failed">The erase file was copied but the device didn't start erasing. Nothing has been changed yet. Unplug the device, double-press its reset button, and try again.</string>
     <string name="firmware_maintenance_copy_failed">Couldn't copy the file to the device's drive. Make sure the drive is still connected and try again.</string>
-    <string name="firmware_maintenance_data_unavailable">The erase image list isn't available right now. Check your connection and try again, or use the web flasher at flasher.meshtastic.org.</string>
+    <string name="firmware_maintenance_data_unavailable">The erase image list isn't available right now. Check your connection and try again.</string>
     <string name="firmware_maintenance_no_release">Select a firmware version first, so the device can be reinstalled after erasing.</string>
     <string name="firmware_maintenance_not_a_bootloader_volume">That drive isn't the device's update drive. Select the drive that appears when the device is in update mode (it contains a file named INFO_UF2.TXT).</string>
     <string name="firmware_maintenance_select_drive">Select the device's update drive</string>
     <string name="firmware_maintenance_softdevice_conflict">The device reports a different Bluetooth stack than expected, so erasing it isn't safe. Please report this along with your device model.</string>
     <string name="firmware_maintenance_unknown_board">This device's bootloader isn't one this app has an upgrade for.</string>
-    <string name="firmware_maintenance_unknown_softdevice">This app can't confirm which Bluetooth stack this device uses, so erasing it isn't safe. Use the web flasher at flasher.meshtastic.org instead.</string>
+    <string name="firmware_maintenance_unknown_softdevice">This app can't confirm which Bluetooth stack this device uses, so erasing it isn't safe.</string>
     <string name="firmware_maintenance_unsupported_device">This device doesn't support erasing from the app.</string>
     <string name="firmware_maintenance_upgrade_bootloader_action">Upgrade bootloader</string>
     <string name="firmware_maintenance_upgrade_confirm_text">This installs an upgraded bootloader on %1$s, which makes future Bluetooth updates much faster. The firmware is reinstalled afterwards.\n\nDon't disconnect the device while this runs.</string>
     <string name="firmware_maintenance_upgrade_confirm_title">Upgrade bootloader?</string>
     <string name="firmware_maintenance_wrong_destination">That location isn't the device's update drive, so nothing was written to the device. Select the removable drive that appears when the device is in update mode.</string>
-    <string name="firmware_old">The radio firmware is too old to talk to this application. For more information on this see <a href="https://meshtastic.org/docs/getting-started/flashing-firmware">our Firmware Installation guide</a>.</string>
+    <string name="firmware_old">The radio firmware is too old to talk to this application. Update the radio firmware before using it with NetworkTact.</string>
     <string name="firmware_recovery_banner">Finish updating %1$s</string>
     <string name="firmware_recovery_ble_failed">Couldn't finish the update over Bluetooth. This device's stock bootloader can't reliably complete an interrupted update over the air. Connect it to a computer with USB and re-flash it using the vendor's serial DFU tool (for example adafruit-nrfutil) to recover the device.</string>
     <string name="firmware_recovery_button">Resume firmware update</string>
@@ -1250,7 +1250,7 @@
     <string name="mqtt_status_topics_refused_some">Connected, but the broker refused %1$s</string>
     <string name="mqtt_test_connection">Test connection</string>
     <string name="must_set_region">You must set a region!</string>
-    <string name="must_update">You must update this application on the app store (or Github). It is too old to talk to this radio firmware.  Please read our <a href="https://meshtastic.org/docs/software/android/installation">docs</a> on this topic.</string>
+    <string name="must_update">This application is too old to talk to this radio firmware. Install a more recent version of NetworkTact.</string>
     <!-- MUTE -->
     <string name="mute_1_week">1 week</string>
     <string name="mute_8_hours">8 hours</string>
@@ -1687,7 +1687,7 @@
     <string name="role_tak">TAK</string>
     <string name="role_tak_tracker">TAK Tracker</string>
     <string name="role_tracker">Tracker</string>
-    <string name="router_role_confirmation_text">I have read the &lt;a href="https://meshtastic.org/docs/configuration/radio/device/#roles"&gt;Device Role Documentation&lt;/a&gt; and the blog post about &lt;a href="http://meshtastic.org/blog/choosing-the-right-device-role"&gt;Choosing The Right Device Role&lt;/a&gt;.</string>
+    <string name="router_role_confirmation_text">I understand that this role changes how this radio relays traffic for the whole mesh.</string>
     <!-- ROUTING -->
     <string name="routing_error_admin_bad_session_key">Admin session expired</string>
     <string name="routing_error_admin_public_key_unauthorized">Admin key not authorized</string>

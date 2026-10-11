@@ -559,7 +559,7 @@
     <string name="firmware_event_ended_button">Mettre à jour le micrologiciel</string>
     <string name="firmware_maintenance_upgrade_bootloader_action">Mise à jour du bootloader</string>
     <string name="firmware_maintenance_upgrade_confirm_title">Mettre à jour le chargeur de démarrage ?</string>
-    <string name="firmware_old">Le micrologiciel de la radio est trop ancien pour communiquer avec cette application. Pour des informations, voir <a href="https://meshtastic.org/docs/getting-started/flashing-firmware">Guide d'installation du micrologiciel</a>.</string>
+    <string name="firmware_old">Le firmware de la radio est trop ancien pour communiquer avec cette application. Mettez à jour le firmware radio avant de l'utiliser avec NetworkTact.</string>
     <string name="firmware_recovery_banner">Fin de la mise à jour %1$s</string>
     <string name="firmware_recovery_ble_failed">Impossible de terminer la mise à jour via le Bluetooth. Le programme d'amorçage par défaut ne peut pas correctement effectuer une mise à jour OTA. Connectez l'appareil sur un ordinateur via USB et tentez de flasher en utilisant les outils DFU du vendeur (par exemple, adafruit-nrfutil) pour restaurer l'appareil.</string>
     <string name="firmware_recovery_button">Reprendre la mise à jour du micrologiciel</string>
@@ -907,7 +907,7 @@
     <string name="mqtt_status_reconnecting_with_attempt">Reconnexion (tentative %1$d) — %2$s</string>
     <string name="mqtt_test_connection">Test de la connexion</string>
     <string name="must_set_region">Vous devez définir une région !</string>
-    <string name="must_update">Vous devez mettre à jour cette application sur l'app store (ou Github). Il est trop vieux pour dialoguer avec le micrologiciel de la radio. Veuillez lire nos  <a href="https://meshtastic.org/docs/software/android/installation"> docs</a> sur ce sujet.</string>
+    <string name="must_update">Cette application est trop ancienne pour dialoguer avec le firmware de cette radio. Installez une version plus récente de NetworkTact.</string>
     <!-- MUTE -->
     <string name="mute_1_week">1 semaine</string>
     <string name="mute_8_hours">8 heures</string>
@@ -1202,7 +1202,7 @@
     <string name="role_tak">TAK</string>
     <string name="role_tak_tracker">Traqueur TAK</string>
     <string name="role_tracker">Traqueur</string>
-    <string name="router_role_confirmation_text">J'ai lu la &lt;a href="https://meshtastic.org/docs/configuration/radio/device/#roles"&gt;Documentation du rôle de l'appareil&lt;/a&gt; et le billet de blog sur comment &lt;a href="http://meshtastic.org/blog/choosing-the-right-device-role"&gt;Choisir le rôle de l'appareil approprié&lt;/a&gt;.</string>
+    <string name="router_role_confirmation_text">J'ai compris que ce rôle change la façon dont cette radio relaie le trafic pour tout le réseau maillé.</string>
     <!-- ROUTING -->
     <string name="routing_error_got_nak">Accusé de réception négatif</string>
     <string name="routing_error_no_route">Pas de routage</string>
@@ -1637,4 +1637,6 @@
     <string name="map_node_fix_on">Relevée le %1$s</string>
     <string name="map_node_fix_unknown">Heure de relevé inconnue</string>
     <string name="networktact_based_on">Basé sur Meshtastic-Android, © Meshtastic LLC, GPL-3.0. Modifié par le projet NetworkTact.</string>
+    <string name="firmware_maintenance_data_unavailable">La liste des images d'effacement n'est pas disponible pour le moment. Vérifiez la connexion et réessayez.</string>
+    <string name="firmware_maintenance_unknown_softdevice">L'application ne peut pas confirmer quelle pile Bluetooth cet appareil utilise : l'effacer n'est pas sûr.</string>
 </resources>
