@@ -55,10 +55,8 @@ import org.meshtastic.core.resources.app_functions_settings
 import org.meshtastic.core.resources.app_functions_settings_summary
 import org.meshtastic.core.resources.app_settings
 import org.meshtastic.core.resources.bottom_nav_settings
-import org.meshtastic.core.resources.device_links
 import org.meshtastic.core.resources.export_configuration
 import org.meshtastic.core.resources.filter_settings
-import org.meshtastic.core.resources.help_and_documentation
 import org.meshtastic.core.resources.import_configuration
 import org.meshtastic.core.resources.node_layout_section_title
 import org.meshtastic.core.resources.preferences_language
@@ -73,10 +71,8 @@ import org.meshtastic.core.ui.component.ListItem
 import org.meshtastic.core.ui.component.MainAppBar
 import org.meshtastic.core.ui.component.MeshtasticDialog
 import org.meshtastic.core.ui.component.SwitchPreference
-import org.meshtastic.core.ui.icon.Device
 import org.meshtastic.core.ui.icon.FilterList
 import org.meshtastic.core.ui.icon.Groups
-import org.meshtastic.core.ui.icon.HelpOutline
 import org.meshtastic.core.ui.icon.List
 import org.meshtastic.core.ui.icon.MeshtasticIcons
 import org.meshtastic.core.ui.icon.SettingsRemote
@@ -379,19 +375,8 @@ fun SettingsScreen(
                 )
             }
 
-            ExpressiveSection(title = stringResource(Res.string.help_and_documentation)) {
-                ListItem(
-                    text = stringResource(Res.string.help_and_documentation),
-                    leadingIcon = MeshtasticIcons.HelpOutline,
-                ) {
-                    onNavigate(SettingsRoute.HelpDocs)
-                }
-                if (state.isLocal) {
-                    ListItem(text = stringResource(Res.string.device_links), leadingIcon = MeshtasticIcons.Device) {
-                        onNavigate(SettingsRoute.DeviceLinks)
-                    }
-                }
-            }
+            // NetworkTact: no "Help & documentation" (Meshtastic documentation and the Chirpy assistant) and no
+            // "Device links" (store and affiliate links fetched from api.meshtastic.org).
         }
     }
 }
