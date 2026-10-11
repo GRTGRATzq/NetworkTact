@@ -166,14 +166,12 @@ object GraphColors {
 }
 
 object StatusColors {
+    /**
+     * NetworkTact: the "fresh" green of [TactColors] (`#1E6B3C` light, `#67EA94` dark), held to 4.5:1 on the surface,
+     * in place of Meshtastic's `#3FB86D`, so that one green means "good" across the app.
+     */
     val ColorScheme.StatusGreen: Color
-        @Composable
-        get() =
-            if (surface.luminance() < DARK_SURFACE_LUMINANCE) {
-                Color(0xFF3FB86D) // Green 600
-            } else {
-                Color(0xFF3FB86D) // Green 600 (Success)
-            }
+        @Composable get() = TactColors.legible(TactHue.FRESH, surface)
 
     val ColorScheme.StatusYellow: Color
         @Composable
