@@ -26,7 +26,6 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -42,7 +41,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -78,7 +76,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -91,7 +88,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import org.meshtastic.core.resources.Res
@@ -100,8 +96,6 @@ import org.meshtastic.core.resources.apply
 import org.meshtastic.core.resources.back
 import org.meshtastic.core.resources.cancel
 import org.meshtastic.core.resources.hide_password
-import org.meshtastic.core.resources.img_mpwrd_logo
-import org.meshtastic.core.resources.mpwrd_os
 import org.meshtastic.core.resources.password
 import org.meshtastic.core.resources.retry
 import org.meshtastic.core.resources.show_password
@@ -139,6 +133,7 @@ import org.meshtastic.core.resources.wifi_provision_success_username_value
 import org.meshtastic.core.resources.wifi_provisioning
 import org.meshtastic.core.ui.component.AutoLinkText
 import org.meshtastic.core.ui.component.CopyIconButton
+import org.meshtastic.core.ui.component.NetworkTactSymbol
 import org.meshtastic.core.ui.icon.ArrowBack
 import org.meshtastic.core.ui.icon.Bluetooth
 import org.meshtastic.core.ui.icon.CheckCircle
@@ -692,7 +687,7 @@ internal fun NetworkRow(network: WifiNetwork, isSelected: Boolean, onClick: () -
 // mPWRD-OS disclaimer banner
 // ---------------------------------------------------------------------------
 
-private const val MPWRD_LOGO_SIZE_DP = 40
+private const val LOGO_SIZE_DP = 40
 
 /** Branded disclaimer banner shown at the top of the provisioning screen. */
 @Composable
@@ -707,11 +702,7 @@ internal fun MpwrdDisclaimerBanner() {
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.Top,
         ) {
-            Image(
-                painter = painterResource(Res.drawable.img_mpwrd_logo),
-                contentDescription = stringResource(Res.string.mpwrd_os),
-                modifier = Modifier.size(MPWRD_LOGO_SIZE_DP.dp).clip(RoundedCornerShape(8.dp)),
-            )
+            NetworkTactSymbol(modifier = Modifier.size(LOGO_SIZE_DP.dp), contentDescription = null)
             AutoLinkText(
                 text = stringResource(Res.string.wifi_provision_mpwrd_disclaimer),
                 style = MaterialTheme.typography.bodySmall,
