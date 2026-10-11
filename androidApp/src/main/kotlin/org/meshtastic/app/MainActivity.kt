@@ -266,7 +266,8 @@ class MainActivity : AppCompatActivity() {
                 packageManager.hasSystemFeature(PackageManager.FEATURE_NFC_HOST_CARD_EMULATION),
             LocalAnalyticsIntroProvider provides { AnalyticsIntro() },
             LocalMapViewProvider provides getMapViewProvider(),
-            LocalSitePlannerAvailable provides true,
+            // NetworkTact: the Site Planner is an online Meshtastic service (site.meshtastic.org); not offered.
+            LocalSitePlannerAvailable provides false,
             LocalInlineMapProvider provides { node, modifier -> InlineMap(node, modifier) },
             LocalNodeTrackMapProvider provides
                 { destNum, positions, modifier, selectedPositionTime, onPositionSelected ->
