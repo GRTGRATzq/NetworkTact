@@ -634,6 +634,26 @@ du Réseau, ou bouton « Diagnostic » sous un envoi en échec. Le diagnostic n'
   (`core:navigation`) couvre la route mais ne tourne pas dans `fork-apk` ; le bandeau
   (`LinkAlertViewModel`, `core:ui`) n'a pas de test propre, sa logique est dans `LinkAlerts`.
 
+### 20. Écran de bienvenue : insignes des deux batteries (`feat/accueil-insignes`)
+
+- **Bloc ajouté** (`WelcomeScreen`, `feature:intro`) sous les trois avantages, au-dessus de
+  « Commencer » : l'insigne de la 4ème batterie à gauche, celui de la batterie d'acquisition
+  spécialisée à droite, séparés par un trait vertical fin, chacun avec sa légende ; en dessous,
+  centré, « NetworkTact, un projet d'innovation porté conjointement par deux batteries. » Le logo,
+  les avantages et le bouton ne changent pas.
+- **Affichage** : 88 dp de haut pour les deux insignes, couleurs d'origine (aucune teinte) en
+  thème clair et sombre. Légendes et phrase en couleur de texte secondaire (`onSurfaceVariant`) :
+  contraste de 6,6:1 en clair et 9,4:1 en sombre sur le fond de l'application. La colonne défile
+  sur les petits écrans ou avec une police agrandie ; « Commencer » reste dans la barre du bas.
+- **Ressources** : `insigne_4e_batterie.png` (320 × 512) et `insigne_bas.png` (567 × 512), PNG
+  transparents, dans `core/resources` (`composeResources/drawable`), octets d'origine sans
+  recompression : environ 456 Kio de plus dans l'APK. Textes `intro_insignia_*` en anglais et en
+  français, avec les descriptions d'accessibilité des deux insignes.
+- **Mode démo** : rien de nouveau ; le bloc n'affiche que des images et des textes fixes.
+- **Réafficher l'écran** : Réglages, section Information, « Afficher l'introduction » (`intro_show`)
+  remet seulement l'indicateur d'introduction terminée ; nœuds, messages et réglages sont gardés
+  (ligne verrouillée en mode démo).
+
 ## Marques
 
 Fonctionne avec les nœuds Meshtastic®. Meshtastic® est une marque déposée de Meshtastic LLC.
