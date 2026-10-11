@@ -1636,4 +1636,5 @@
     <string name="map_node_fix_at">Relevée à %1$s</string>
     <string name="map_node_fix_on">Relevée le %1$s</string>
     <string name="map_node_fix_unknown">Heure de relevé inconnue</string>
+    <string name="networktact_based_on">Basé sur Meshtastic-Android, © Meshtastic LLC, GPL-3.0. Modifié par le projet NetworkTact.</string>
 </resources>

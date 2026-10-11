@@ -1238,6 +1238,7 @@ neighbor_info
 neighbor_info_config
 network
 network_layer_url_hint
+networktact_based_on
 new_channel_rcvd
 new_messages_below
 new_node_seen

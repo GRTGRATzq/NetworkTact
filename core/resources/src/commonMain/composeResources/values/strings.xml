@@ -1274,6 +1274,7 @@
     <string name="neighbor_info_config">Neighbor Info Config</string>
     <string name="network">Network</string>
     <string name="network_layer_url_hint" translatable="false">https://example.com/map.kml or .geojson</string>
+    <string name="networktact_based_on">Based on Meshtastic-Android, © Meshtastic LLC, GPL-3.0. Modified by the NetworkTact project.</string>
     <string name="new_channel_rcvd">New Channel URL received</string>
     <string name="new_messages_below">New messages below</string>
     <string name="new_node_seen">New Node Seen: %1$s</string>
