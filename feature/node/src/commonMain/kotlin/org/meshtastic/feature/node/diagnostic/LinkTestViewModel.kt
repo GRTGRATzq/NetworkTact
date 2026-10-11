@@ -35,7 +35,6 @@ import org.meshtastic.core.repository.SCREEN_DATA
 import org.meshtastic.core.ui.viewmodel.stateInWhileSubscribed
 import org.meshtastic.feature.node.component.COOL_DOWN_TIME_MS
 import org.meshtastic.feature.node.detail.NodeRequestActions
-import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 /** The last test sent from this screen. */
@@ -147,9 +146,12 @@ class LinkTestViewModel(
         /** The node page's traceroute cooldown. */
         const val LINK_TEST_COOLDOWN_MS = COOL_DOWN_TIME_MS
 
+        private const val MILLIS_PER_SECOND = 1000L
+
         fun waitSeconds(lastTestMillis: Long?, nowMillis: Long): Int {
             val remaining = (lastTestMillis ?: return 0) + LINK_TEST_COOLDOWN_MS - nowMillis
-            return if (remaining <= 0) 0 else remaining.milliseconds.inWholeSeconds.toInt() + 1
+            // Rounded up: 30 s right after a test, 1 s during its last second.
+            return if (remaining <= 0) 0 else ((remaining + MILLIS_PER_SECOND - 1) / MILLIS_PER_SECOND).toInt()
         }
     }
 }
