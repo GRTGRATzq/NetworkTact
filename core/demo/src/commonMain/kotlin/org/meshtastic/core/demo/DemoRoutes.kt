@@ -42,6 +42,8 @@ object DemoRoutes {
         is ContactsRoute.Share,
         // The command post view; in demo mode the Nodes tab opens on it, the node list itself is unavailable.
         is NodesRoute.CommandPost,
+        // The org chart, over the demo's chart and nodes; adopting or changing it stays in the demo.
+        is NodesRoute.OrgChart,
         // Teams, and the pages holding neither radio nor personal data.
         is SettingsRoute.Teams,
         is SettingsRoute.About,

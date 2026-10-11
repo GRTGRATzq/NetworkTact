@@ -71,6 +71,9 @@ sealed interface NodesRoute : Route {
 
     /** Read-only command post (PC) overview of every known node; the start screen in command post mode. */
     @Serializable data object CommandPost : NodesRoute
+
+    /** The chain of command: command post, teams and members, each tied to the radio carrying its call sign. */
+    @Serializable data object OrgChart : NodesRoute
 }
 
 @Serializable

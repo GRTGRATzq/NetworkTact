@@ -38,6 +38,7 @@ class DemoRoutesTest {
             ContactsRoute.CoordinateConverter(input = "31U DQ 48251 11932"),
             ContactsRoute.Share(message = "Point carte · MGRS 31U DQ 48251 11932"),
             NodesRoute.CommandPost,
+            NodesRoute.OrgChart,
             SettingsRoute.Settings(),
             SettingsRoute.Teams,
             SettingsRoute.About,
