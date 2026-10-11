@@ -46,5 +46,6 @@ fun AdaptiveContactsScreen(
         onNavigateToFilterSettings = { backStack.add(SettingsRoute.FilterSettings) },
         scrollToTopEvents = scrollToTopEvents,
         activeContactKey = null,
+        onOpenDiagnostic = { backStack.add(NodesRoute.Diagnostic) },
     )
 }

@@ -72,6 +72,7 @@ import org.meshtastic.core.resources.ic_tactnav_orgchart
 import org.meshtastic.core.resources.message
 import org.meshtastic.core.resources.orgchart_open
 import org.meshtastic.core.ui.component.MainAppBar
+import org.meshtastic.core.ui.diagnostic.LinkAlertBannerHost
 import org.meshtastic.core.ui.icon.MeshtasticIcons
 import org.meshtastic.core.ui.icon.Message
 import org.meshtastic.core.ui.theme.AppTheme
@@ -91,27 +92,31 @@ fun CommandPostScreen(
     onOpenMessages: (String) -> Unit,
     modifier: Modifier = Modifier,
     onOpenOrgChart: () -> Unit = {},
+    onOpenDiagnostic: (() -> Unit)? = null,
 ) {
     val rows by viewModel.rows.collectAsStateWithLifecycle()
     Scaffold(
         modifier = modifier,
         topBar = {
-            MainAppBar(
-                title = stringResource(Res.string.command_post_title),
-                ourNode = null,
-                showNodeChip = false,
-                canNavigateUp = true,
-                onNavigateUp = onNavigateUp,
-                onClickChip = {},
-                actions = {
-                    IconButton(onClick = onOpenOrgChart) {
-                        Icon(
-                            imageVector = vectorResource(Res.drawable.ic_tactnav_orgchart),
-                            contentDescription = stringResource(Res.string.orgchart_open),
-                        )
-                    }
-                },
-            )
+            Column {
+                MainAppBar(
+                    title = stringResource(Res.string.command_post_title),
+                    ourNode = null,
+                    showNodeChip = false,
+                    canNavigateUp = true,
+                    onNavigateUp = onNavigateUp,
+                    onClickChip = {},
+                    actions = {
+                        IconButton(onClick = onOpenOrgChart) {
+                            Icon(
+                                imageVector = vectorResource(Res.drawable.ic_tactnav_orgchart),
+                                contentDescription = stringResource(Res.string.orgchart_open),
+                            )
+                        }
+                    },
+                )
+                onOpenDiagnostic?.let { LinkAlertBannerHost(onOpenDiagnostic = it) }
+            }
         },
     ) { padding ->
         CommandPostContent(

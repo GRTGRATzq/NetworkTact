@@ -93,6 +93,7 @@ import org.meshtastic.core.ui.component.NodeItemCompact
 import org.meshtastic.core.ui.component.ScrollToTopEvent
 import org.meshtastic.core.ui.component.SharedContactDialog
 import org.meshtastic.core.ui.component.smartScrollToTop
+import org.meshtastic.core.ui.diagnostic.LinkAlertBannerHost
 import org.meshtastic.core.ui.icon.BarChart
 import org.meshtastic.core.ui.icon.Groups
 import org.meshtastic.core.ui.icon.Info
@@ -136,6 +137,8 @@ fun NodeListScreen(
     onOpenCommandPost: (() -> Unit)? = null,
     onEditStatusMessage: () -> Unit = {},
     onOpenOrgChart: (() -> Unit)? = null,
+    // NetworkTact: the link diagnostic; null hides its banner.
+    onOpenDiagnostic: (() -> Unit)? = null,
 ) {
     val showToast = org.meshtastic.core.ui.util.rememberShowToastResource()
     val scope = rememberCoroutineScope()
@@ -290,47 +293,50 @@ fun NodeListScreen(
     Scaffold(
         modifier = modifier,
         topBar = {
-            MainAppBar(
-                title = stringResource(Res.string.nodes),
-                // Node counts deliberately live in the list header (NodeCountSummary), not here: the app bar's
-                // title/subtitle slot competes for width with the node chip + action icons and is clipped to a
-                // single line, which truncated the counts (issue #6268).
-                ourNode = ourNode,
-                showNodeChip = ourNode != null && connectionState is ConnectionState.Connected,
-                canNavigateUp = false,
-                onNavigateUp = {},
-                actions = {
-                    onOpenOrgChart?.let { openOrgChart ->
-                        IconButton(onClick = openOrgChart) {
+            Column {
+                MainAppBar(
+                    title = stringResource(Res.string.nodes),
+                    // Node counts deliberately live in the list header (NodeCountSummary), not here: the app bar's
+                    // title/subtitle slot competes for width with the node chip + action icons and is clipped to a
+                    // single line, which truncated the counts (issue #6268).
+                    ourNode = ourNode,
+                    showNodeChip = ourNode != null && connectionState is ConnectionState.Connected,
+                    canNavigateUp = false,
+                    onNavigateUp = {},
+                    actions = {
+                        onOpenOrgChart?.let { openOrgChart ->
+                            IconButton(onClick = openOrgChart) {
+                                Icon(
+                                    imageVector = vectorResource(Res.drawable.ic_tactnav_orgchart),
+                                    contentDescription = stringResource(Res.string.orgchart_open),
+                                )
+                            }
+                        }
+                        onOpenCommandPost?.let { openCommandPost ->
+                            IconButton(onClick = openCommandPost) {
+                                Icon(
+                                    imageVector = MeshtasticIcons.Groups,
+                                    contentDescription = stringResource(Res.string.command_post_open),
+                                )
+                            }
+                        }
+                        IconButton(onClick = { showHopHistogram = true }) {
                             Icon(
-                                imageVector = vectorResource(Res.drawable.ic_tactnav_orgchart),
-                                contentDescription = stringResource(Res.string.orgchart_open),
+                                imageVector = MeshtasticIcons.BarChart,
+                                contentDescription = stringResource(Res.string.hop_histogram_title),
                             )
                         }
-                    }
-                    onOpenCommandPost?.let { openCommandPost ->
-                        IconButton(onClick = openCommandPost) {
+                        IconButton(onClick = { showHelpSheet = true }) {
                             Icon(
-                                imageVector = MeshtasticIcons.Groups,
-                                contentDescription = stringResource(Res.string.command_post_open),
+                                imageVector = MeshtasticIcons.Info,
+                                contentDescription = stringResource(Res.string.node_list_help_title),
                             )
                         }
-                    }
-                    IconButton(onClick = { showHopHistogram = true }) {
-                        Icon(
-                            imageVector = MeshtasticIcons.BarChart,
-                            contentDescription = stringResource(Res.string.hop_histogram_title),
-                        )
-                    }
-                    IconButton(onClick = { showHelpSheet = true }) {
-                        Icon(
-                            imageVector = MeshtasticIcons.Info,
-                            contentDescription = stringResource(Res.string.node_list_help_title),
-                        )
-                    }
-                },
-                onClickChip = { navigateToNodeDetails(it.num) },
-            )
+                    },
+                    onClickChip = { navigateToNodeDetails(it.num) },
+                )
+                onOpenDiagnostic?.let { LinkAlertBannerHost(onOpenDiagnostic = it) }
+            }
         },
         floatingActionButton = {
             val shareCapable = ourNode?.capabilities?.supportsQrCodeSharing ?: false

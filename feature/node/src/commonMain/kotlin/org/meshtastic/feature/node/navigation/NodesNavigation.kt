@@ -102,6 +102,7 @@ fun EntryProviderScope<NavKey>.nodesGraph(
             onOpenNode = { num -> backStack.add(NodesRoute.NodeDetail(num)) },
             onOpenMessages = { key -> backStack.add(ContactsRoute.Messages(key)) },
             onOpenOrgChart = { backStack.add(NodesRoute.OrgChart) },
+            onOpenDiagnostic = { backStack.add(NodesRoute.Diagnostic) },
         )
     }
 

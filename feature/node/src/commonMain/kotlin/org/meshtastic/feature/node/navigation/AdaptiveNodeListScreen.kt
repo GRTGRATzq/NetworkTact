@@ -54,5 +54,6 @@ fun AdaptiveNodeListScreen(
         onEditStatusMessage = { backStack.add(SettingsRoute.UserStatusMessage) },
         onOpenCommandPost = if (commandPostMode) ({ backStack.add(NodesRoute.CommandPost) }) else null,
         onOpenOrgChart = { backStack.add(NodesRoute.OrgChart) },
+        onOpenDiagnostic = { backStack.add(NodesRoute.Diagnostic) },
     )
 }

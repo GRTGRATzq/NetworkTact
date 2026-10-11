@@ -128,6 +128,7 @@ import org.meshtastic.core.ui.component.MeshtasticImportFAB
 import org.meshtastic.core.ui.component.MeshtasticTextDialog
 import org.meshtastic.core.ui.component.ScrollToTopEvent
 import org.meshtastic.core.ui.component.smartScrollToTop
+import org.meshtastic.core.ui.diagnostic.LinkAlertBannerHost
 import org.meshtastic.core.ui.icon.Close
 import org.meshtastic.core.ui.icon.Delete
 import org.meshtastic.core.ui.icon.ExpandLess
@@ -157,6 +158,7 @@ fun ContactsScreen(
     onNavigateToFilterSettings: () -> Unit,
     scrollToTopEvents: Flow<ScrollToTopEvent>?,
     activeContactKey: String?,
+    onOpenDiagnostic: (() -> Unit)? = null,
 ) {
     val showToast = rememberShowToastResource()
     val scope = rememberCoroutineScope()
@@ -252,31 +254,34 @@ fun ContactsScreen(
 
     Scaffold(
         topBar = {
-            MainAppBar(
-                title = stringResource(Res.string.conversations),
-                ourNode = ourNode,
-                showNodeChip = ourNode != null && connectionState is ConnectionState.Connected,
-                canNavigateUp = false,
-                onNavigateUp = {},
-                actions = {
-                    IconButton(onClick = onNavigateToFilterSettings) {
-                        Icon(
-                            MeshtasticIcons.FilterList,
-                            contentDescription = stringResource(Res.string.filter_settings),
-                        )
-                    }
-                    val unreadCountTotal by viewModel.unreadCountTotal.collectAsStateWithLifecycle(0)
-                    if (unreadCountTotal > 0) {
-                        IconButton(onClick = { viewModel.markAllAsRead() }) {
+            Column {
+                MainAppBar(
+                    title = stringResource(Res.string.conversations),
+                    ourNode = ourNode,
+                    showNodeChip = ourNode != null && connectionState is ConnectionState.Connected,
+                    canNavigateUp = false,
+                    onNavigateUp = {},
+                    actions = {
+                        IconButton(onClick = onNavigateToFilterSettings) {
                             Icon(
-                                MeshtasticIcons.MarkChatRead,
-                                contentDescription = stringResource(Res.string.mark_as_read),
+                                MeshtasticIcons.FilterList,
+                                contentDescription = stringResource(Res.string.filter_settings),
                             )
                         }
-                    }
-                },
-                onClickChip = { onClickNodeChip(it.num) },
-            )
+                        val unreadCountTotal by viewModel.unreadCountTotal.collectAsStateWithLifecycle(0)
+                        if (unreadCountTotal > 0) {
+                            IconButton(onClick = { viewModel.markAllAsRead() }) {
+                                Icon(
+                                    MeshtasticIcons.MarkChatRead,
+                                    contentDescription = stringResource(Res.string.mark_as_read),
+                                )
+                            }
+                        }
+                    },
+                    onClickChip = { onClickNodeChip(it.num) },
+                )
+                onOpenDiagnostic?.let { LinkAlertBannerHost(onOpenDiagnostic = it) }
+            }
         },
         floatingActionButton = {
             if (connectionState is ConnectionState.Connected) {
