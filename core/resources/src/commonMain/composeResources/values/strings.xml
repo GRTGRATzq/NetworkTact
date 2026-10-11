@@ -144,7 +144,7 @@
     <string name="bluetooth_feature_config">Configuration</string>
     <string name="bluetooth_feature_config_description">Wirelessly manage your device settings and channels.</string>
     <string name="bluetooth_feature_discovery">Discovery</string>
-    <string name="bluetooth_feature_discovery_description">Find and identify Meshtastic devices near you.</string>
+    <string name="bluetooth_feature_discovery_description">Find and identify radios near you.</string>
     <string name="bluetooth_permission">Bluetooth</string>
     <string name="bluetooth_permission_blocked_notice">Nearby devices access is turned off and Android will not ask again. Turn it on in app settings to connect over Bluetooth, or connect over Wi-Fi or USB instead.</string>
     <string name="bluetooth_permission_blocked_notice_pre31">Location permission is turned off and Android will not ask again. Turn it on in app settings to scan for Bluetooth devices, or connect over Wi-Fi or USB instead.</string>
@@ -466,7 +466,7 @@
     <!-- DISCOVERY -->
     <string name="discovery_analysing_results">Analyzing results</string>
     <string name="discovery_cancelling_scan">Cancelling scan</string>
-    <string name="discovery_connection_warning">Not connected. Connect to a Meshtastic device to start scanning.</string>
+    <string name="discovery_connection_warning">Not connected. Connect to a radio to start scanning.</string>
     <string name="discovery_delete_session">Delete Session</string>
     <string name="discovery_delete_session_confirm">Are you sure you want to delete this discovery session? This action cannot be undone.</string>
     <string name="discovery_dwell_minutes">%1$d min</string>
@@ -484,7 +484,7 @@
     <string name="discovery_lora_presets_description">Select one or more presets to scan</string>
     <string name="discovery_map">Discovery Map</string>
     <string name="discovery_not_connected">Not Connected</string>
-    <string name="discovery_not_connected_description">Connect to a Meshtastic device to start scanning.</string>
+    <string name="discovery_not_connected_description">Connect to a radio to start scanning.</string>
     <string name="discovery_preparing">Preparing scan</string>
     <string name="discovery_preset_home_label">%1$s (Home)</string>
     <string name="discovery_reconnecting">Reconnecting on %1$s</string>
@@ -547,7 +547,7 @@
     <string name="distance_filters">Distance Filters</string>
     <string name="distance_filters_description">Filter the node list and mesh map based on proximity to your phone.</string>
     <string name="distance_measurements">Distance Measurements</string>
-    <string name="distance_measurements_description">Display the distance between your phone and other Meshtastic nodes with positions.</string>
+    <string name="distance_measurements_description">Display the distance between your phone and other mesh nodes with positions.</string>
     <!-- DOC -->
     <string name="doc_clear_search">Clear search</string>
     <string name="doc_keywords_app_functions">system ai,gemini,assistant,functions,automation,voice</string>
@@ -684,7 +684,7 @@
     <!-- FIRMWARE -->
     <string name="firmware">Firmware</string>
     <string name="firmware_edition">Firmware Edition</string>
-    <string name="firmware_event_ended_banner">%1$s has ended. Return to standard Meshtastic firmware to restore normal features.</string>
+    <string name="firmware_event_ended_banner">%1$s has ended. Return to the standard radio firmware to restore normal features.</string>
     <string name="firmware_event_ended_button">Update firmware</string>
     <string name="firmware_maintenance_cdc_unblock_failed">The erase file was copied but the device didn't start erasing. Nothing has been changed yet. Unplug the device, double-press its reset button, and try again.</string>
     <string name="firmware_maintenance_copy_failed">Couldn't copy the file to the device's drive. Make sure the drive is still connected and try again.</string>
@@ -920,10 +920,10 @@
     <string name="license_notice">Free software under the GNU General Public License v3, with no warranty. You may redistribute it under the same license.</string>
     <!-- LICENSED -->
     <string name="licensed_amateur_radio">Licensed amateur radio (Ham)</string>
-    <string name="licensed_amateur_radio_text">Enabling this option disables encryption and is not compatible with the default Meshtastic network.</string>
+    <string name="licensed_amateur_radio_text">Enabling this option disables encryption and is not compatible with the default mesh network settings.</string>
     <string name="licensed_mode_enable_confirm">Enable licensed mode</string>
     <string name="licensed_mode_enable_title">Enable licensed (Ham) mode?</string>
-    <string name="licensed_mode_enable_warning">Licensed mode removes channel encryption keys and disables the admin channel, so all traffic is sent as plaintext that anyone can read — and this firmware cannot sign it, so other nodes cannot verify it came from you. This is not compatible with the default Meshtastic network, and you remain responsible for meeting your amateur radio license requirements and local regulations.</string>
+    <string name="licensed_mode_enable_warning">Licensed mode removes channel encryption keys and disables the admin channel, so all traffic is sent as plaintext that anyone can read — and this firmware cannot sign it, so other nodes cannot verify it came from you. This is not compatible with the default mesh network settings, and you remain responsible for meeting your amateur radio license requirements and local regulations.</string>
     <string name="licensed_mode_enable_warning_signed">Licensed mode removes channel encryption keys and disables the admin channel, so all traffic is sent as plaintext that anyone can read — but it is digitally signed, letting other nodes verify it came from you. Your node number may change once to match your identity key, so favorites, message history, remote admin, and other nodes may initially treat it as new; you remain responsible for meeting your amateur radio license requirements and local regulations.</string>
     <string name="lightning_distance">Storm Distance</string>
     <string name="lightning_strikes_1h">Lightning (1h)</string>
@@ -1152,7 +1152,7 @@
     <string name="mesh_map_location">Mesh Map Location</string>
     <string name="mesh_map_location_description">Enables the blue location dot for your phone in the mesh map.</string>
     <!-- MESHTASTIC -->
-    <string name="meshtastic">Meshtastic</string>
+    <string name="meshtastic">Radio</string>
     <string name="meshtastic_alerts_notifications">Alert notifications</string>
     <string name="meshtastic_app_name">NetworkTact</string>
     <string name="meshtastic_broadcast_notifications">Broadcast message notifications</string>
@@ -1434,7 +1434,7 @@
     <string name="open_compass">Open Compass</string>
     <string name="open_location_settings">Open location settings</string>
     <string name="open_settings">Open settings</string>
-    <string name="open_source_description">Meshtastic is built with the following open source libraries. Tap any library to view its license.</string>
+    <string name="open_source_description">NetworkTact is built with the following open source libraries. Tap any library to view its license.</string>
     <string name="open_source_libraries">Open Source Libraries</string>
     <string name="open_wifi_settings">Open Wi-Fi settings</string>
     <string name="options">Options</string>
@@ -1789,10 +1789,10 @@
     <string name="share_channels">Share Channels</string>
     <string name="share_channels_add_hint">Adding keeps the channels they already have and appends yours.</string>
     <string name="share_channels_replace_hint">Replacing overwrites every channel on their radio with yours.</string>
-    <string name="share_channels_subject">Meshtastic channels</string>
+    <string name="share_channels_subject">Mesh channels</string>
     <string name="share_connected_node">Share Connected Node</string>
     <string name="share_contact">Share Contact</string>
-    <string name="share_contact_subject">Meshtastic contact</string>
+    <string name="share_contact_subject">Mesh contact</string>
     <string name="share_location">Share Location</string>
     <string name="share_location_description">Use your phone GPS to send locations to your node instead of using a hardware GPS on your node.</string>
     <string name="share_qr_subtext">Scan this code with another device's NetworkTact app to add it there.</string>
@@ -1849,7 +1849,7 @@
     <string name="skip">Skip</string>
     <string name="slot">Slot</string>
     <string name="snr">SNR</string>
-    <string name="snr_definition">Signal-to-Noise Ratio, a measure used in communications to quantify the level of a desired signal to the level of background noise. In Meshtastic and other wireless systems, a higher SNR indicates a clearer signal that can enhance the reliability and quality of data transmission.</string>
+    <string name="snr_definition">Signal-to-Noise Ratio, a measure used in communications to quantify the level of a desired signal to the level of background noise. In mesh radios and other wireless systems, a higher SNR indicates a clearer signal that can enhance the reliability and quality of data transmission.</string>
     <string name="soil_moisture">Soil Moist</string>
     <string name="soil_ph">Soil pH</string>
     <string name="soil_temperature">Soil Temp</string>
@@ -1867,7 +1867,7 @@
     <string name="success">Success</string>
     <string name="super_deep_sleep_duration_seconds">Super deep sleep duration</string>
     <string name="supported">Supported</string>
-    <string name="supported_by_community">Supported by Meshtastic Community</string>
+    <string name="supported_by_community">Supported by the community</string>
     <string name="supported_by_maker">Independent maker hardware</string>
     <string name="swipe_action_delete">Delete</string>
     <string name="swipe_action_mute">Mute</string>
@@ -1946,14 +1946,14 @@
     <string name="tak_config">TAK Configuration</string>
     <string name="tak_server">TAK Server</string>
     <string name="tak_server_channel">TAK Mesh Channel</string>
-    <string name="tak_server_channel_desc">Meshtastic channel used for outgoing TAK traffic</string>
+    <string name="tak_server_channel_desc">Mesh channel used for outgoing TAK traffic</string>
     <string name="tak_server_channel_option">%1$d: %2$s</string>
     <string name="tak_server_enabled">Enable Local TAK Server</string>
     <string name="tak_server_enabled_desc">Starts a local TLS server on port 8089 for ATAK connections</string>
     <string name="tak_server_export_data_package_desc">Generate .zip for ATAK to connect to this server</string>
     <string name="tak_server_loading">…</string>
     <string name="tak_server_mesh_to_cot">Mesh to CoT Converter</string>
-    <string name="tak_server_mesh_to_cot_desc">Show Meshtastic nodes on the ATAK map as contacts</string>
+    <string name="tak_server_mesh_to_cot_desc">Show mesh nodes on the ATAK map as contacts</string>
     <string name="tak_server_permission_blocked">The TAK server needs local network access to accept connections, and Android will not ask again. It has been turned off for now — turn the permission on in app settings and switch it back on.</string>
     <string name="tak_server_section">Server</string>
     <string name="tak_server_status">Status</string>

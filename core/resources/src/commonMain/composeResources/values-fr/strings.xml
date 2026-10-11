@@ -130,7 +130,7 @@
     <string name="bluetooth_feature_config">Configuration</string>
     <string name="bluetooth_feature_config_description">Gérer à distance sans fil les paramètres et les canaux de votre appareil.</string>
     <string name="bluetooth_feature_discovery">Découverte</string>
-    <string name="bluetooth_feature_discovery_description">Trouvez et identifiez les dispositifs Meshtastic autour de  vous.</string>
+    <string name="bluetooth_feature_discovery_description">Trouvez et identifiez les radios autour de vous.</string>
     <string name="bluetooth_permission">Bluetooth</string>
     <string name="bluetooth_permission_blocked_notice">L'accès aux appareils à proximité est désactivé et Android ne le demandera plus. Activez-le dans les paramètres de l'application pour vous connecter via le Bluetooth, ou bien connectez-vous via Wi-Fi ou USB.</string>
     <string name="bluetooth_permission_blocked_notice_pre31">L'autorisation de localisation est désactivée et Android ne la demandera plus. Activez-la dans les paramètres de l'application vous rechercher des appareils Bluetooth ou bien connectez-vous via Wi-Fi ou USB.</string>
@@ -405,7 +405,7 @@
     <!-- DISCOVERY -->
     <string name="discovery_analysing_results">Analyse des résultats</string>
     <string name="discovery_cancelling_scan">Annulation de l'analyse</string>
-    <string name="discovery_connection_warning">Non connecté. Connectez-vous à un appareil Meshtastic pour commencer à scanner.</string>
+    <string name="discovery_connection_warning">Non connecté. Connectez-vous à une radio pour commencer à scanner.</string>
     <string name="discovery_delete_session">Supprimer la session</string>
     <string name="discovery_delete_session_confirm">Êtes-vous sûr de vouloir supprimer cette session de découverte ? Cette action ne peut pas être annulée.</string>
     <string name="discovery_dwell_minutes">%1$d min</string>
@@ -422,7 +422,7 @@
     <string name="discovery_lora_presets_description">Sélectionnez un ou plusieurs préréglages à analyser</string>
     <string name="discovery_map">Carte de découverte</string>
     <string name="discovery_not_connected">Non connecté</string>
-    <string name="discovery_not_connected_description">Connectez-vous à un périphérique Meshtastic pour commencer à scanner.</string>
+    <string name="discovery_not_connected_description">Connectez-vous à une radio pour commencer à scanner.</string>
     <string name="discovery_preparing">Préparation de l'analyse</string>
     <string name="discovery_preset_home_label">%1$s (Accueil)</string>
     <string name="discovery_reconnecting">Reconnexion sur %1$s</string>
@@ -473,7 +473,7 @@
     <string name="distance_filters">Filtres de distance</string>
     <string name="distance_filters_description">Filtrer la liste de nœuds et la carte de maillage en fonction de la proximité de votre téléphone.</string>
     <string name="distance_measurements">Mesures de distance</string>
-    <string name="distance_measurements_description">Afficher la distance entre votre téléphone et les autres nœuds Meshtastic avec des positions.</string>
+    <string name="distance_measurements_description">Afficher la distance entre votre téléphone et les autres nœuds du réseau maillé qui ont une position.</string>
     <!-- DOC -->
     <string name="doc_clear_search">Effacer la recherche</string>
     <string name="doc_search_placeholder">Rechercher dans la documentation</string>
@@ -555,7 +555,7 @@
     <!-- FIRMWARE -->
     <string name="firmware">Micrologiciel</string>
     <string name="firmware_edition">Version du micrologiciel</string>
-    <string name="firmware_event_ended_banner">%1$s est déprécié. Utilisez un micrologiciel Meshtastic standard pour restaurer les fonctionnalités normales.</string>
+    <string name="firmware_event_ended_banner">%1$s est terminé. Revenez au firmware radio standard pour retrouver les fonctions normales.</string>
     <string name="firmware_event_ended_button">Mettre à jour le micrologiciel</string>
     <string name="firmware_maintenance_upgrade_bootloader_action">Mise à jour du bootloader</string>
     <string name="firmware_maintenance_upgrade_confirm_title">Mettre à jour le chargeur de démarrage ?</string>
@@ -726,7 +726,7 @@
     <string name="library_count">%1$d Bibliothèques</string>
     <!-- LICENSED -->
     <string name="licensed_amateur_radio">Radioamateur licencié (RA)</string>
-    <string name="licensed_amateur_radio_text">L'activation de cette option désactive le chiffrement et n'est pas compatible avec le réseau Meshtastic par défaut.</string>
+    <string name="licensed_amateur_radio_text">L'activation de cette option désactive le chiffrement et n'est pas compatible avec les réglages par défaut du réseau maillé.</string>
     <string name="licensed_mode_enable_confirm">Activer le mode licence</string>
     <string name="licensed_mode_enable_title">Activer le mode licence (Ham) ?</string>
     <!-- LOAD -->
@@ -860,7 +860,7 @@
     <string name="mesh_map_location">Emplacement de la carte de maillage</string>
     <string name="mesh_map_location_description">Active le point de localisation bleu de votre téléphone sur la carte de maillage.</string>
     <!-- MESHTASTIC -->
-    <string name="meshtastic">Meshtastic</string>
+    <string name="meshtastic">Radio</string>
     <string name="meshtastic_alerts_notifications">Notifications d'alerte</string>
     <string name="meshtastic_app_name">NetworkTact</string>
     <string name="meshtastic_broadcast_notifications">Diffuser les notifications de message</string>
@@ -1012,7 +1012,7 @@
     <!-- OPEN -->
     <string name="open_compass">Boussole</string>
     <string name="open_settings">Ouvrir les paramètres</string>
-    <string name="open_source_description">Meshtastic est construit avec les bibliothèques open source suivantes. Appuyez sur n'importe quelle bibliothèque pour voir sa licence.</string>
+    <string name="open_source_description">NetworkTact est construit avec les bibliothèques open source suivantes. Touchez une bibliothèque pour voir sa licence.</string>
     <string name="open_source_libraries">Bibliothèques Open Source</string>
     <string name="options">Options</string>
     <string name="orient_north">Orienter vers le nord</string>
@@ -1284,7 +1284,7 @@
     <string name="skip">Ignorer</string>
     <string name="slot">Emplacement</string>
     <string name="snr">SNR</string>
-    <string name="snr_definition">Signal-to-Noise Ratio, une mesure utilisée dans les communications pour quantifier le niveau du signal par rapport au niveau du bruit de fond. Dans les systèmes Meshtastic et autres systèmes sans fil, un SNR plus élevé indique un signal plus clair qui peut améliorer la fiabilité et la qualité de la transmission de données.</string>
+    <string name="snr_definition">Signal-to-Noise Ratio (rapport signal sur bruit), une mesure utilisée dans les communications pour quantifier le niveau du signal par rapport au niveau du bruit de fond. Dans les radios maillées et les autres systèmes sans fil, un SNR plus élevé indique un signal plus clair qui peut améliorer la fiabilité et la qualité de la transmission de données.</string>
     <string name="soil_moisture">Hum sol</string>
     <string name="soil_temperature">Temp sol</string>
     <string name="speed">Vitesse</string>
@@ -1295,7 +1295,7 @@
     <string name="store_forward_config">Stocker &amp; Transférer la configuration</string>
     <string name="super_deep_sleep_duration_seconds">Durée du sommeil extra profond</string>
     <string name="supported">Pris en charge</string>
-    <string name="supported_by_community">Soutenu par la communauté Meshtastic</string>
+    <string name="supported_by_community">Soutenu par la communauté</string>
     <string name="swipe_action_delete">Effacer</string>
     <string name="swipe_action_mute">Mode Muet</string>
     <string name="swipe_action_unmute">Désactiver Muet</string>
@@ -1639,4 +1639,9 @@
     <string name="networktact_based_on">Basé sur Meshtastic-Android, © Meshtastic LLC, GPL-3.0. Modifié par le projet NetworkTact.</string>
     <string name="firmware_maintenance_data_unavailable">La liste des images d'effacement n'est pas disponible pour le moment. Vérifiez la connexion et réessayez.</string>
     <string name="firmware_maintenance_unknown_softdevice">L'application ne peut pas confirmer quelle pile Bluetooth cet appareil utilise : l'effacer n'est pas sûr.</string>
+    <string name="licensed_mode_enable_warning">Le mode licence retire les clés de chiffrement des canaux et désactive le canal d'administration, donc tout le trafic est envoyé en clair, lisible par n'importe qui — et ce firmware ne peut pas le signer, donc les autres nœuds ne peuvent pas vérifier qu'il vient de vous. Ce n'est pas compatible avec les réglages par défaut du réseau maillé, et vous restez responsable du respect des exigences de votre licence de radioamateur et de la réglementation locale.</string>
+    <string name="share_channels_subject">Canaux du réseau maillé</string>
+    <string name="share_contact_subject">Contact du réseau maillé</string>
+    <string name="tak_server_channel_desc">Canal du réseau maillé utilisé pour le trafic TAK sortant</string>
+    <string name="tak_server_mesh_to_cot_desc">Afficher les nœuds du réseau maillé comme contacts sur la carte ATAK</string>
 </resources>
