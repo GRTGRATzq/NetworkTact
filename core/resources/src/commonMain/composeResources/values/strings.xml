@@ -1467,6 +1467,7 @@
     <string name="orgchart_qr_hint">Have the other phones scan this code (Org chart, then Scan). Nothing is sent over the radio.</string>
     <string name="orgchart_read_only">Only the command post (PC mode) can change the org chart.</string>
     <string name="orgchart_remove_member">Remove</string>
+    <string name="orgchart_remove_question">Remove %1$s from the org chart?</string>
     <string name="orgchart_revert">Back to the previous one</string>
     <string name="orgchart_revert_question">Go back to the org chart of %1$s, created at %2$s? The current one is kept as the previous one.</string>
     <string name="orgchart_role">Role (optional)</string>

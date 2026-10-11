@@ -1431,6 +1431,7 @@ orgchart_origin
 orgchart_qr_hint
 orgchart_read_only
 orgchart_remove_member
+orgchart_remove_question
 orgchart_revert
 orgchart_revert_question
 orgchart_role

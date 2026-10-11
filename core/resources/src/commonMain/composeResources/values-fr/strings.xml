@@ -1689,4 +1689,5 @@
     <string name="orgchart_adopt">Adopter</string>
     <string name="orgchart_ignore">Ignorer</string>
     <string name="orgchart_adopted">Organigramme adopté. Le précédent est conservé.</string>
+    <string name="orgchart_remove_question">Retirer %1$s de l'organigramme ?</string>
 </resources>

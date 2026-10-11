@@ -26,6 +26,11 @@ import org.koin.core.annotation.KoinViewModel
 import org.koin.core.annotation.Named
 import org.meshtastic.core.common.util.nowSeconds
 import org.meshtastic.core.model.freshness.FreshnessThresholds
+import org.meshtastic.core.model.orgchart.Callsign
+import org.meshtastic.core.model.orgchart.EditResult
+import org.meshtastic.core.model.orgchart.OrgChartEdit
+import org.meshtastic.core.model.orgchart.OrgChartEditor
+import org.meshtastic.core.model.orgchart.OrgChartRecord
 import org.meshtastic.core.repository.NodeRepository
 import org.meshtastic.core.repository.OrgChartPrefs
 import org.meshtastic.core.repository.SCREEN_DATA
@@ -43,7 +48,7 @@ class OrgChartViewModel(
     @Named(SCREEN_DATA) private val nodeRepository: NodeRepository,
     @Named(SCREEN_DATA) private val orgChartPrefs: OrgChartPrefs,
     @Named(SCREEN_DATA) teamRosterPrefs: TeamRosterPrefs,
-    @Named(SCREEN_DATA) uiPrefs: UiPrefs,
+    @Named(SCREEN_DATA) private val uiPrefs: UiPrefs,
 ) : ViewModel() {
 
     private val thresholds: FreshnessThresholds = FreshnessThresholds.Default
@@ -79,6 +84,21 @@ class OrgChartViewModel(
             )
         }
             .stateInWhileSubscribed(initialValue = OrgChartUiState())
+
+    /**
+     * Command post only: applies [edit] and saves the result as this phone's chart, signed with my radio's call sign
+     * and dated now. Returns why it was refused, if it was, for the screen to say. Nothing is sent.
+     */
+    fun edit(edit: OrgChartEdit): EditResult {
+        if (!uiPrefs.commandPostMode.value) return EditResult.Unchanged
+        val author = nodeRepository.ourNodeInfo.value?.user?.long_name?.let(Callsign::ofLongName).orEmpty()
+        val now = nowSeconds
+        val result = OrgChartEditor.apply(orgChartPrefs.current.value?.chart, edit, author, now)
+        if (result is EditResult.Changed) {
+            orgChartPrefs.save(OrgChartRecord(result.chart, OrgChartRecord.Source.EDITED, timeSeconds = now))
+        }
+        return result
+    }
 
     /** Swaps the chart in use and the previous one; nothing is sent. */
     fun revertToPrevious() = orgChartPrefs.revertToPrevious()

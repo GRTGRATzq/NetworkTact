@@ -34,6 +34,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -47,6 +48,7 @@ import org.meshtastic.core.common.util.nowSeconds
 import org.meshtastic.core.model.freshness.ContactState
 import org.meshtastic.core.model.freshness.PositionState
 import org.meshtastic.core.model.orgchart.OrgChart
+import org.meshtastic.core.model.orgchart.OrgChartEdit
 import org.meshtastic.core.model.orgchart.OrgChartRecord
 import org.meshtastic.core.model.orgchart.OrgMember
 import org.meshtastic.core.resources.Res
@@ -76,6 +78,23 @@ fun OrgChartScreen(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     var askRevert by rememberSaveable { mutableStateOf(false) }
+    var memberDialog by remember { mutableStateOf<MemberDialogTarget?>(null) }
+    var removing by remember { mutableStateOf<OrgMemberRow?>(null) }
+    val editActions =
+        remember(state.commandPostMode) {
+            if (state.commandPostMode) {
+                OrgChartEditActions(
+                    onAdd = { team -> memberDialog = MemberDialogTarget(team, index = null) },
+                    onEdit = { row ->
+                        memberDialog = MemberDialogTarget(row.team, row.index, row.member.callsign, row.member.role)
+                    },
+                    onMove = { row, up -> viewModel.edit(OrgChartEdit.Move(row.team, row.index, up)) },
+                    onRemove = { row -> removing = row },
+                )
+            } else {
+                null
+            }
+        }
     Scaffold(
         modifier = modifier,
         topBar = {
@@ -97,6 +116,20 @@ fun OrgChartScreen(
             onOpenMessages = onOpenMessages,
             onRevert = { askRevert = true },
             modifier = Modifier.padding(padding),
+            editActions = editActions,
+        )
+    }
+    memberDialog?.let { target ->
+        MemberDialog(target = target, onSubmit = viewModel::edit, onDismiss = { memberDialog = null })
+    }
+    removing?.let { row ->
+        RemoveMemberDialog(
+            row = row,
+            onConfirm = {
+                viewModel.edit(OrgChartEdit.Remove(row.team, row.index))
+                removing = null
+            },
+            onDismiss = { removing = null },
         )
     }
     val previous = state.previous
@@ -121,6 +154,7 @@ fun OrgChartContent(
     onOpenMessages: (String) -> Unit,
     onRevert: () -> Unit,
     modifier: Modifier = Modifier,
+    editActions: OrgChartEditActions? = null,
 ) {
     LazyColumn(
         modifier = modifier.fillMaxSize(),
@@ -137,7 +171,12 @@ fun OrgChartContent(
                 item(key = "empty_${section.team}") { SecondaryText(stringResource(Res.string.orgchart_no_member)) }
             }
             items(section.members, key = { "member_${it.member.callsign}" }) { row ->
-                MemberCard(row = row, onOpenNode = onOpenNode, onOpenMessages = onOpenMessages)
+                MemberCard(row = row, onOpenNode = onOpenNode, onOpenMessages = onOpenMessages) {
+                    editActions?.let { MemberActions(row, isLast = row.index == section.members.lastIndex, it) }
+                }
+            }
+            editActions?.let { actions ->
+                item(key = "add_${section.team}") { AddMemberButton(onClick = { actions.onAdd(section.team) }) }
             }
         }
         unlisted(state.unlisted, onOpenNode)
