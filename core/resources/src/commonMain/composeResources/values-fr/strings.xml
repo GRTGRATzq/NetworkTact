@@ -1711,8 +1711,8 @@
     <string name="diag_lora_different">Réglages LoRa : %1$s · %2$s, différents du réglage attendu %3$s · %4$s</string>
     <string name="diag_lora_custom">paramètres personnalisés</string>
     <string name="diag_lora_region_unset">région non réglée</string>
-    <string name="diag_battery_level">Batterie de la radio : %1$d %%</string>
-    <string name="diag_battery_low">Batterie de la radio : %1$d %%, faible</string>
+    <string name="diag_battery_level">Batterie de la radio : %1$d %</string>
+    <string name="diag_battery_low">Batterie de la radio : %1$d %, faible</string>
     <string name="diag_battery_external">Batterie de la radio : sur alimentation externe</string>
     <string name="diag_battery_unknown">Batterie de la radio : non transmise</string>
     <string name="diag_suggestions">À essayer</string>

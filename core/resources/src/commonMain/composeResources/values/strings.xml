@@ -463,8 +463,8 @@
     <string name="diag_banner_no_node_since">No node heard for %1$s</string>
     <string name="diag_banner_not_connected">Radio not connected</string>
     <string name="diag_battery_external">Radio battery: on external power</string>
-    <string name="diag_battery_level">Radio battery: %1$d%%</string>
-    <string name="diag_battery_low">Radio battery: %1$d%%, low</string>
+    <string name="diag_battery_level">Radio battery: %1$d%</string>
+    <string name="diag_battery_low">Radio battery: %1$d%, low</string>
     <string name="diag_battery_unknown">Radio battery: not reported</string>
     <string name="diag_expected_clear">Clear</string>
     <string name="diag_expected_edit">Change</string>
