@@ -195,8 +195,7 @@ private fun ManagementActions(node: Node, onAction: (NodeDetailAction) -> Unit) 
             text = stringResource(Res.string.remove),
             leadingIcon = MeshtasticIcons.Delete,
             trailingIcon = null,
-            textColor = MaterialTheme.colorScheme.error,
-            leadingIconTint = MaterialTheme.colorScheme.error,
+            // NetworkTact: neutral, not red (reserved for urgent messages); a confirmation dialog follows.
             onClick = { onAction(NodeDetailAction.HandleNodeMenuAction(NodeMenuAction.Remove(node))) },
         )
     }
