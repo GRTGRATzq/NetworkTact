@@ -1479,6 +1479,7 @@
     <string name="orgchart_source_edited">Edited on this phone</string>
     <string name="orgchart_source_scanned">Adopted at %1$s from a scanned QR code</string>
     <string name="orgchart_summary">Teams: %1$d · members: %2$d</string>
+    <string name="orgchart_summary_line">%1$s: %2$s</string>
     <string name="orgchart_team">Team %1$s</string>
     <string name="orgchart_team_not_in_list">Team %1$s (not in the team list)</string>
     <string name="orgchart_teams_hint">Teams come from the Teams screen.</string>

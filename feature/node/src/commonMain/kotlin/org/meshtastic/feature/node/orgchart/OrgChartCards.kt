@@ -38,6 +38,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.stringResource
 import org.meshtastic.core.common.util.DateFormatter
+import org.meshtastic.core.model.orgchart.OrgChart
 import org.meshtastic.core.model.orgchart.OrgChartRecord
 import org.meshtastic.core.resources.Res
 import org.meshtastic.core.resources.message
@@ -72,10 +73,10 @@ internal fun formatChartTime(seconds: Long, nowSeconds: Long): String =
 
 /** "Org chart of PC-0, created at 14:05". */
 @Composable
-internal fun chartOrigin(record: OrgChartRecord, nowSeconds: Long): String = stringResource(
+internal fun chartOrigin(chart: OrgChart, nowSeconds: Long): String = stringResource(
     Res.string.orgchart_origin,
-    record.chart.author.ifBlank { stringResource(Res.string.orgchart_unknown_author) },
-    formatChartTime(record.chart.createdSeconds, nowSeconds),
+    chart.author.ifBlank { stringResource(Res.string.orgchart_unknown_author) },
+    formatChartTime(chart.createdSeconds, nowSeconds),
 )
 
 /** Who made the chart in use and when, where this phone got it, and the way back to the previous one. */
@@ -83,7 +84,7 @@ internal fun chartOrigin(record: OrgChartRecord, nowSeconds: Long): String = str
 internal fun OrgChartHeader(state: OrgChartUiState, nowSeconds: Long, onRevert: () -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         state.record?.let { record ->
-            Text(chartOrigin(record, nowSeconds), style = MaterialTheme.typography.titleSmall)
+            Text(chartOrigin(record.chart, nowSeconds), style = MaterialTheme.typography.titleSmall)
             val chart = record.chart
             Text(
                 text =

@@ -19,7 +19,9 @@ package org.meshtastic.feature.node.orgchart
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flow
 import org.koin.core.annotation.KoinViewModel
@@ -28,6 +30,8 @@ import org.meshtastic.core.common.util.nowSeconds
 import org.meshtastic.core.model.freshness.FreshnessThresholds
 import org.meshtastic.core.model.orgchart.Callsign
 import org.meshtastic.core.model.orgchart.EditResult
+import org.meshtastic.core.model.orgchart.OrgChart
+import org.meshtastic.core.model.orgchart.OrgChartCode
 import org.meshtastic.core.model.orgchart.OrgChartEdit
 import org.meshtastic.core.model.orgchart.OrgChartEditor
 import org.meshtastic.core.model.orgchart.OrgChartRecord
@@ -100,6 +104,67 @@ class OrgChartViewModel(
         return result
     }
 
+    private val _scan = MutableStateFlow<ScanOutcome?>(null)
+
+    /** What the last scan found, until the user answers. */
+    val scan: StateFlow<ScanOutcome?> = _scan.asStateFlow()
+
+    /**
+     * Reads a scanned code. A chart is only offered for adoption, never adopted on its own; one holding the same people
+     * in the same places as the chart in use is reported as such. [text] is null when the scan was cancelled.
+     */
+    fun onScanned(text: String?) {
+        if (text == null) return
+        val chart = OrgChartCode.decode(text.trim())
+        _scan.value =
+            when {
+                chart == null -> ScanOutcome.Invalid
+                chart.sameStructureAs(orgChartPrefs.current.value?.chart) -> ScanOutcome.Same
+                else -> ScanOutcome.Found(chart)
+            }
+    }
+
+    /** Adopts the scanned [chart]; the chart in use becomes the previous one. */
+    fun adoptScanned(chart: OrgChart) {
+        orgChartPrefs.adopt(OrgChartRecord(chart, OrgChartRecord.Source.SCANNED, timeSeconds = nowSeconds))
+        _scan.value = ScanOutcome.Adopted
+    }
+
+    fun clearScan() {
+        _scan.value = null
+    }
+
+    /** The code of the chart in use for the QR code, or why there is none to show. */
+    fun qrCode(): QrCodeState {
+        val chart = orgChartPrefs.current.value?.chart
+        val size = chart?.let(OrgChartCode::size)
+        return when {
+            chart == null || chart.memberCount == 0 -> QrCodeState.Empty
+            size?.fits == true -> QrCodeState.Ready(OrgChartCode.encode(chart), chart)
+            else -> QrCodeState.TooLarge(size?.length ?: 0)
+        }
+    }
+
     /** Swaps the chart in use and the previous one; nothing is sent. */
     fun revertToPrevious() = orgChartPrefs.revertToPrevious()
+}
+
+sealed interface ScanOutcome {
+    data class Found(val chart: OrgChart) : ScanOutcome
+
+    /** Not an org chart, or a damaged one. */
+    data object Invalid : ScanOutcome
+
+    /** The same people in the same places as the chart in use. */
+    data object Same : ScanOutcome
+
+    data object Adopted : ScanOutcome
+}
+
+sealed interface QrCodeState {
+    data class Ready(val code: String, val chart: OrgChart) : QrCodeState
+
+    data class TooLarge(val length: Int) : QrCodeState
+
+    data object Empty : QrCodeState
 }

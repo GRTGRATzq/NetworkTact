@@ -26,6 +26,8 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -58,6 +60,8 @@ import org.meshtastic.core.resources.orgchart_empty
 import org.meshtastic.core.resources.orgchart_no_member
 import org.meshtastic.core.resources.orgchart_revert
 import org.meshtastic.core.resources.orgchart_revert_question
+import org.meshtastic.core.resources.orgchart_scan
+import org.meshtastic.core.resources.orgchart_show_qr
 import org.meshtastic.core.resources.orgchart_team
 import org.meshtastic.core.resources.orgchart_team_not_in_list
 import org.meshtastic.core.resources.orgchart_teams_hint
@@ -65,7 +69,12 @@ import org.meshtastic.core.resources.orgchart_title
 import org.meshtastic.core.resources.orgchart_unknown_author
 import org.meshtastic.core.resources.orgchart_unlisted
 import org.meshtastic.core.ui.component.MainAppBar
+import org.meshtastic.core.ui.icon.MeshtasticIcons
+import org.meshtastic.core.ui.icon.QrCode
+import org.meshtastic.core.ui.icon.QrCodeScanner
 import org.meshtastic.core.ui.theme.AppTheme
+import org.meshtastic.core.ui.util.LocalBarcodeScannerProvider
+import org.meshtastic.core.ui.util.LocalBarcodeScannerSupported
 import kotlin.time.Duration.Companion.minutes
 
 @Composable
@@ -80,6 +89,7 @@ fun OrgChartScreen(
     var askRevert by rememberSaveable { mutableStateOf(false) }
     var memberDialog by remember { mutableStateOf<MemberDialogTarget?>(null) }
     var removing by remember { mutableStateOf<OrgMemberRow?>(null) }
+    var qrCode by remember { mutableStateOf<QrCodeState?>(null) }
     val editActions =
         remember(state.commandPostMode) {
             if (state.commandPostMode) {
@@ -98,14 +108,11 @@ fun OrgChartScreen(
     Scaffold(
         modifier = modifier,
         topBar = {
-            MainAppBar(
-                title = stringResource(Res.string.orgchart_title),
-                ourNode = null,
-                showNodeChip = false,
-                canNavigateUp = true,
+            OrgChartTopBar(
+                commandPostMode = state.commandPostMode,
                 onNavigateUp = onNavigateUp,
-                onClickChip = {},
-                actions = {},
+                onShowQr = { qrCode = viewModel.qrCode() },
+                onScanResult = viewModel::onScanned,
             )
         },
     ) { padding ->
@@ -132,6 +139,9 @@ fun OrgChartScreen(
             onDismiss = { removing = null },
         )
     }
+    qrCode?.let { OrgChartQrDialog(state = it, nowSeconds = nowSeconds, onDismiss = { qrCode = null }) }
+    val scan by viewModel.scan.collectAsStateWithLifecycle()
+    ScanDialogs(scan = scan, onAdopt = viewModel::adoptScanned, onDismiss = viewModel::clearScan)
     val previous = state.previous
     if (askRevert && previous != null) {
         RevertDialog(
@@ -142,6 +152,56 @@ fun OrgChartScreen(
             },
             onDismiss = { askRevert = false },
         )
+    }
+}
+
+/** Title, and the QR code (command post) and scanner actions. */
+@Composable
+private fun OrgChartTopBar(
+    commandPostMode: Boolean,
+    onNavigateUp: () -> Unit,
+    onShowQr: () -> Unit,
+    onScanResult: (String?) -> Unit,
+) {
+    val scanner = LocalBarcodeScannerProvider.current(onScanResult)
+    val canScan = LocalBarcodeScannerSupported.current
+    MainAppBar(
+        title = stringResource(Res.string.orgchart_title),
+        ourNode = null,
+        showNodeChip = false,
+        canNavigateUp = true,
+        onNavigateUp = onNavigateUp,
+        onClickChip = {},
+        actions = {
+            if (commandPostMode) {
+                IconButton(onClick = onShowQr) {
+                    Icon(MeshtasticIcons.QrCode, contentDescription = stringResource(Res.string.orgchart_show_qr))
+                }
+            }
+            if (canScan) {
+                IconButton(onClick = scanner::startScan) {
+                    Icon(MeshtasticIcons.QrCodeScanner, contentDescription = stringResource(Res.string.orgchart_scan))
+                }
+            }
+        },
+    )
+}
+
+/** The answer to a scan: adopt or ignore a chart, or a message when there is nothing to decide. */
+@Composable
+private fun ScanDialogs(scan: ScanOutcome?, onAdopt: (OrgChart) -> Unit, onDismiss: () -> Unit) {
+    when (val outcome = scan) {
+        null -> Unit
+
+        is ScanOutcome.Found ->
+            AdoptChartDialog(
+                chart = outcome.chart,
+                nowSeconds = nowSeconds,
+                onAdopt = { onAdopt(outcome.chart) },
+                onIgnore = onDismiss,
+            )
+
+        else -> ScanMessageDialog(outcome = outcome, onDismiss = onDismiss)
     }
 }
 

@@ -1443,6 +1443,7 @@ orgchart_show_qr
 orgchart_source_edited
 orgchart_source_scanned
 orgchart_summary
+orgchart_summary_line
 orgchart_team
 orgchart_team_not_in_list
 orgchart_teams_hint

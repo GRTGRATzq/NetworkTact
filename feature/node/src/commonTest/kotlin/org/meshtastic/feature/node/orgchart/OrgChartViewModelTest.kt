@@ -23,9 +23,12 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
 import org.meshtastic.core.model.Node
 import org.meshtastic.core.model.orgchart.EditResult
+import org.meshtastic.core.model.orgchart.OrgChart
+import org.meshtastic.core.model.orgchart.OrgChartCode
 import org.meshtastic.core.model.orgchart.OrgChartEdit
 import org.meshtastic.core.model.orgchart.OrgChartRecord
 import org.meshtastic.core.model.orgchart.OrgMember
+import org.meshtastic.core.model.orgchart.OrgTeam
 import org.meshtastic.core.testing.FakeNodeRepository
 import org.meshtastic.core.testing.FakeOrgChartPrefs
 import org.meshtastic.core.testing.FakeTeamRosterPrefs
@@ -82,5 +85,52 @@ class OrgChartViewModelTest {
         val before = prefs.current.value
         assertIs<EditResult.Invalid>(viewModel.edit(OrgChartEdit.Add("Alpha", "pc-0", "")))
         assertEquals(before, prefs.current.value)
+    }
+
+    private val scanned =
+        OrgChart(
+            "PC-1",
+            1_790_000_000L,
+            listOf(OrgMember("PC-1", "Chef PC")),
+            listOf(OrgTeam("Alpha", listOf(OrgMember("ALPHA-1")))),
+        )
+
+    @Test
+    fun aScannedChartIsOnlyOfferedThenAdoptedKeepingThePreviousOne() {
+        uiPrefs.setCommandPostMode(true)
+        viewModel.edit(OrgChartEdit.Add(null, "PC-0", ""))
+        val mine = prefs.current.value
+
+        viewModel.onScanned(OrgChartCode.encode(scanned) + "\n")
+        assertEquals(ScanOutcome.Found(scanned), viewModel.scan.value)
+        assertEquals(mine, prefs.current.value)
+
+        viewModel.adoptScanned(scanned)
+        assertEquals(scanned, prefs.current.value?.chart)
+        assertEquals(OrgChartRecord.Source.SCANNED, prefs.current.value?.source)
+        assertEquals(mine, prefs.previous.value)
+        assertEquals(ScanOutcome.Adopted, viewModel.scan.value)
+    }
+
+    @Test
+    fun anyOtherCodeOrTheSameChartIsReportedNotOffered() {
+        viewModel.onScanned("https://meshtastic.org/e/#CgMSAQESBggBQANIAQ")
+        assertEquals(ScanOutcome.Invalid, viewModel.scan.value)
+
+        prefs.adopt(OrgChartRecord(scanned, OrgChartRecord.Source.SCANNED, 1L))
+        viewModel.onScanned(OrgChartCode.encode(scanned.copy(author = "PC-9", createdSeconds = 5L)))
+        assertEquals(ScanOutcome.Same, viewModel.scan.value)
+
+        viewModel.clearScan()
+        viewModel.onScanned(null)
+        assertNull(viewModel.scan.value)
+    }
+
+    @Test
+    fun theQrCodeCarriesTheChartInUse() {
+        assertEquals(QrCodeState.Empty, viewModel.qrCode())
+        prefs.save(OrgChartRecord(scanned, OrgChartRecord.Source.EDITED, 1L))
+        val ready = assertIs<QrCodeState.Ready>(viewModel.qrCode())
+        assertEquals(scanned, OrgChartCode.decode(ready.code))
     }
 }
