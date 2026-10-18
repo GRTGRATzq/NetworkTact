@@ -661,9 +661,9 @@ du Réseau, ou bouton « Diagnostic » sous un envoi en échec. Le diagnostic n'
   fusionné dans `main`, qui ne porte que l'identité du fork et le workflow `fork-apk`. Aucune pull
   request n'est ouverte.
 - **CI** : `fork-apk` est vert sur `feat/accueil-insignes` (run 72, 23 min 38 s). Les runs 70 et 71
-  de la même branche affichent une icône d'avertissement dans l'onglet Actions (cause non vérifiée :
-  à ouvrir avant toute fusion) ; le run 68, rouge, était une erreur de compilation de l'écran de
-  diagnostic, corrigée au run 69.
+  ont été annulés parce qu'une poussée plus récente est arrivée sur la même branche ; le run 68,
+  rouge, était une erreur de compilation de l'écran de diagnostic, corrigée au run 69. Bilan des
+  72 runs : 38 verts, 23 rouges, 11 annulés (détail dans `HISTORIQUE.md`).
 - **Vérifié** : lint (spotless, detekt), compilation fdroid debug, tests Android et JVM des modules
   listés dans chaque section, contrastes des couleurs ajoutées.
 - **Pas encore vérifié sur téléphone** : tout l'usage réel. En particulier, la lecture du QR
@@ -675,6 +675,8 @@ du Réseau, ou bouton « Diagnostic » sous un envoi en échec. Le diagnostic n'
   `core:navigation` (`NavigationConfigTest`) et les cibles iOS (`ios-check.yml`, à la main).
 - **Reporté** : partage du réglage LoRa attendu par le QR d'organigramme (format `NTORGA2`) ;
   authentification des listes d'équipes et des organigrammes ; ouverture de pull requests vers `main`.
+- **Historique complet** : `HISTORIQUE.md` (chronologie, structure des branches, les 72 runs et
+  chaque commit). Essais à faire : `TESTS-A-FAIRE.md`.
 - **Remise à zéro d'une radio** : voir `FLASHER-LA-RADIO.md`. Le firmware reste celui de
   Meshtastic, non modifié.
 

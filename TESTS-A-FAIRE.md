@@ -101,5 +101,5 @@ boucle (temps d'antenne partagé).
       `[POS]`, `[CR]` comme du texte ordinaire.
 
 ## Avant fusion dans `main`
-- [ ] Ouvrir les runs 70 et 71 (icône d'avertissement) et expliquer la cause.
+- [ ] Les runs 70 et 71 ont été annulés par une poussée plus récente (rien à corriger).
 - [ ] Compiler la variante google et lancer `core:ui` / `core:navigation` à la main si nécessaire.
