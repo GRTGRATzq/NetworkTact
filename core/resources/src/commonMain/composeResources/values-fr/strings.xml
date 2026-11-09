@@ -1684,6 +1684,7 @@
     <string name="orgchart_edit_member">Modifier le membre</string>
     <string name="orgchart_remove_member">Retirer</string>
     <string name="orgchart_move_up">Monter</string>
+    <string name="orgchart_known_radios">Radios connues (touchez-en une, ou saisissez un autre indicatif)</string>
     <string name="orgchart_move_down">Descendre</string>
     <string name="orgchart_callsign">Indicatif</string>
     <string name="orgchart_callsign_hint">Début du nom long de la radio, sans l'équipe (ALPHA-1)</string>

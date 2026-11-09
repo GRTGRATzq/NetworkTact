@@ -1504,6 +1504,7 @@ orgchart_error_empty
 orgchart_error_role_long
 orgchart_error_too_large
 orgchart_ignore
+orgchart_known_radios
 orgchart_move_down
 orgchart_move_up
 orgchart_my_radio

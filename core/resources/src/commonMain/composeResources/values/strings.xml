@@ -1540,6 +1540,7 @@
     <string name="orgchart_error_role_long">Role too long: %1$d bytes, %2$d at most</string>
     <string name="orgchart_error_too_large">Org chart too large for a readable QR code (%1$d characters, %2$d at most). Shorten call signs or roles, or remove a member.</string>
     <string name="orgchart_ignore">Ignore</string>
+    <string name="orgchart_known_radios">Known radios (touch one, or type another call sign)</string>
     <string name="orgchart_move_down">Move down</string>
     <string name="orgchart_move_up">Move up</string>
     <string name="orgchart_my_radio">My radio</string>
