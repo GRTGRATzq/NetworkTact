@@ -1,7 +1,7 @@
 # NetworkTact
 
 NetworkTact est un fork de [Meshtastic-Android](https://github.com/meshtastic/Meshtastic-Android),
-modifié à partir du 26 septembre 2026 (dernière mise à jour de ce fichier : 11 octobre 2026, branche `feat/autodiagnostic`).
+modifié à partir du 26 septembre 2026 (dernière mise à jour de ce fichier : 9 novembre 2026, branche `docs/essais-2026-11-08`).
 
 - **Licence** : GPL-3.0-or-later (voir le fichier `LICENSE`, inchangé).
 - **Origine** : code de Meshtastic-Android, © Meshtastic LLC. Les mentions de copyright de
@@ -653,6 +653,39 @@ du Réseau, ou bouton « Diagnostic » sous un envoi en échec. Le diagnostic n'
 - **Réafficher l'écran** : Réglages, section Information, « Afficher l'introduction » (`intro_show`)
   remet seulement l'indicateur d'introduction terminée ; nœuds, messages et réglages sont gardés
   (ligne verrouillée en mode démo).
+
+## État d'avancement au 9 novembre 2026
+
+- **Branches** : les 20 sections ci-dessus sont chacune sur une branche `feat/…`, empilées les unes
+  sur les autres. La dernière, `feat/accueil-insignes` (commit `9196e76`), contient tout le code.
+  La branche `docs/essais-2026-11-08`, partie de `feat/accueil-insignes`, n'ajoute que de la
+  documentation (aucun changement de code) : `TESTS-A-FAIRE.md`, `HISTORIQUE.md`,
+  `FLASHER-LA-RADIO.md`, `PREPARER-LES-RADIOS.md` et ce fichier. Rien n'est fusionné dans `main`,
+  qui ne porte que l'identité du fork et le workflow `fork-apk`. Aucune pull request n'est ouverte,
+  ni vers `main` ni vers `meshtastic/Meshtastic-Android`.
+- **CI** : `fork-apk` est vert sur `feat/accueil-insignes` (run 72, 23 min 38 s). Les runs 70 et 71
+  ont été annulés parce qu'une poussée plus récente est arrivée sur la même branche ; le run 68,
+  rouge, était une erreur de compilation de l'écran de diagnostic, corrigée au run 69. Bilan des
+  72 runs : 38 verts, 23 rouges, 11 annulés (détail dans `HISTORIQUE.md`). `fork-apk` est relancé
+  sur `docs/essais-2026-11-08` pour fournir l'APK des essais ; le code étant celui du run 72, le
+  résultat attendu est le même.
+- **Vérifié** : lint (spotless, detekt), compilation fdroid debug, tests Android et JVM des modules
+  listés dans chaque section, contrastes des couleurs ajoutées.
+- **Pas encore vérifié sur téléphone** : tout l'usage réel. En particulier, la lecture du QR
+  d'organigramme à la caméra, l'import d'un `.pmtiles` réel, le recalage et la diffusion de position
+  avec une vraie radio, le traceroute de « Tester la liaison », les bandeaux de diagnostic, et
+  l'affichage de l'écran de bienvenue sur de petits écrans. La liste des essais est dans
+  `TESTS-A-FAIRE.md`.
+- **Non couvert par la CI** : la variante google, `core:ui` (dont le bandeau de diagnostic),
+  `core:navigation` (`NavigationConfigTest`) et les cibles iOS (`ios-check.yml`, à la main).
+- **Reporté** : partage du réglage LoRa attendu par le QR d'organigramme (format `NTORGA2`) ;
+  authentification des listes d'équipes et des organigrammes ; ouverture de pull requests vers `main`.
+- **Documents** : historique complet dans `HISTORIQUE.md` (chronologie, structure des branches, les
+  72 runs et chaque commit) ; essais à faire dans `TESTS-A-FAIRE.md` ; carte hors ligne dans
+  `CARTE-HORS-LIGNE.md`.
+- **Radios** : remise à zéro dans `FLASHER-LA-RADIO.md`, puis réglages à faire dans NetworkTact
+  (LoRa `EU_868` / `LongFast`, GPS et champ de position `TIMESTAMP`, nom long = indicatif seul, nom
+  court, équipe) dans `PREPARER-LES-RADIOS.md`. Le firmware reste celui de Meshtastic, non modifié.
 
 ## Marques
 
