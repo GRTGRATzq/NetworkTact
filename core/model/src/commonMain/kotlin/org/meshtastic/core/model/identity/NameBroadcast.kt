@@ -80,9 +80,12 @@ object NameBroadcast {
         val remaining = lastBroadcastEpochSeconds?.let { cooldownRemaining(it, nowEpochSeconds) } ?: 0L
         return when {
             !connected -> NameBroadcastCheck.Refused(NameBroadcastRefusal.NOT_CONNECTED)
+
             ownUser == null || ownUser.long_name.isBlank() ->
                 NameBroadcastCheck.Refused(NameBroadcastRefusal.NO_LOCAL_NODE)
+
             remaining > 0 -> NameBroadcastCheck.CoolingDown(remaining)
+
             else -> NameBroadcastCheck.Ready(ownUser.long_name, ownUser.short_name)
         }
     }
