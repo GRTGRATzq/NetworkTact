@@ -127,7 +127,7 @@ fun OrgChartScreen(
         )
     }
     memberDialog?.let { target ->
-        MemberDialog(target = target, onSubmit = viewModel::edit, onDismiss = { memberDialog = null })
+        MemberDialog(target, state.suggestions, onSubmit = viewModel::edit, onDismiss = { memberDialog = null })
     }
     removing?.let { row ->
         RemoveMemberDialog(

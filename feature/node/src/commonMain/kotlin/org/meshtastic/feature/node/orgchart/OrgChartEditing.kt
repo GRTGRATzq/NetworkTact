@@ -18,16 +18,22 @@ package org.meshtastic.feature.node.orgchart
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -40,6 +46,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.stringResource
+import org.meshtastic.core.model.orgchart.Callsign
 import org.meshtastic.core.model.orgchart.EditResult
 import org.meshtastic.core.model.orgchart.MemberInput
 import org.meshtastic.core.model.orgchart.OrgChart
@@ -57,6 +64,7 @@ import org.meshtastic.core.resources.orgchart_error_duplicate
 import org.meshtastic.core.resources.orgchart_error_empty
 import org.meshtastic.core.resources.orgchart_error_role_long
 import org.meshtastic.core.resources.orgchart_error_too_large
+import org.meshtastic.core.resources.orgchart_known_radios
 import org.meshtastic.core.resources.orgchart_move_down
 import org.meshtastic.core.resources.orgchart_move_up
 import org.meshtastic.core.resources.orgchart_remove_member
@@ -117,13 +125,26 @@ internal fun AddMemberButton(onClick: () -> Unit, modifier: Modifier = Modifier)
 /**
  * Adds or edits a member. [onSubmit] applies the change and returns how it went: the dialog closes when it is done, and
  * otherwise says why it was refused, including when the chart would no longer fit in a readable QR code.
+ *
+ * The size of the call sign and of the role is checked as it is typed, under the field, where it is seen: the field
+ * turns red, says how many bytes it holds, and "OK" stays disabled. When adding, [suggestions] (the call signs of the
+ * known radios) are offered; any other call sign can still be typed, a radio that is off is not in the list.
  */
 @Composable
-internal fun MemberDialog(target: MemberDialogTarget, onSubmit: (OrgChartEdit) -> EditResult, onDismiss: () -> Unit) {
+internal fun MemberDialog(
+    target: MemberDialogTarget,
+    suggestions: List<String>,
+    onSubmit: (OrgChartEdit) -> EditResult,
+    onDismiss: () -> Unit,
+) {
     var callsign by rememberSaveable(target) { mutableStateOf(target.callsign) }
     var role by rememberSaveable(target) { mutableStateOf(target.role) }
     var result by remember(target) { mutableStateOf<EditResult?>(null) }
     val error = result?.let { editError(it) }
+    val callsignBytes = OrgChart.callsignBytes(callsign)
+    val roleBytes = OrgChart.roleBytes(role)
+    val callsignTooLong = callsignBytes > OrgChart.MAX_CALLSIGN_BYTES
+    val roleTooLong = roleBytes > OrgChart.MAX_ROLE_BYTES
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {
@@ -134,34 +155,37 @@ internal fun MemberDialog(target: MemberDialogTarget, onSubmit: (OrgChartEdit) -
             )
         },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(
-                    value = callsign,
-                    onValueChange = {
+            Column(
+                modifier = Modifier.verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                // Inverted pill, as every alert of the app: red stays reserved for urgent messages. First, so that it
+                // is seen with the keyboard open.
+                error?.let { FreshnessLine(text = it, tone = FreshnessTone.ALERT) }
+                CallsignField(
+                    text = callsign,
+                    bytes = callsignBytes,
+                    onTextChange = {
                         callsign = it
                         result = null
                     },
-                    label = { Text(stringResource(Res.string.orgchart_callsign)) },
-                    supportingText = { Text(stringResource(Res.string.orgchart_callsign_hint)) },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth().testTag("orgchart_callsign"),
                 )
-                OutlinedTextField(
-                    value = role,
-                    onValueChange = {
+                if (target.index == null) {
+                    KnownRadios(suggestions = suggestions, typed = callsign, onChoose = { callsign = it })
+                }
+                RoleField(
+                    text = role,
+                    bytes = roleBytes,
+                    onTextChange = {
                         role = it
                         result = null
                     },
-                    label = { Text(stringResource(Res.string.orgchart_role)) },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth().testTag("orgchart_role"),
                 )
-                // Inverted pill, as every alert of the app: red stays reserved for urgent messages.
-                error?.let { FreshnessLine(text = it, tone = FreshnessTone.ALERT) }
             }
         },
         confirmButton = {
             Button(
+                enabled = callsignBytes > 0 && !callsignTooLong && !roleTooLong,
                 onClick = {
                     val edit =
                         if (target.index == null) {
@@ -182,6 +206,78 @@ internal fun MemberDialog(target: MemberDialogTarget, onSubmit: (OrgChartEdit) -
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(Res.string.cancel)) } },
     )
+}
+
+/** The call sign: red, with its size in bytes, as soon as it is over [OrgChart.MAX_CALLSIGN_BYTES]. */
+@Composable
+private fun CallsignField(text: String, bytes: Int, onTextChange: (String) -> Unit) {
+    val tooLong = bytes > OrgChart.MAX_CALLSIGN_BYTES
+    OutlinedTextField(
+        value = text,
+        onValueChange = onTextChange,
+        label = { Text(stringResource(Res.string.orgchart_callsign)) },
+        isError = tooLong,
+        supportingText = {
+            Text(
+                if (tooLong) {
+                    stringResource(Res.string.orgchart_error_callsign_long, bytes, OrgChart.MAX_CALLSIGN_BYTES)
+                } else {
+                    stringResource(Res.string.orgchart_callsign_hint)
+                },
+            )
+        },
+        singleLine = true,
+        modifier = Modifier.fillMaxWidth().testTag("orgchart_callsign"),
+    )
+}
+
+/** The role: red, with its size in bytes, as soon as it is over [OrgChart.MAX_ROLE_BYTES]. */
+@Composable
+private fun RoleField(text: String, bytes: Int, onTextChange: (String) -> Unit) {
+    val tooLong = bytes > OrgChart.MAX_ROLE_BYTES
+    OutlinedTextField(
+        value = text,
+        onValueChange = onTextChange,
+        label = { Text(stringResource(Res.string.orgchart_role)) },
+        isError = tooLong,
+        supportingText =
+        if (tooLong) {
+            { Text(stringResource(Res.string.orgchart_error_role_long, bytes, OrgChart.MAX_ROLE_BYTES)) }
+        } else {
+            null
+        },
+        singleLine = true,
+        modifier = Modifier.fillMaxWidth().testTag("orgchart_role"),
+    )
+}
+
+/**
+ * The call signs of the known radios, to fill the field with one touch. Those that do not match what is typed are left
+ * out, and so is the one already typed in full; nothing here stops another call sign from being typed.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun KnownRadios(suggestions: List<String>, typed: String, onChoose: (String) -> Unit) {
+    val shown = matchingSuggestions(suggestions, typed)
+    if (shown.isEmpty()) return
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(
+            text = stringResource(Res.string.orgchart_known_radios),
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            shown.forEach { suggestion ->
+                SuggestionChip(onClick = { onChoose(suggestion) }, label = { Text(suggestion) })
+            }
+        }
+    }
+}
+
+/** The [suggestions] containing what is [typed] (all while nothing is typed), but not the one typed in full. */
+internal fun matchingSuggestions(suggestions: List<String>, typed: String): List<String> {
+    val key = Callsign.key(typed)
+    return suggestions.filter { key.isEmpty() || (Callsign.key(it).contains(key) && Callsign.key(it) != key) }
 }
 
 /** Why an edit was refused, in the user's words; null when it went through. */

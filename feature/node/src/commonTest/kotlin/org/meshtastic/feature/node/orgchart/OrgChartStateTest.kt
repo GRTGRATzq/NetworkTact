@@ -152,4 +152,34 @@ class OrgChartStateTest {
         assertEquals(listOf(null, "Alpha", "Bravo"), pcMode.sections.map { it.team })
         assertTrue(pcMode.sections.all { it.members.isEmpty() })
     }
+
+    @Test
+    fun known_radios_not_yet_members_are_suggested_by_call_sign_most_recent_first() {
+        val nodes =
+            listOf(
+                pc,
+                node(101, "ALPHA-1 [Alpha]", heardAgo = 600),
+                node(102, "ECHO-5 [Alpha]", heardAgo = 30),
+                node(103, "FOXTROT-6", heardAgo = 300),
+                node(104, "IGNORED-7", ignored = true),
+            )
+        assertEquals(listOf("ECHO-5", "FOXTROT-6"), build(nodes).suggestions)
+    }
+
+    @Test
+    fun without_a_chart_every_known_radio_is_suggested() {
+        val nodes = listOf(pc, node(101, "ALPHA-1 [Alpha]", heardAgo = 600))
+        assertEquals(listOf("PC-0", "ALPHA-1"), build(nodes, record = null, commandPostMode = true).suggestions)
+    }
+
+    @Test
+    fun matching_keeps_what_contains_the_typed_text_and_not_the_one_typed_in_full() {
+        val all = listOf("ALPHA-1", "ALPHA-2", "BRAVO-2")
+        assertEquals(all, matchingSuggestions(all, ""))
+        assertEquals(listOf("ALPHA-1", "ALPHA-2"), matchingSuggestions(all, " alp "))
+        assertEquals(listOf("ALPHA-2", "BRAVO-2"), matchingSuggestions(all, "-2"))
+        // Typed in full: nothing left to offer for it.
+        assertTrue(matchingSuggestions(all, "alpha-1").isEmpty())
+        assertTrue(matchingSuggestions(all, "zulu").isEmpty())
+    }
 }

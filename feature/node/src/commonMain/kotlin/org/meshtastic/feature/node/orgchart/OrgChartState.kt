@@ -21,6 +21,7 @@ import org.meshtastic.core.model.freshness.ContactState
 import org.meshtastic.core.model.freshness.FreshnessThresholds
 import org.meshtastic.core.model.freshness.NodeFreshness
 import org.meshtastic.core.model.freshness.PositionState
+import org.meshtastic.core.model.orgchart.Callsign
 import org.meshtastic.core.model.orgchart.LinkedRadio
 import org.meshtastic.core.model.orgchart.OrgChartLinks
 import org.meshtastic.core.model.orgchart.OrgChartRecord
@@ -59,6 +60,8 @@ data class OrgChartUiState(
     val sections: List<OrgSection> = emptyList(),
     /** Radios whose call sign no member has. */
     val unlisted: List<OrgRadioRow> = emptyList(),
+    /** Call signs of the known radios no member has yet, most recently heard first: offered when adding a member. */
+    val suggestions: List<String> = emptyList(),
     val commandPostMode: Boolean = false,
 )
 
@@ -101,7 +104,8 @@ fun buildOrgChartState(
             }
         }
     val unlisted = links?.unlisted.orEmpty().map { row(LinkedRadio(it, null, teamMatches = true)) }
-    return OrgChartUiState(record, previous, sections, unlisted, commandPostMode)
+    val suggestions = Callsign.suggestions(radios.map { it.user.long_name }, chart)
+    return OrgChartUiState(record, previous, sections, unlisted, suggestions, commandPostMode)
 }
 
 private fun radioRow(
