@@ -62,8 +62,17 @@ sealed interface Basemap {
      * A vector style handed over as the document itself rather than a URL: a map file stored on the device, whose style
      * the host builds with local paths for its tiles, fonts and sprites. Its label is the name the user gave the file,
      * so unlike the built-ins it is not a proper noun of ours.
+     *
+     * @property attribution The credit the ⓘ button shows for this map, in place of what the file's own metadata
+     *   declares (the engine prefers the file's, and a Protomaps extract often says only "© OpenStreetMap"). Null keeps
+     *   what the style and the file declare.
      */
-    data class LocalVector(override val id: String, override val label: String, val styleJson: String) : Basemap
+    data class LocalVector(
+        override val id: String,
+        override val label: String,
+        val styleJson: String,
+        val attribution: String? = null,
+    ) : Basemap
 }
 
 /**

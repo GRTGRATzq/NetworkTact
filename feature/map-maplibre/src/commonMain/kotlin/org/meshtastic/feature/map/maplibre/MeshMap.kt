@@ -67,7 +67,7 @@ import org.meshtastic.core.model.Node
 import org.meshtastic.feature.map.BaseMapViewModel
 import org.meshtastic.feature.map.MapNodePolicy
 import org.meshtastic.feature.map.component.MapEngineUnavailable
-import org.meshtastic.feature.map.maplibre.component.MeshMapOrnaments
+import org.meshtastic.feature.map.maplibre.component.meshMapOrnaments
 import org.meshtastic.feature.map.maplibre.geojson.ClusterMember
 import org.meshtastic.feature.map.maplibre.geojson.rememberFeatureSource
 import org.meshtastic.feature.map.maplibre.layers.CustomLayer
@@ -232,6 +232,9 @@ fun MeshMap(
     if (!LocalMapLibreRuntimeProbe.current()) return MapEngineUnavailable(modifier)
 
     val zoomRange = basemap.zoomRange()
+    // A map file on the device is credited with the app's own text: the file's metadata may say less.
+    val archiveCredit = (basemap as? Basemap.LocalVector)?.attribution
+    val ornaments = remember(archiveCredit) { meshMapOrnaments(archiveCredit) }
     MaplibreMap(
         modifier = modifier,
         state = mapState,
@@ -256,7 +259,7 @@ fun MeshMap(
                 }
             }
         },
-        overlay = { include(MeshMapOrnaments) },
+        overlay = { include(ornaments) },
     )
 }
 

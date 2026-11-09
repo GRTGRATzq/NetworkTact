@@ -26,8 +26,11 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import org.maplibre.compose.map.LocalMapState
+import org.maplibre.compose.overlay.AttributionLinks
 import org.maplibre.compose.overlay.DisappearingScaleBar
+import org.maplibre.compose.overlay.ExpandingAttributionButton
 import org.maplibre.compose.overlay.LocalViewportInsets
+import org.maplibre.compose.overlay.MaplibreLogo
 import org.maplibre.compose.overlay.include
 import org.maplibre.compose.overlay.MapOverlay as MaplibreOverlay
 
@@ -44,7 +47,20 @@ import org.maplibre.compose.overlay.MapOverlay as MaplibreOverlay
  * Scale-bar units are left to the library, which picks them by region — the same locale-driven approach the rest of the
  * app takes through `localeUnitsProvider`.
  */
-internal val MeshMapOrnaments: MaplibreOverlay = MaplibreOverlay {
+internal val MeshMapOrnaments: MaplibreOverlay = meshMapOrnaments()
+
+/**
+ * The credits the ⓘ button shows: [archiveCredit] alone when the map is a file stored on the device, whose own metadata
+ * the engine would otherwise put first ("© OpenStreetMap" only), and what the style declares for any other map.
+ */
+internal fun shownAttributions(fromStyle: List<String>, archiveCredit: String?): List<String> =
+    archiveCredit?.takeIf { it.isNotBlank() }?.let(::listOf) ?: fromStyle
+
+/**
+ * [MeshMapOrnaments], with [archiveCredit] as the only credit when given: see [shownAttributions]. The logo and the
+ * button are kept either way.
+ */
+internal fun meshMapOrnaments(archiveCredit: String? = null): MaplibreOverlay = MaplibreOverlay {
     val mapState = checkNotNull(LocalMapState.current)
     val viewportInsets = LocalViewportInsets.current
 
@@ -66,5 +82,25 @@ internal val MeshMapOrnaments: MaplibreOverlay = MaplibreOverlay {
     }
 
     // The logo and the attribution button, in the places `MapOverlay.Default` puts them.
-    include(MaplibreOverlay.AttributionOnly)
+    if (archiveCredit == null) {
+        include(MaplibreOverlay.AttributionOnly)
+    } else {
+        // `AttributionOnly` is built on a helper the library keeps internal: same box, same insets.
+        Box(
+            modifier =
+            Modifier.fillMaxSize()
+                .padding(viewportInsets)
+                .consumeWindowInsets(viewportInsets)
+                .windowInsetsPadding(WindowInsets.safeDrawing)
+                .padding(MaplibreOverlay.Spacing),
+        ) {
+            MaplibreLogo(Modifier.align(Alignment.BottomStart))
+            ExpandingAttributionButton(
+                modifier = Modifier.align(Alignment.BottomEnd),
+                expandedContent = { fromStyle, textStyle ->
+                    AttributionLinks(shownAttributions(fromStyle, archiveCredit), textStyle = textStyle)
+                },
+            )
+        }
+    }
 }

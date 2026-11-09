@@ -69,6 +69,7 @@ fun offlineMapBasemaps(): List<Basemap>? {
                         flavor = flavor,
                         attribution = attribution,
                     ),
+                    attribution = attribution,
                 )
             }
         }
