@@ -187,6 +187,14 @@ configure<ApplicationExtension> {
             isDebuggable = false
         }
     }
+    sourceSets {
+        // The baseline and startup profiles are generated on the google flavor (:baselineprofile pins it). The startup
+        // path (application, activity, Koin, Compose, navigation, Room) is the same in fdroid, so fdroidRelease takes
+        // the same files: an entry naming a class this flavor does not have (Google Maps, Firebase, Datadog) matches
+        // nothing and is dropped, and the fdroid-only code (MapLibre) is simply not covered. Regenerate a profile of
+        // its own once :baselineprofile has an fdroid flavor and a device to run on.
+        maybeCreate("fdroidRelease").baselineProfiles.srcDir("src/googleRelease/generated/baselineProfiles")
+    }
     bundle { language { enableSplit = false } }
 
     testOptions { unitTests { isIncludeAndroidResources = true } }
