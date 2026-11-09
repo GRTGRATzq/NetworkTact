@@ -1,7 +1,7 @@
 # NetworkTact : essais à faire sur téléphone
 
 Dernière mise à jour : 9 novembre 2026. APK : artefact `apk-fdroid-debug` du dernier run vert de
-`fork-apk` sur la branche `fix/diffusion-nom` (qui contient tout). Rien de ce qui suit n'a encore
+`fork-apk` sur la branche `fix/demo-unique` (qui contient tout). Rien de ce qui suit n'a encore
 été essayé sur un téléphone, sauf le défaut corrigé au §10 ; la CI ne prouve que la compilation et
 les tests unitaires.
 
@@ -120,6 +120,14 @@ voient déjà. Sur le téléphone de OA, ne jamais utiliser « Infos utilisateur
       simulée, rien n'est envoyé » ; OA ne reçoit rien.
 - [ ] Si OA garde l'ancien nom : noter la version du firmware des deux radios et si un message
       « Ma radio n'a pas confirmé le nom » est apparu.
+
+## 11. Un seul mode démo (§22), défaut D1 du 8 novembre
+
+- [ ] Ma radio, liste des appareils, en Bluetooth, réseau et USB : plus aucune section « Mode démo »,
+      ni « Mode Démo » ni « Mode démo (Rejouer) ». Aucun nœud Demo Handset ou Riverside Base.
+- [ ] Après mise à jour par-dessus une version où « Mode Démo » avait été choisi : la vraie radio
+      est de nouveau proposée et s'y reconnecte, sans repasser par la fausse.
+- [ ] Réglages → Mode démo (celui de NetworkTact) fonctionne toujours : bandeau et bouton Quitter.
 
 ## Avant fusion dans `main`
 - [ ] Les runs 70 et 71 ont été annulés par une poussée plus récente (rien à corriger).

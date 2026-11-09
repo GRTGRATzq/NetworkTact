@@ -1,7 +1,7 @@
 # NetworkTact
 
 NetworkTact est un fork de [Meshtastic-Android](https://github.com/meshtastic/Meshtastic-Android),
-modifié à partir du 26 septembre 2026 (dernière mise à jour de ce fichier : 9 novembre 2026, branche `fix/diffusion-nom`).
+modifié à partir du 26 septembre 2026 (dernière mise à jour de ce fichier : 9 novembre 2026, branche `fix/demo-unique`).
 
 - **Licence** : GPL-3.0-or-later (voir le fichier `LICENSE`, inchangé).
 - **Origine** : code de Meshtastic-Android, © Meshtastic LLC. Les mentions de copyright de
@@ -695,6 +695,25 @@ du Réseau, ou bouton « Diagnostic » sous un envoi en échec. Le diagnostic n'
   `NameBroadcasterTest`, `TeamsViewModelTest`.
 - **CI** : `fork-apk` se déclenche désormais aussi sur les poussées vers `fix/**` et `docs/**`.
 
+### 22. Un seul mode démo (`fix/demo-unique`)
+
+- **Défaut corrigé** (essai du 8 novembre 2026, D1) : la liste des appareils (onglet Ma radio)
+  proposait encore « Mode Démo » et « Mode démo (Rejouer) », la fausse radio héritée de Meshtastic
+  (nœuds Demo Handset, Riverside Base…). Elle remplaçait la vraie radio, n'avait pas de bouton
+  Quitter, et se confondait avec le mode démo de NetworkTact (section 9, interrupteur dans Réglages).
+- **Correction** : la porte `mockTransportEnabled` de `BaseRadioTransportFactory` (`core:network`)
+  reste fermée. Elle commandait deux choses, qui lisent la même valeur : l'affichage des entrées
+  dans la liste (la variante « Rejouer » n'existe qu'à l'intérieur) et l'admission des adresses `m`
+  et `r`. Une ancienne sélection mémorisée ou un lien profond vers ces adresses est donc refusé
+  aussi, sans retombée sur la fausse radio. L'ancienne règle de `AndroidRadioTransportFactory`
+  (ouverte en debug, après cinq appuis sur la version en release) est supprimée. La version bureau
+  garde la sienne, hors périmètre.
+- **Inchangé** : le mode démo de la section 9 (Réglages → Mode démo, bandeau, bouton Quitter) est
+  le seul mode démo. Aucun texte ajouté : les textes `demo_mode*` hérités ne sont plus affichés.
+- **Tests** : `NoInheritedDemoTransportTest` (porte fermée par défaut, `m`, `r` et `m1` refusés
+  même si la capture existe, radios réelles admises) ; `MockTransportAddressAdmissionTest` et les
+  tests de `ScannerViewModel` continuent de couvrir le comportement quand la porte est ouverte.
+
 ## État d'avancement au 9 novembre 2026
 
 - **Branches** : les sections 1 à 20 sont chacune sur une branche `feat/…`, empilées les unes
@@ -702,7 +721,8 @@ du Réseau, ou bouton « Diagnostic » sous un envoi en échec. Le diagnostic n'
   La branche `docs/essais-2026-11-08`, partie de `feat/accueil-insignes`, n'ajoute que de la
   documentation : `TESTS-A-FAIRE.md`, `HISTORIQUE.md`, `FLASHER-LA-RADIO.md`,
   `PREPARER-LES-RADIOS.md` et ce fichier. La branche `fix/diffusion-nom` (section 21), partie de
-  `docs/essais-2026-11-08`, est la dernière et contient tout. Rien n'est fusionné dans `main`,
+  `docs/essais-2026-11-08`, contient tout jusqu'à la section 21. La branche `fix/demo-unique` (section 22), partie de
+  `fix/diffusion-nom`, est la dernière et contient tout. Rien n'est fusionné dans `main`,
   qui ne porte que l'identité du fork et le workflow `fork-apk`. Aucune pull request n'est ouverte,
   ni vers `main` ni vers `meshtastic/Meshtastic-Android`.
 - **CI** : `fork-apk` est vert sur `feat/accueil-insignes` (run 72, 23 min 38 s). Les runs 70 et 71
@@ -720,7 +740,8 @@ du Réseau, ou bouton « Diagnostic » sous un envoi en échec. Le diagnostic n'
   d'organigramme à la caméra, l'import d'un `.pmtiles` réel, le recalage et la diffusion de position
   avec une vraie radio, le traceroute de « Tester la liaison », les bandeaux de diagnostic,
   l'affichage de l'écran de bienvenue sur de petits écrans, et la diffusion du nom (section 21) entre
-  deux radios. La liste des essais est dans
+  deux radios, et la disparition de l'ancien « Mode Démo » de la liste des appareils (section 22).
+  La liste des essais est dans
   `TESTS-A-FAIRE.md`.
 - **Non couvert par la CI** : la variante google, `core:ui` (dont le bandeau de diagnostic),
   `core:navigation` (`NavigationConfigTest`) et les cibles iOS (`ios-check.yml`, à la main).
