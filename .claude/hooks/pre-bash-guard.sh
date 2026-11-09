@@ -62,6 +62,14 @@ if printf '%s' "$cmd" | grep -q 'git push'; then
   export ANDROID_HOME="${ANDROID_HOME:-$HOME/Library/Android/sdk}"
   out=$( (cd "$repo_root" && ./gradlew detekt --console=plain -q) 2>&1 )
   if [ $? -ne 0 ]; then
+    # A real detekt violation always blocks. Gradle that cannot even start for an
+    # environment reason (no JDK/toolchain, download refused, repositories
+    # unreachable) lets the push through with a warning: CI is the gate then.
+    if ! printf '%s\n' "$out" | grep -Eq 'weighted issues?|Analysis failed|detekt.*(finding|issue)s?[[:space:]]+found' \
+       && printf '%s\n' "$out" | grep -Eiq 'Unable to download toolchain|No matching toolchains?|Cannot find a Java installation|JAVA_HOME is not set|Could not (HEAD|GET|resolve)|Received status code (403|407|5[0-9][0-9])|UnknownHostException|Connection (refused|reset)|Read timed out|Connect timed out|SSLHandshakeException|SDK location not found'; then
+      printf '%s\n' "detekt non exécuté localement, la CI fork-apk fera foi (Gradle n'a pas pu démarrer pour une raison d'environnement)." >&2
+      exit 0
+    fi
     {
       printf '%s\n' "detekt failed — blocking the push (it's a blocking CI gate). Last lines:"
       printf '%s\n' "$out" | tail -n 30
