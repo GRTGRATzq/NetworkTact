@@ -863,7 +863,10 @@ du Réseau, ou bouton « Diagnostic » sous un envoi en échec. Le diagnostic n'
   cause : « keystore password was incorrect », « Alias <…> does not exist », fichier illisible ; `keytool` écrit ses erreurs
   sur la sortie standard, qu'une première version du script jetait : run 85 rouge sans message), écrit
   `keystore.properties` (ignoré par Git, relu par `androidApp/build.gradle.kts`), construit, puis supprime les deux
-  fichiers à la fin du run. Aucun secret n'est affiché. Une étape de contrôle affiche la taille de l'APK, vérifie que le
+  fichiers à la fin du run. Aucun secret n'est affiché ; **en cas d'échec de `keytool` seulement**, l'étape ajoute les
+  lignes utiles au diagnostic : taille et empreinte SHA-256 du fichier décodé, longueur de chacun des trois secrets
+  (mots de passe et alias) avec la présence d'un espace ou d'un retour à la ligne au début ou à la fin, et version de
+  Java ; jamais une valeur. Une étape de contrôle affiche la taille de l'APK, vérifie que le
   profil de démarrage est dedans et lance `apksigner verify --print-certs` (le certificat est public : à comparer avec
   la clé du porteur). **Si un des secrets est vide** (un fork, par exemple), l'APK est construit **non signé** avec une
   note dans le journal, sans faire échouer le run ; un APK non signé ne s'installe pas.
@@ -904,22 +907,26 @@ du Réseau, ou bouton « Diagnostic » sous un envoi en échec. Le diagnostic n'
   | `NT_KEY_ALIAS` | l'alias de la clé : `networktact` |
 
 - **Les recréer dans un autre dépôt** :
-  1. Créer la clé, une seule fois, en saisissant le mot de passe quand `keytool` le demande (il est **ASCII
-     seulement** : un accent fait échouer PKCS12) :
+  1. Créer la clé, une seule fois, en saisissant le mot de passe quand `keytool` le demande. **Lettres et chiffres
+     seulement** : un accent fait échouer PKCS12, et une saisie dans le navigateur peut altérer les guillemets, les
+     apostrophes et les tirets (le secret ne vaut alors plus le mot de passe du fichier : « keystore password was
+     incorrect »). Le fichier de référence est `networktact-release-v2.p12` :
      ```bash
-     keytool -genkeypair -v -storetype PKCS12 -keystore networktact-release.p12 -alias networktact \
+     keytool -genkeypair -v -storetype PKCS12 -keystore networktact-release-v2.p12 -alias networktact \
        -keyalg RSA -keysize 4096 -validity 10000
      ```
-  2. Encoder le fichier (macOS) : `base64 -i networktact-release.p12 | tr -d '\n' | pbcopy` ; Linux :
-     `base64 -w0 networktact-release.p12`.
+  2. Encoder le fichier (macOS) : `base64 -i networktact-release-v2.p12 | tr -d '\n' | pbcopy` ; Linux :
+     `base64 -w0 networktact-release-v2.p12`.
   3. Dans le dépôt, créer les quatre secrets du tableau (interface web, ou
      `gh secret set NT_KEYSTORE_PASSWORD` qui demande la valeur sans l'écrire dans l'historique du terminal).
   4. Lancer `fork-apk` (poussée vers `fix/**`, `feat/**` ou `docs/**`, ou lancement manuel) : l'étape « Check the
-     release APK » doit afficher `Verified using v2 scheme … true` et le certificat.
+     release APK » doit afficher `Verified using v2 scheme … true` et le certificat. Empreinte SHA-256 du certificat
+     de la clé de référence (public) :
+     `F4:AD:3E:41:C3:54:6D:59:6D:A1:47:62:AB:58:47:4F:E8:06:00:10:E5:3B:24:FB:B4:D4:01:89:79:20:58:18`.
 - **Construction locale signée** : créer, à la racine du dépôt, `keystore.properties` (déjà dans `.gitignore`, ne jamais
   le committer) :
   ```properties
-  storeFile=/chemin/absolu/vers/networktact-release.p12
+  storeFile=/chemin/absolu/vers/networktact-release-v2.p12
   storePassword=<mot de passe du fichier>
   keyAlias=networktact
   keyPassword=<mot de passe de la clé>
@@ -952,7 +959,7 @@ du Réseau, ou bouton « Diagnostic » sous un envoi en échec. Le diagnostic n'
   `docs/essais-2026-11-08` (lancé à la main, même code que le run 72) ; runs 74 à 76 rouges sur
   `fix/diffusion-nom`, tous au lint (formatage ktfmt d'un `when` et d'un commentaire, puis detekt
   `ViewModelForwarding`), chacun corrigé par un commit ; run 77 vert (lint, compilation, tests dont
-  `NameBroadcastTest` et `NameBroadcasterTest`, APK), 18 min. Run 79 vert sur `fix/demo-unique` (section 22), run 80 vert sur `fix/fait-observe` (section 23).
+  `NameBroadcastTest` et `NameBroadcasterTest`, APK), 18 min. Run 79 vert sur `fix/demo-unique` (section 22), run 80 vert sur `fix/fait-observe` (section 23). Run 87 vert sur `feat/apk-release` (section 28) : les échecs des runs 85 à 87 venaient d'un caractère du mot de passe modifié à la saisie dans GitHub, pas de la version de Java.
   Le lint (spotless, detekt) tourne en local depuis le 9 novembre : accès réseau ouvert et miroir Maven Central
   en script d'initialisation Gradle hors du dépôt. Aucune compilation locale n'a été
   possible pour la section 21 (pas d'accès aux dépôts Maven) : seule la CI l'a vérifiée.
