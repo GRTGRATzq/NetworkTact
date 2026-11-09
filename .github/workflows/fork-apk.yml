@@ -16,7 +16,7 @@ jobs:
     # Every step that runs Gradle has its own limit (Lint 10 min, the others 15): a Gradle that freezes fails that
     # step, the next ones are skipped, and the diagnostics step runs. A green run takes about 13 minutes, so a freeze
     # in the last step still ends well before the job's 40 minutes.
-    timeout-minutes: 40
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v5
         with:
@@ -126,6 +126,69 @@ jobs:
           pkill -f KotlinCompileDaemon || true
           ./gradlew --init-script .github/ci/test-started.init.gradle.kts :feature:map-maplibre:jvmTest \
             :feature:map-maplibre:testAndroidHostTest -Dorg.gradle.unsafe.isolated-projects=false --no-configuration-cache --stacktrace
+      # The release APK (fdroidRelease: R8, no debug flags, the baseline profile of androidApp). Last, so that a failure
+      # here costs neither the debug APK nor the test results above. Signed with the project's own key when the four
+      # NT_* secrets exist; unsigned otherwise (a fork, whose secrets are empty), without failing the run.
+      # The key goes to a temporary file outside the repository and keystore.properties is written for this run only
+      # (both are git-ignored or outside the tree, and removed below). Nothing here prints a secret: no `set -x`, and
+      # GitHub masks secret values in the logs.
+      - name: APK fdroid release
+        id: release
+        timeout-minutes: 30
+        env:
+          NT_KEYSTORE_BASE64: ${{ secrets.NT_KEYSTORE_BASE64 }}
+          NT_KEYSTORE_PASSWORD: ${{ secrets.NT_KEYSTORE_PASSWORD }}
+          NT_KEY_PASSWORD: ${{ secrets.NT_KEY_PASSWORD }}
+          NT_KEY_ALIAS: ${{ secrets.NT_KEY_ALIAS }}
+        run: |
+          set -euo pipefail
+          if [ -n "$NT_KEYSTORE_BASE64" ] && [ -n "$NT_KEYSTORE_PASSWORD" ] && [ -n "$NT_KEY_PASSWORD" ] && [ -n "$NT_KEY_ALIAS" ]; then
+            keystore="$RUNNER_TEMP/networktact-release.p12"
+            printf '%s' "$NT_KEYSTORE_BASE64" | base64 --decode > "$keystore"
+            chmod 600 "$keystore"
+            # Fails here, with a clear message, if the file or the password or the alias is wrong.
+            keytool -list -keystore "$keystore" -storetype PKCS12 -storepass:env NT_KEYSTORE_PASSWORD \
+              -alias "$NT_KEY_ALIAS" > /dev/null
+            # .properties syntax: a backslash in a value has to be doubled.
+            escape() { printf '%s' "$1" | sed 's/\\/\\\\/g'; }
+            {
+              echo "storeFile=$(escape "$keystore")"
+              echo "storePassword=$(escape "$NT_KEYSTORE_PASSWORD")"
+              echo "keyAlias=$(escape "$NT_KEY_ALIAS")"
+              echo "keyPassword=$(escape "$NT_KEY_PASSWORD")"
+            } > keystore.properties
+            echo "signed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::NT_KEYSTORE_BASE64, NT_KEYSTORE_PASSWORD, NT_KEY_PASSWORD or NT_KEY_ALIAS is empty: building the release APK unsigned."
+            echo "signed=false" >> "$GITHUB_OUTPUT"
+          fi
+          ./gradlew --stop
+          pkill -f KotlinCompileDaemon || true
+          ./gradlew :androidApp:assembleFdroidRelease -Dorg.gradle.unsafe.isolated-projects=false --no-configuration-cache --stacktrace
+      - name: Check the release APK
+        timeout-minutes: 5
+        env:
+          SIGNED: ${{ steps.release.outputs.signed }}
+        run: |
+          set -euo pipefail
+          apk=$(ls androidApp/build/outputs/apk/fdroid/release/*.apk | head -n 1)
+          echo "APK: $apk ($(stat -c %s "$apk") bytes)"
+          # The startup profile (baseline.prof and baseline.profm) must be packaged: it comes from the googleRelease profile.
+          unzip -l "$apk" | grep -E 'assets/dexopt/baseline\.prof' || echo "::warning::no baseline profile in the release APK"
+          if [ "$SIGNED" = "true" ]; then
+            apksigner=$(ls "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -n 1)
+            # Public information (the certificate), useful to compare with the key of the project's holder.
+            "$apksigner" verify --print-certs "$apk"
+          else
+            echo "Unsigned APK: not installable until it is signed."
+          fi
+      - uses: actions/upload-artifact@v6
+        with:
+          name: apk-fdroid-release
+          path: androidApp/build/outputs/apk/fdroid/release/*.apk
+      - name: Remove the signing key
+        if: always()
+        run: rm -f keystore.properties "$RUNNER_TEMP/networktact-release.p12"
       # When a step failed, timed out or the job was cancelled (a job time-out is a cancellation, not a failure: run
       # 48 skipped this step): what the machine and the Gradle daemons were doing, to tell a daemon short of memory
       # (garbage collection taking the whole time) from one waiting on the network (open connections, a thread
