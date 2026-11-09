@@ -35,7 +35,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.jetbrains.compose.resources.stringResource
 import org.meshtastic.core.model.identity.NameBroadcastCheck
 import org.meshtastic.core.model.identity.NameBroadcastRefusal
@@ -60,11 +59,10 @@ import org.meshtastic.core.ui.theme.AppTheme
 /**
  * "Diffuser mon nom": a button that broadcasts my radio's name once, after a confirmation that warns about air time,
  * then waits 30 s; refused while the radio is not connected. Also says what the automatic broadcast after a name change
- * came to.
+ * came to. [onBroadcast] is called only once the user has confirmed.
  */
 @Composable
-fun NameBroadcastCard(viewModel: NameBroadcastViewModel, modifier: Modifier = Modifier) {
-    val state by viewModel.uiState.collectAsStateWithLifecycle()
+fun NameBroadcastCard(state: NameBroadcastUiState, onBroadcast: () -> Unit, modifier: Modifier = Modifier) {
     var confirming by remember { mutableStateOf<NameBroadcastCheck.Ready?>(null) }
     NameBroadcastContent(
         state = state,
@@ -76,7 +74,7 @@ fun NameBroadcastCard(viewModel: NameBroadcastViewModel, modifier: Modifier = Mo
             ready = ready,
             onConfirm = {
                 confirming = null
-                viewModel.broadcast()
+                onBroadcast()
             },
             onDismiss = { confirming = null },
         )

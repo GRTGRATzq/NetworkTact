@@ -98,6 +98,7 @@ fun UserConfigScreen(
 ) {
     val state by viewModel.radioConfigState.collectAsStateWithLifecycle()
     val destNode by viewModel.destNode.collectAsStateWithLifecycle()
+    val nameBroadcast by nameBroadcastViewModel.uiState.collectAsStateWithLifecycle()
     val userConfig = state.userConfig
     val formState = rememberConfigState(initialValue = userConfig)
     val firmwareVersion = state.metadata?.firmware_version
@@ -216,7 +217,9 @@ fun UserConfigScreen(
                 )
             }
         }
-        if (state.isLocal) item { NameBroadcastCard(viewModel = nameBroadcastViewModel) }
+        if (state.isLocal) {
+            item { NameBroadcastCard(state = nameBroadcast, onBroadcast = nameBroadcastViewModel::broadcast) }
+        }
     }
 }
 

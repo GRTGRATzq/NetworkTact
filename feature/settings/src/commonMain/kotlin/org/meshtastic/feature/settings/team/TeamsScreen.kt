@@ -68,6 +68,7 @@ fun TeamsScreen(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val sendResult by viewModel.sendResult.collectAsStateWithLifecycle()
     val broadcastResult by viewModel.broadcastResult.collectAsStateWithLifecycle()
+    val nameBroadcast by nameBroadcastViewModel.uiState.collectAsStateWithLifecycle()
     // The team the user picked (null for "no team") with its name change, until the change is confirmed or dropped.
     var proposal by remember { mutableStateOf<TeamProposal?>(null) }
 
@@ -101,7 +102,9 @@ fun TeamsScreen(
                 viewModel.broadcast(roster, channel)
             },
             modifier = Modifier.padding(paddingValues),
-            nameBroadcast = { NameBroadcastCard(viewModel = nameBroadcastViewModel) },
+            nameBroadcast = {
+                NameBroadcastCard(state = nameBroadcast, onBroadcast = nameBroadcastViewModel::broadcast)
+            },
         )
     }
 
