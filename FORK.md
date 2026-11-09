@@ -1,7 +1,7 @@
 # NetworkTact
 
 NetworkTact est un fork de [Meshtastic-Android](https://github.com/meshtastic/Meshtastic-Android),
-modifié à partir du 26 septembre 2026 (dernière mise à jour de ce fichier : 9 novembre 2026, branche `fix/organigramme-saisie`).
+modifié à partir du 26 septembre 2026 (dernière mise à jour de ce fichier : 9 novembre 2026, branche `fix/carte-attribution`).
 
 - **Licence** : GPL-3.0-or-later (voir le fichier `LICENSE`, inchangé).
 - **Origine** : code de Meshtastic-Android, © Meshtastic LLC. Les mentions de copyright de
@@ -812,6 +812,28 @@ du Réseau, ou bouton « Diagnostic » sous un envoi en échec. Le diagnostic n'
   (propositions, filtrage). Lint (spotless, detekt) et tests de `core:model`, `feature:node` et `core:demo` passés
   en local.
 
+### 27. Crédit d'une carte importée (`fix/carte-attribution`)
+
+- **Défaut relevé** (essai du 8 novembre 2026, D6) : sur une carte `.pmtiles` Protomaps importée, le bouton ⓘ affichait
+  « © OpenStreetMap » au lieu de « © contributeurs OpenStreetMap · Protomaps ».
+- **Cause** : le style de la carte importée déclarait déjà le bon crédit (`offlineMapStyle`, source `protomaps`), mais
+  la bibliothèque de carte (maplibre-compose 0.18.0, `MlnFfiStyleBinding.sourceDefinition`) prend d'abord l'attribution
+  que le moteur lit dans le fichier lui-même, et ne retombe sur celle du style que si le fichier n'en déclare aucune.
+  Un fichier dont les métadonnées disent seulement « © OpenStreetMap » l'emporte donc sur le style. Vérifié dans le
+  code source de la bibliothèque, pas sur un téléphone.
+- **Correction** : `Basemap.LocalVector` porte le crédit de l'application (`attribution`, le texte
+  `map_attribution_osm_protomaps` : « © OpenStreetMap contributors · Protomaps » en anglais, « © contributeurs
+  OpenStreetMap · Protomaps » en français, déjà traduits). `meshMapOrnaments(archiveCredit)` garde le logo et le
+  bouton ⓘ de la bibliothèque, mais en remplace le contenu déplié (`ExpandingAttributionButton.expandedContent`) par
+  ce crédit seul (`shownAttributions`), quelles que soient les métadonnées du fichier. Les autres cartes (fonds en
+  ligne, cartes d'un autre format) gardent les crédits que leur style déclare. Le crédit reste affiché, comme l'exigent
+  les licences ; il est seulement celui de l'application.
+- **Mode démo** : sans effet, la carte de démo n'a pas de fichier importé.
+- **Textes** : aucun nouveau.
+- **Tests** : `MapOrnamentsTest` (crédit imposé avec des métadonnées « © OpenStreetMap », vides ou en HTML ; crédits du
+  style conservés sans crédit imposé ; `LocalVector` porte son crédit). Lint (spotless, detekt) et tests de
+  `feature:map-maplibre` passés en local ; `OfflineMapBasemaps` (variante fdroid) n'est compilée que par la CI.
+
 ## État d'avancement au 9 novembre 2026
 
 - **Branches** : les sections 1 à 20 sont chacune sur une branche `feat/…`, empilées les unes
@@ -821,7 +843,7 @@ du Réseau, ou bouton « Diagnostic » sous un envoi en échec. Le diagnostic n'
   `PREPARER-LES-RADIOS.md` et ce fichier. La branche `fix/diffusion-nom` (section 21), partie de
   `docs/essais-2026-11-08`, contient tout jusqu'à la section 21. La branche `fix/demo-unique` (section 22), partie de
   `fix/diffusion-nom`, puis `fix/fait-observe` (section 23), partie de `fix/demo-unique`, puis `fix/textes-fr` (section 24), partie de
-  `fix/fait-observe`, puis `fix/diag-lora-attendu` (section 25), puis `fix/organigramme-saisie` (section 26), la dernière, qui contient
+  `fix/fait-observe`, puis `fix/diag-lora-attendu` (section 25), puis `fix/organigramme-saisie` (section 26), puis `fix/carte-attribution` (section 27), la dernière, qui contient
   tout. Rien n'est fusionné dans `main`,
   qui ne porte que l'identité du fork et le workflow `fork-apk`. Aucune pull request n'est ouverte,
   ni vers `main` ni vers `meshtastic/Meshtastic-Android`.
@@ -843,7 +865,7 @@ du Réseau, ou bouton « Diagnostic » sous un envoi en échec. Le diagnostic n'
   avec une vraie radio, le traceroute de « Tester la liaison », les bandeaux de diagnostic,
   l'affichage de l'écran de bienvenue sur de petits écrans, et la diffusion du nom (section 21) entre
   deux radios, la disparition de l'ancien « Mode Démo » de la liste des appareils (section 22), et le
-  formulaire « Fait observé » (taille, veille, clavier, section 23) l'écart LoRa du diagnostic (section 25), et la saisie de l'organigramme (section 26).
+  formulaire « Fait observé » (taille, veille, clavier, section 23) l'écart LoRa du diagnostic (section 25), la saisie de l'organigramme (section 26), et le crédit d'une carte importée (section 27).
   La liste des essais est dans
   `TESTS-A-FAIRE.md`.
 - **Non couvert par la CI** : la variante google, `core:ui` (dont le bandeau de diagnostic),

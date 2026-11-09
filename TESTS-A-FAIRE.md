@@ -1,7 +1,7 @@
 # NetworkTact : essais à faire sur téléphone
 
 Dernière mise à jour : 9 novembre 2026. APK : artefact `apk-fdroid-debug` du dernier run vert de
-`fork-apk` sur la branche `fix/organigramme-saisie` (qui contient tout). Rien de ce qui suit n'a encore
+`fork-apk` sur la branche `fix/carte-attribution` (qui contient tout). Rien de ce qui suit n'a encore
 été essayé sur un téléphone, sauf le défaut corrigé au §10 ; la CI ne prouve que la compilation et
 les tests unitaires.
 
@@ -169,6 +169,16 @@ En mode PC, Réseau → organigramme → Ajouter un membre, clavier ouvert.
 - [ ] Ajouter un membre déjà présent (même casse différente) : alerte en haut de la boîte.
 - [ ] Modifier un membre existant : pas de liste de radios, taille contrôlée de la même façon.
 - [ ] Mode démo : les propositions sont les radios fictives ; rien n'est gardé à la sortie.
+
+## 15. Crédit d'une carte importée (§27), défaut D6 du 8 novembre
+
+Variante fdroid, avec une carte `.pmtiles` Protomaps importée (voir §5 et `CARTE-HORS-LIGNE.md`).
+
+- [ ] Choisir la carte importée comme fond, toucher le bouton ⓘ : « © contributeurs OpenStreetMap · Protomaps »
+      (téléphone en français), « © OpenStreetMap contributors · Protomaps » (téléphone en anglais), même si le
+      fichier ne déclare que « © OpenStreetMap ». Le logo MapLibre reste affiché à gauche.
+- [ ] Un fond en ligne (OpenFreeMap, etc.) garde son propre crédit.
+- [ ] Un fichier `.mbtiles` importé garde le crédit de ses métadonnées, ou celui d'OpenStreetMap à défaut.
 
 ## Avant fusion dans `main`
 - [ ] Les runs 70 et 71 ont été annulés par une poussée plus récente (rien à corriger).
