@@ -1,7 +1,7 @@
 # NetworkTact
 
 NetworkTact est un fork de [Meshtastic-Android](https://github.com/meshtastic/Meshtastic-Android),
-modifié à partir du 26 septembre 2026 (dernière mise à jour de ce fichier : 9 novembre 2026, branche `fix/demo-unique`).
+modifié à partir du 26 septembre 2026 (dernière mise à jour de ce fichier : 9 novembre 2026, branche `fix/fait-observe`).
 
 - **Licence** : GPL-3.0-or-later (voir le fichier `LICENSE`, inchangé).
 - **Origine** : code de Meshtastic-Android, © Meshtastic LLC. Les mentions de copyright de
@@ -718,6 +718,38 @@ du Réseau, ou bouton « Diagnostic » sous un envoi en échec. Le diagnostic n'
   quand Gradle ne peut pas démarrer pour une raison d'environnement (JDK ou dépôts inaccessibles) ; une vraie
   violation detekt bloque toujours.
 
+### 23. Formulaire « Fait observé » : taille, veille, clavier (`fix/fait-observe`)
+
+- **Défauts relevés** (essai du 8 novembre 2026) : D3, une description très longue partait en
+  entier au lieu d'afficher la taille et de griser le bouton au-delà de 200 octets ; D4, une
+  heure pas encore atteinte (23h50 saisi vers 18 h) n'était pas marquée « (veille) » ; D5, le
+  clavier de la description ne se fermait qu'en touchant le champ des coordonnées.
+- **Constat avant correction** : la règle (`observedFactDraft`, `ObservedTime.of`) était déjà
+  juste. Les tests ajoutés à 18 h (« 23h50 », « 23:50 », « 2350 », « 23 50 » donnent
+  `23:50 (veille)` ; 17h59 et 18:00 restent du jour ; 18:01 passe à la veille) et à la frontière
+  de taille (200 octets acceptés, 201 refusés, rien n'est coupé) passent sans changement de la
+  règle. Les défauts étaient donc dans l'affichage, et non reproduits sur le code seul : seul
+  l'essai sur téléphone confirmera. Ce qui a été changé :
+  - **Taille** : l'indication « Trop long : N/200 octets. Raccourcir la description. » est
+    maintenant sous le champ de description (qui devient rouge), et non plus en bas du
+    formulaire défilant, hors de vue avec le clavier ouvert. Elle s'affiche aussi avant que le
+    lieu soit complet : tant que le lieu ou l'heure ne se lit pas, la taille est estimée avec un
+    lieu MGRS typique (`ObservedFactDraft.sizeIsEstimate`). Le bouton « Insérer » reste grisé
+    au-delà de 200 octets ; rien n'est jamais raccourci.
+  - **Veille** : règle inchangée, testée sous toutes les formes de saisie. Le message sous le
+    champ d'heure et le rapport affiché la disent.
+  - **Clavier** : la description et l'heure ont l'action « Terminé » (`ImeAction.Done`), qui
+    ferme le clavier. Le rapport tient sur une ligne (les blancs sont réduits), donc le retour à
+    la ligne n'est plus proposé.
+- **Mode démo** : le formulaire ne touche pas à la radio (il remplit seulement la zone de saisie) ;
+  il se comporte pareil en démo, rien n'est envoyé.
+- **Textes** : aucun texte nouveau, les textes existants `coords_fact_*` (anglais et français)
+  suffisent. Le fichier français est protégé en lecture dans ce dépôt, donc non modifié.
+- **Code** : `ObservedFactDraft` (`tooLong`, `sizeIsEstimate`), `ObservedFactDialog`
+  (`DescriptionField`). Tests JVM : `ObservedFactDraftTest` (14 tests). Vérifié en local : spotless,
+  detekt, tests JVM de `feature:messaging`. La variante Android n'a pas été compilée en local (pas de
+  SDK Android sur ce poste) : la CI le fait.
+
 ## État d'avancement au 9 novembre 2026
 
 - **Branches** : les sections 1 à 20 sont chacune sur une branche `feat/…`, empilées les unes
@@ -726,7 +758,7 @@ du Réseau, ou bouton « Diagnostic » sous un envoi en échec. Le diagnostic n'
   documentation : `TESTS-A-FAIRE.md`, `HISTORIQUE.md`, `FLASHER-LA-RADIO.md`,
   `PREPARER-LES-RADIOS.md` et ce fichier. La branche `fix/diffusion-nom` (section 21), partie de
   `docs/essais-2026-11-08`, contient tout jusqu'à la section 21. La branche `fix/demo-unique` (section 22), partie de
-  `fix/diffusion-nom`, est la dernière et contient tout. Rien n'est fusionné dans `main`,
+  `fix/diffusion-nom`, puis `fix/fait-observe` (section 23), partie de `fix/demo-unique`, la dernière, qui contient tout. Rien n'est fusionné dans `main`,
   qui ne porte que l'identité du fork et le workflow `fork-apk`. Aucune pull request n'est ouverte,
   ni vers `main` ni vers `meshtastic/Meshtastic-Android`.
 - **CI** : `fork-apk` est vert sur `feat/accueil-insignes` (run 72, 23 min 38 s). Les runs 70 et 71
@@ -744,7 +776,8 @@ du Réseau, ou bouton « Diagnostic » sous un envoi en échec. Le diagnostic n'
   d'organigramme à la caméra, l'import d'un `.pmtiles` réel, le recalage et la diffusion de position
   avec une vraie radio, le traceroute de « Tester la liaison », les bandeaux de diagnostic,
   l'affichage de l'écran de bienvenue sur de petits écrans, et la diffusion du nom (section 21) entre
-  deux radios, et la disparition de l'ancien « Mode Démo » de la liste des appareils (section 22).
+  deux radios, la disparition de l'ancien « Mode Démo » de la liste des appareils (section 22), et le
+  formulaire « Fait observé » (taille, veille, clavier, section 23).
   La liste des essais est dans
   `TESTS-A-FAIRE.md`.
 - **Non couvert par la CI** : la variante google, `core:ui` (dont le bandeau de diagnostic),

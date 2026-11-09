@@ -1,7 +1,7 @@
 # NetworkTact : essais à faire sur téléphone
 
 Dernière mise à jour : 9 novembre 2026. APK : artefact `apk-fdroid-debug` du dernier run vert de
-`fork-apk` sur la branche `fix/demo-unique` (qui contient tout). Rien de ce qui suit n'a encore
+`fork-apk` sur la branche `fix/fait-observe` (qui contient tout). Rien de ce qui suit n'a encore
 été essayé sur un téléphone, sauf le défaut corrigé au §10 ; la CI ne prouve que la compilation et
 les tests unitaires.
 
@@ -128,6 +128,19 @@ voient déjà. Sur le téléphone de OA, ne jamais utiliser « Infos utilisateur
 - [ ] Après mise à jour par-dessus une version où « Mode Démo » avait été choisi : la vraie radio
       est de nouveau proposée et s'y reconnecte, sans repasser par la fausse.
 - [ ] Réglages → Mode démo (celui de NetworkTact) fonctionne toujours : bandeau et bouton Quitter.
+
+## 12. Formulaire « Fait observé » (§23), défauts D3, D4 et D5 du 8 novembre
+
+À faire sur le téléphone, clavier ouvert (c'est là que les défauts sont apparus).
+
+- [ ] Description très longue (coller 300 caractères) avec un lieu valide : le champ devient rouge et
+      « Trop long : N/200 octets » apparaît **juste sous le champ**, sans défiler ; « Insérer dans le
+      message » est grisé ; rien n'est coupé. Raccourcir : tout redevient normal à 200 octets.
+- [ ] Même description avant d'avoir saisi le lieu : la taille s'affiche déjà.
+- [ ] Heure pas encore atteinte (saisir `23h50` ou `2350` vers 18 h) : « (veille) » sous le champ
+      d'heure et `23:50 (veille)` dans le rapport. Heure déjà passée : pas de « (veille) ».
+- [ ] Clavier de la description : la touche d'action est « Terminé » et ferme le clavier sans
+      toucher un autre champ. Idem pour le champ d'heure. Pas de retour à la ligne ajouté.
 
 ## Avant fusion dans `main`
 - [ ] Les runs 70 et 71 ont été annulés par une poussée plus récente (rien à corriger).
