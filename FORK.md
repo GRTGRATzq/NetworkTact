@@ -1,7 +1,7 @@
 # NetworkTact
 
 NetworkTact est un fork de [Meshtastic-Android](https://github.com/meshtastic/Meshtastic-Android),
-modifié à partir du 26 septembre 2026 (dernière mise à jour de ce fichier : 9 novembre 2026, branche `fix/fait-observe`).
+modifié à partir du 26 septembre 2026 (dernière mise à jour de ce fichier : 9 novembre 2026, branche `fix/textes-fr`).
 
 - **Licence** : GPL-3.0-or-later (voir le fichier `LICENSE`, inchangé).
 - **Origine** : code de Meshtastic-Android, © Meshtastic LLC. Les mentions de copyright de
@@ -750,6 +750,19 @@ du Réseau, ou bouton « Diagnostic » sous un envoi en échec. Le diagnostic n'
   detekt, tests JVM de `feature:messaging`. La variante Android n'a pas été compilée en local (pas de
   SDK Android sur ce poste) : la CI le fait.
 
+### 24. Textes français gérés par le fork, actions Node.js 24 (`fix/textes-fr`)
+
+- **Textes français** : les traductions françaises (`values-fr/strings.xml`) sont gérées par le fork, plus par
+  Crowdin. `.claude/settings.json` n'interdit donc plus leur lecture ni leur modification aux sessions Claude
+  Code ; l'interdiction reste pour les autres langues, désormais écrite langue par langue (une langue ajoutée
+  plus tard doit y être ajoutée). Les textes ajoutés par les sections 22 et 23 : aucun. Vérifié par script : les
+  380 textes ajoutés par le fork à `values/strings.xml` ont tous un équivalent français ; les 17 identiques à
+  l'anglais sont des mots communs aux deux langues (Description, Info, Urgent, HDOP, Traceroute…).
+- **Actions de `fork-apk`** : `actions/checkout` v4 → v5, `actions/setup-java` v4 → v5,
+  `gradle/actions/setup-gradle` v4 → v5, `actions/upload-artifact` v4 → v6. Chaque version exécute Node.js 24
+  (`runs.using: node24` dans son `action.yml`), ce qui supprime l'avertissement « Node.js 20 is deprecated ».
+  Aucun paramètre du workflow n'a changé. `upload-artifact` v5 aurait gardé Node.js 20, d'où v6.
+
 ## État d'avancement au 9 novembre 2026
 
 - **Branches** : les sections 1 à 20 sont chacune sur une branche `feat/…`, empilées les unes
@@ -758,7 +771,8 @@ du Réseau, ou bouton « Diagnostic » sous un envoi en échec. Le diagnostic n'
   documentation : `TESTS-A-FAIRE.md`, `HISTORIQUE.md`, `FLASHER-LA-RADIO.md`,
   `PREPARER-LES-RADIOS.md` et ce fichier. La branche `fix/diffusion-nom` (section 21), partie de
   `docs/essais-2026-11-08`, contient tout jusqu'à la section 21. La branche `fix/demo-unique` (section 22), partie de
-  `fix/diffusion-nom`, puis `fix/fait-observe` (section 23), partie de `fix/demo-unique`, la dernière, qui contient tout. Rien n'est fusionné dans `main`,
+  `fix/diffusion-nom`, puis `fix/fait-observe` (section 23), partie de `fix/demo-unique`, puis `fix/textes-fr` (section 24), partie de
+  `fix/fait-observe`, la dernière, qui contient tout. Rien n'est fusionné dans `main`,
   qui ne porte que l'identité du fork et le workflow `fork-apk`. Aucune pull request n'est ouverte,
   ni vers `main` ni vers `meshtastic/Meshtastic-Android`.
 - **CI** : `fork-apk` est vert sur `feat/accueil-insignes` (run 72, 23 min 38 s). Les runs 70 et 71
@@ -768,7 +782,9 @@ du Réseau, ou bouton « Diagnostic » sous un envoi en échec. Le diagnostic n'
   `docs/essais-2026-11-08` (lancé à la main, même code que le run 72) ; runs 74 à 76 rouges sur
   `fix/diffusion-nom`, tous au lint (formatage ktfmt d'un `when` et d'un commentaire, puis detekt
   `ViewModelForwarding`), chacun corrigé par un commit ; run 77 vert (lint, compilation, tests dont
-  `NameBroadcastTest` et `NameBroadcasterTest`, APK), 18 min. Run 79 vert sur `fix/demo-unique` (section 22). Aucune compilation locale n'a été
+  `NameBroadcastTest` et `NameBroadcasterTest`, APK), 18 min. Run 79 vert sur `fix/demo-unique` (section 22), run 80 vert sur `fix/fait-observe` (section 23).
+  Le lint (spotless, detekt) tourne en local depuis le 9 novembre : accès réseau ouvert et miroir Maven Central
+  en script d'initialisation Gradle hors du dépôt. Aucune compilation locale n'a été
   possible pour la section 21 (pas d'accès aux dépôts Maven) : seule la CI l'a vérifiée.
 - **Vérifié** : lint (spotless, detekt), compilation fdroid debug, tests Android et JVM des modules
   listés dans chaque section, contrastes des couleurs ajoutées.
