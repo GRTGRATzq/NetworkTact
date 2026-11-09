@@ -140,6 +140,7 @@ fun DiagnosticContent(
         ExpectedLoraCard(
             expected = state.expected,
             localLora = state.localLora,
+            lora = state.diagnostic.lora,
             commandPostMode = state.commandPostMode,
             onExpectedChange = onExpectedChange,
         )

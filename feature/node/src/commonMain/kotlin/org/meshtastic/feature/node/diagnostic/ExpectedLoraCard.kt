@@ -37,11 +37,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.stringResource
+import org.meshtastic.core.model.diagnostic.LoraCheck
 import org.meshtastic.core.model.diagnostic.LoraSetting
 import org.meshtastic.core.resources.Res
 import org.meshtastic.core.resources.cancel
 import org.meshtastic.core.resources.diag_expected_clear
 import org.meshtastic.core.resources.diag_expected_edit
+import org.meshtastic.core.resources.diag_expected_gap
+import org.meshtastic.core.resources.diag_expected_matches
 import org.meshtastic.core.resources.diag_expected_none
 import org.meshtastic.core.resources.diag_expected_pc_only
 import org.meshtastic.core.resources.diag_expected_preset
@@ -53,12 +56,14 @@ import org.meshtastic.core.resources.save
 
 /**
  * The expected LoRa setting: shown to everyone, changed in command post mode only. It is kept on this phone and never
- * sent; the diagnostic compares the radio's setting with it.
+ * sent; the diagnostic compares the radio's setting with it. The gap with the radio's setting is shown here too, right
+ * under the setting being edited: the facts card that also states it is at the top of a long screen, out of sight.
  */
 @Composable
 internal fun ExpectedLoraCard(
     expected: LoraSetting?,
     localLora: LoraSetting?,
+    lora: LoraCheck,
     commandPostMode: Boolean,
     onExpectedChange: (LoraSetting?) -> Unit,
 ) {
@@ -68,6 +73,7 @@ internal fun ExpectedLoraCard(
             text = expected?.let { loraSettingText(it) } ?: stringResource(Res.string.diag_expected_none),
             style = MaterialTheme.typography.bodyLarge,
         )
+        LoraGap(lora)
         Text(
             text = stringResource(Res.string.diag_expected_summary),
             style = MaterialTheme.typography.bodySmall,
@@ -103,6 +109,22 @@ internal fun ExpectedLoraCard(
             },
             onDismiss = { editing = false },
         )
+    }
+}
+
+/** The radio's setting against the expected one: a pill when they differ, a plain line when they match. */
+@Composable
+private fun LoraGap(lora: LoraCheck) {
+    when (lora) {
+        is LoraCheck.Different ->
+            FactLine(stringResource(Res.string.diag_expected_gap, loraSettingText(lora.local)), alert = true)
+
+        is LoraCheck.Same ->
+            Text(text = stringResource(Res.string.diag_expected_matches), style = MaterialTheme.typography.bodyMedium)
+
+        is LoraCheck.NoExpected,
+        LoraCheck.NotReceived,
+        -> Unit
     }
 }
 
