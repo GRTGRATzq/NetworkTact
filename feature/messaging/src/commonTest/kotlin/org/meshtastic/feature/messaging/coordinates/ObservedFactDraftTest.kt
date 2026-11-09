@@ -97,4 +97,71 @@ class ObservedFactDraftTest {
         listOf("14:05", "14h05", "14 05", "1405", " 14:05 ").forEach { assertEquals(14 to 5, parseClock(it), it) }
         assertEquals(9 to 5, parseClock("9:05"))
     }
+
+    // 18:00 UTC on 6 October 2026, the hour of the field test.
+    private val evening = 1_791_309_600L
+
+    private fun draftAt(
+        nowEpochSeconds: Long,
+        description: String,
+        time: String,
+        place: String = "31U DQ 48251 11932",
+    ) = observedFactDraft(
+        CoordinateParser.parse(place, CoordinateFormat.MGRS),
+        CoordinateFormat.MGRS,
+        description,
+        time,
+        nowEpochSeconds,
+        TimeZone.UTC,
+    )
+
+    @Test
+    fun aTimeNotReachedYetIsTheDayBeforeInEveryUsualForm() {
+        listOf("23h50", "23:50", "2350", "23 50").forEach { time ->
+            val draft = draftAt(evening, "fumée", time)
+            assertTrue(checkNotNull(draft.observedAt).previousDay, time)
+            assertTrue(checkNotNull(draft.message).contains("· 23:50 (veille) ·"), time)
+        }
+    }
+
+    @Test
+    fun aTimeAlreadyReachedIsToday() {
+        assertFalse(checkNotNull(draftAt(evening, "fumée", "17h59").observedAt).previousDay)
+        assertFalse(checkNotNull(draftAt(evening, "fumée", "18:00").observedAt).previousDay)
+        assertTrue(checkNotNull(draftAt(evening, "fumée", "18:01").observedAt).previousDay)
+    }
+
+    @Test
+    fun aVeryLongDescriptionShowsItsSizeAndCannotBeInserted() {
+        val draft = draftAt(evening, "observation ".repeat(40), "17:00")
+        assertTrue(draft.bytes > 400, "size ${draft.bytes}")
+        assertFalse(draft.canInsert)
+    }
+
+    @Test
+    fun theSizeIsKnownBeforeThePlaceIsComplete() {
+        val draft = draftAt(evening, "observation ".repeat(40), "17:00", place = "")
+        assertNull(draft.message)
+        assertTrue(draft.bytes > 200, "size ${draft.bytes}")
+        assertTrue(draft.sizeIsEstimate)
+        assertFalse(draft.canInsert)
+    }
+
+    @Test
+    fun theSizeIsExactOnceTheReportIsBuilt() {
+        val draft = draftAt(evening, "fumée", "17:00")
+        assertFalse(draft.sizeIsEstimate)
+        assertEquals(checkNotNull(draft.message).encodeToByteArray().size, draft.bytes)
+    }
+
+    @Test
+    fun exactly200BytesIsAcceptedAndOneMoreIsNot() {
+        val base = draftAt(evening, "x", "17:00").bytes // description of 1 byte
+        val fits = draftAt(evening, "x".repeat(1 + 200 - base), "17:00")
+        assertEquals(200, fits.bytes)
+        assertTrue(fits.canInsert)
+        val over = draftAt(evening, "x".repeat(2 + 200 - base), "17:00")
+        assertEquals(201, over.bytes)
+        assertFalse(over.canInsert)
+    }
 }
