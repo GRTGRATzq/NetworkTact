@@ -1330,7 +1330,22 @@
     <string name="mute_status_muted_for_days">Muted for %1$d days, %2$s hours</string>
     <string name="mute_status_muted_for_hours">Muted for %1$s hours</string>
     <string name="mute_status_unmuted">Not muted</string>
+    <!-- NAME -->
     <string name="name">Name</string>
+    <string name="name_broadcast_button">Broadcast my name</string>
+    <string name="name_broadcast_confirm">Broadcast</string>
+    <string name="name_broadcast_confirm_text">One message announcing “%1$s” (%2$s) goes out on the primary channel to every station. Each broadcast uses the airtime of the channel shared by the whole network: only when needed.</string>
+    <string name="name_broadcast_confirm_title">Broadcast my name?</string>
+    <string name="name_broadcast_failed">Failed: the name was not handed to the radio.</string>
+    <string name="name_broadcast_hint">Sends my radio’s name once to every station, so that they show it without waiting for the radio’s own announcement, which the firmware may hold back for a long time after a change.</string>
+    <string name="name_broadcast_not_applied">My radio did not report the name “%1$s” within 3 minutes: nothing was broadcast. Use “Broadcast my name” once the new name shows.</string>
+    <string name="name_broadcast_refused_no_node">My radio’s name is not known yet. Wait for the connection to finish.</string>
+    <string name="name_broadcast_refused_not_connected">No radio connected: broadcast impossible.</string>
+    <string name="name_broadcast_sent">Name “%1$s” broadcast to every station.</string>
+    <string name="name_broadcast_simulated">Demo mode: broadcast of “%1$s” simulated, nothing is sent.</string>
+    <string name="name_broadcast_title">Broadcast my name</string>
+    <string name="name_broadcast_wait">Broadcast again in %1$s s</string>
+    <string name="name_broadcast_waiting">Name “%1$s” sent to my radio. It will be broadcast to every station once the radio reports it (the radio restarts first).</string>
     <string name="name_cannot_be_empty">Name cannot be empty.</string>
     <string name="navigate_back">Navigate Back</string>
     <string name="navigate_into_label">Navigate Into</string>

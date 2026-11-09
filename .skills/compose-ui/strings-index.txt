@@ -1294,7 +1294,22 @@ mute_status_always
 mute_status_muted_for_days
 mute_status_muted_for_hours
 mute_status_unmuted
+### NAME ###
 name
+name_broadcast_button
+name_broadcast_confirm
+name_broadcast_confirm_text
+name_broadcast_confirm_title
+name_broadcast_failed
+name_broadcast_hint
+name_broadcast_not_applied
+name_broadcast_refused_no_node
+name_broadcast_refused_not_connected
+name_broadcast_sent
+name_broadcast_simulated
+name_broadcast_title
+name_broadcast_wait
+name_broadcast_waiting
 name_cannot_be_empty
 navigate_back
 navigate_into_label
