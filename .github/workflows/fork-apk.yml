@@ -18,16 +18,16 @@ jobs:
     # in the last step still ends well before the job's 40 minutes.
     timeout-minutes: 40
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           # Full history: spotless ratchetFrom("origin/main") diffs against main.
           fetch-depth: 0
           filter: 'blob:none'
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: "21"
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@v5
       # The runner has 4 CPUs and 16 GB. The repository's gradle.properties sizes the daemons for a workstation
       # (Gradle 8 GB, Kotlin 6 GB) and Gradle runs 4 workers, each test task forking 2 JVMs of 2 GB: far above 16 GB.
       # The runner then swaps and is shut down mid-tests with no test failing (runs 37 and 38, different last tests).
@@ -110,7 +110,7 @@ jobs:
           ./gradlew --stop
           pkill -f KotlinCompileDaemon || true
           ./gradlew :androidApp:assembleFdroidDebug -Dorg.gradle.unsafe.isolated-projects=false --no-configuration-cache --stacktrace
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: apk-fdroid-debug
           path: androidApp/build/outputs/apk/fdroid/debug/*.apk
