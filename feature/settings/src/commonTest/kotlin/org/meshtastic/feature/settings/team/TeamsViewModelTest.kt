@@ -262,4 +262,23 @@ class TeamsViewModelTest {
         assertNull(prefs.roster.value)
         assertEquals(BroadcastResult.Failed, viewModel.broadcastResult.value)
     }
+
+    @Test
+    fun the_owner_written_is_reported_for_the_name_broadcast() = runTest {
+        val written = mutableListOf<Pair<User, User>>()
+
+        viewModel.applyTeam("Alpha") { before, sent -> written += before to sent }
+
+        assertEquals(listOf(owner to owner.withLongName("ALPHA-1 [Alpha]")), written)
+    }
+
+    @Test
+    fun nothing_is_reported_for_the_name_broadcast_when_the_owner_was_not_sent() = runTest {
+        everySuspend { radioConfigUseCase.setOwner(any(), any(), any()) } calls { error("radio gone") }
+        val written = mutableListOf<Pair<User, User>>()
+
+        viewModel.applyTeam("Alpha") { before, sent -> written += before to sent }
+
+        assertTrue(written.isEmpty())
+    }
 }

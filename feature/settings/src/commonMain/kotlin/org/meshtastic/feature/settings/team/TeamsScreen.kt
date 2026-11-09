@@ -39,6 +39,7 @@ import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.viewmodel.koinViewModel
 import org.meshtastic.core.model.team.TeamNameChange
 import org.meshtastic.core.model.team.TeamRoster
 import org.meshtastic.core.model.team.TeamRosterRecord
@@ -54,9 +55,16 @@ import org.meshtastic.core.resources.teams_no_auth
 import org.meshtastic.core.resources.teams_title
 import org.meshtastic.core.ui.component.MainAppBar
 import org.meshtastic.core.ui.theme.AppTheme
+import org.meshtastic.feature.settings.identity.NameBroadcastCard
+import org.meshtastic.feature.settings.identity.NameBroadcastViewModel
 
 @Composable
-fun TeamsScreen(viewModel: TeamsViewModel, onBack: () -> Unit, modifier: Modifier = Modifier) {
+fun TeamsScreen(
+    viewModel: TeamsViewModel,
+    onBack: () -> Unit,
+    modifier: Modifier = Modifier,
+    nameBroadcastViewModel: NameBroadcastViewModel = koinViewModel(),
+) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val sendResult by viewModel.sendResult.collectAsStateWithLifecycle()
     val broadcastResult by viewModel.broadcastResult.collectAsStateWithLifecycle()
@@ -93,6 +101,7 @@ fun TeamsScreen(viewModel: TeamsViewModel, onBack: () -> Unit, modifier: Modifie
                 viewModel.broadcast(roster, channel)
             },
             modifier = Modifier.padding(paddingValues),
+            nameBroadcast = { NameBroadcastCard(viewModel = nameBroadcastViewModel) },
         )
     }
 
@@ -101,7 +110,8 @@ fun TeamsScreen(viewModel: TeamsViewModel, onBack: () -> Unit, modifier: Modifie
             currentName = state.myLongName.orEmpty(),
             change = current.change,
             onConfirm = {
-                viewModel.applyTeam(current.team)
+                // Once my radio reports the new name, it is broadcast to every station.
+                viewModel.applyTeam(current.team, onWritten = nameBroadcastViewModel::ownerWritten)
                 proposal = null
             },
             onDismiss = { proposal = null },
@@ -122,6 +132,7 @@ internal fun TeamsContent(
     broadcastResult: BroadcastResult?,
     onBroadcast: (TeamRoster, Int) -> Unit,
     modifier: Modifier = Modifier,
+    nameBroadcast: @Composable () -> Unit = {},
 ) {
     LazyColumn(
         modifier = modifier.fillMaxWidth(),
@@ -142,6 +153,7 @@ internal fun TeamsContent(
             item { TeamBroadcastCard(state = state, result = broadcastResult, onBroadcast = onBroadcast) }
         }
         item { MyTeamCard(state = state, sendResult = sendResult, onChooseTeam = onChooseTeam) }
+        item { nameBroadcast() }
         item { ManualEntryCard(onAdoptManual = onAdoptManual) }
         item {
             Text(

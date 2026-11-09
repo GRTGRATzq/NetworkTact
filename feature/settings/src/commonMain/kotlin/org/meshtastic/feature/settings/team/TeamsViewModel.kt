@@ -44,6 +44,7 @@ import org.meshtastic.core.repository.UiPrefs
 import org.meshtastic.core.repository.usecase.SendMessageUseCase
 import org.meshtastic.core.ui.viewmodel.stateInWhileSubscribed
 import org.meshtastic.proto.ChannelSet
+import org.meshtastic.proto.User
 
 data class TeamsUiState(
     val roster: TeamRosterRecord? = null,
@@ -132,15 +133,18 @@ class TeamsViewModel(
     /** The name change choosing [team] would make, or null when my radio cannot take it right now. */
     fun previewTeam(team: String?): TeamNameChange? = writableOwner()?.let { ownerWithTeam(it.second, team).second }
 
-    /** Sends [team] to my radio. Re-checks the connection first: nothing is sent while it is down. */
-    fun applyTeam(team: String?) {
+    /**
+     * Sends [team] to my radio. Re-checks the connection first: nothing is sent while it is down. Once the owner has
+     * been handed to the radio, [onWritten] gets the owner before and the owner sent.
+     */
+    fun applyTeam(team: String?, onWritten: (before: User, sent: User) -> Unit = { _, _ -> }) {
         val (myNum, owner) = writableOwner() ?: return
         val user = ownerWithTeam(owner, team).first
         _sendResult.value = null
         viewModelScope.launch {
-            _sendResult.value =
-                safeCatching { radioConfigUseCase.setOwner(myNum, user) }
-                    .fold(onSuccess = { TeamSendResult.SENT }, onFailure = { TeamSendResult.FAILED })
+            val result = safeCatching { radioConfigUseCase.setOwner(myNum, user) }
+            if (result.isSuccess) onWritten(owner, user)
+            _sendResult.value = if (result.isSuccess) TeamSendResult.SENT else TeamSendResult.FAILED
         }
     }
 
