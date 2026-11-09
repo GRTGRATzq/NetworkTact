@@ -1,7 +1,7 @@
 # NetworkTact
 
 NetworkTact est un fork de [Meshtastic-Android](https://github.com/meshtastic/Meshtastic-Android),
-modifié à partir du 26 septembre 2026 (dernière mise à jour de ce fichier : 9 novembre 2026, branche `fix/diag-lora-attendu`).
+modifié à partir du 26 septembre 2026 (dernière mise à jour de ce fichier : 9 novembre 2026, branche `fix/organigramme-saisie`).
 
 - **Licence** : GPL-3.0-or-later (voir le fichier `LICENSE`, inchangé).
 - **Origine** : code de Meshtastic-Android, © Meshtastic LLC. Les mentions de copyright de
@@ -787,6 +787,31 @@ du Réseau, ou bouton « Diagnostic » sous un envoi en échec. Le diagnostic n'
   `DiagnosticViewModelTest` (deux tests de bout en bout). Lint (spotless, detekt) et tests de `feature:node` et
   `core:demo` passés en local.
 
+### 26. Organigramme : taille de l'indicatif, radios connues (`fix/organigramme-saisie`)
+
+- **D7** (essai du 8 novembre 2026) : un indicatif de 40 caractères était accepté sans message. Le modèle
+  (`OrgChart.checkMember`) le refusait déjà au-delà de 39 octets (`MemberInput.CallsignTooLong`, testé), mais
+  le refus n'apparaissait qu'après avoir touché « OK », en bas d'une boîte de dialogue qui ne défilait pas : hors de
+  vue avec le clavier ouvert, on voyait seulement que rien ne se passait. Non reproduit sur le code seul.
+  Correction : la taille est contrôlée à la frappe, sous le champ. L'indicatif (comme la fonction, limite 24 octets)
+  devient rouge avec « Indicatif trop long : 40 octets, 39 au plus », le bouton « OK » est grisé tant que
+  l'indicatif est vide ou trop long, et l'alerte d'un refus à l'envoi (doublon, QR trop grand) est en haut de la
+  boîte, qui défile. Les octets comptés sont ceux de l'indicatif nettoyé, comme à l'enregistrement
+  (`OrgChart.callsignBytes`, `roleBytes`) : « é » × 20 fait 40 octets.
+- **A1** : à l'ajout d'un membre, la boîte propose « Radios connues » : l'indicatif (nom long sans suffixe d'équipe ni
+  « (MQTT) ») de chaque radio connue, une fois chacun, la plus récemment entendue d'abord, sans les membres déjà
+  présents (casse ignorée), sans les radios ignorées ni les noms qui dépasseraient 39 octets. Un indicatif tapé
+  filtre la liste ; toucher une proposition remplit le champ. **La saisie libre n'est pas gênée** : n'importe quel
+  indicatif se tape, y compris celui d'une radio éteinte, absente de la liste (par exemple PCR). Pas de liste à la
+  modification d'un membre. Code : `Callsign.suggestions` (`core:model`), `OrgChartUiState.suggestions`,
+  `KnownRadios` / `matchingSuggestions`.
+- **Mode démo** : les propositions viennent des nœuds fictifs (ceux de la démo) ; rien n'est écrit dans le vrai
+  organigramme (façade déjà en place, section 17).
+- **Textes** : `orgchart_known_radios`, en anglais et en français ; les messages d'erreur existants sont réutilisés.
+- **Tests** : `CallsignSuggestionsTest`, `OrgChartTest` (limite en octets, accents), `OrgChartStateTest`
+  (propositions, filtrage). Lint (spotless, detekt) et tests de `core:model`, `feature:node` et `core:demo` passés
+  en local.
+
 ## État d'avancement au 9 novembre 2026
 
 - **Branches** : les sections 1 à 20 sont chacune sur une branche `feat/…`, empilées les unes
@@ -796,7 +821,8 @@ du Réseau, ou bouton « Diagnostic » sous un envoi en échec. Le diagnostic n'
   `PREPARER-LES-RADIOS.md` et ce fichier. La branche `fix/diffusion-nom` (section 21), partie de
   `docs/essais-2026-11-08`, contient tout jusqu'à la section 21. La branche `fix/demo-unique` (section 22), partie de
   `fix/diffusion-nom`, puis `fix/fait-observe` (section 23), partie de `fix/demo-unique`, puis `fix/textes-fr` (section 24), partie de
-  `fix/fait-observe`, puis `fix/diag-lora-attendu` (section 25), la dernière, qui contient tout. Rien n'est fusionné dans `main`,
+  `fix/fait-observe`, puis `fix/diag-lora-attendu` (section 25), puis `fix/organigramme-saisie` (section 26), la dernière, qui contient
+  tout. Rien n'est fusionné dans `main`,
   qui ne porte que l'identité du fork et le workflow `fork-apk`. Aucune pull request n'est ouverte,
   ni vers `main` ni vers `meshtastic/Meshtastic-Android`.
 - **CI** : `fork-apk` est vert sur `feat/accueil-insignes` (run 72, 23 min 38 s). Les runs 70 et 71
@@ -817,7 +843,7 @@ du Réseau, ou bouton « Diagnostic » sous un envoi en échec. Le diagnostic n'
   avec une vraie radio, le traceroute de « Tester la liaison », les bandeaux de diagnostic,
   l'affichage de l'écran de bienvenue sur de petits écrans, et la diffusion du nom (section 21) entre
   deux radios, la disparition de l'ancien « Mode Démo » de la liste des appareils (section 22), et le
-  formulaire « Fait observé » (taille, veille, clavier, section 23) et l'écart LoRa du diagnostic (section 25).
+  formulaire « Fait observé » (taille, veille, clavier, section 23) l'écart LoRa du diagnostic (section 25), et la saisie de l'organigramme (section 26).
   La liste des essais est dans
   `TESTS-A-FAIRE.md`.
 - **Non couvert par la CI** : la variante google, `core:ui` (dont le bandeau de diagnostic),

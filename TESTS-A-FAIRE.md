@@ -1,7 +1,7 @@
 # NetworkTact : essais à faire sur téléphone
 
 Dernière mise à jour : 9 novembre 2026. APK : artefact `apk-fdroid-debug` du dernier run vert de
-`fork-apk` sur la branche `fix/diag-lora-attendu` (qui contient tout). Rien de ce qui suit n'a encore
+`fork-apk` sur la branche `fix/organigramme-saisie` (qui contient tout). Rien de ce qui suit n'a encore
 été essayé sur un téléphone, sauf le défaut corrigé au §10 ; la CI ne prouve que la compilation et
 les tests unitaires.
 
@@ -155,6 +155,20 @@ voient déjà. Sur le téléphone de OA, ne jamais utiliser « Infos utilisateur
 - [ ] Même essai avec une autre région : l'écart apparaît aussi.
 - [ ] Si la pastille manque encore : noter ce que dit la ligne « Réglages LoRa » de la carte « Constats »
       (« pas encore reçus de la radio » indiquerait que la configuration LoRa n'arrive pas).
+
+## 14. Organigramme : saisie (§26), défaut D7 et amélioration A1 du 8 novembre
+
+En mode PC, Réseau → organigramme → Ajouter un membre, clavier ouvert.
+
+- [ ] Taper un indicatif de 40 caractères : le champ devient rouge, « Indicatif trop long : 40 octets, 39 au plus »
+      s'affiche **sous le champ**, « OK » est grisé. En retirer un : 39 octets, tout redevient normal.
+- [ ] Même chose avec des accents (20 fois « é » = 40 octets) et avec une fonction de plus de 24 octets.
+- [ ] « Radios connues » : les radios vues, sans suffixe d'équipe, sans celles déjà dans l'organigramme ; en
+      toucher une remplit le champ. Taper « alp » ne garde que les indicatifs qui contiennent « alp ».
+- [ ] Saisie libre : taper un indicatif absent de la liste (PCR, radio éteinte) et valider : accepté.
+- [ ] Ajouter un membre déjà présent (même casse différente) : alerte en haut de la boîte.
+- [ ] Modifier un membre existant : pas de liste de radios, taille contrôlée de la même façon.
+- [ ] Mode démo : les propositions sont les radios fictives ; rien n'est gardé à la sortie.
 
 ## Avant fusion dans `main`
 - [ ] Les runs 70 et 71 ont été annulés par une poussée plus récente (rien à corriger).
