@@ -144,11 +144,18 @@ jobs:
           set -euo pipefail
           if [ -n "$NT_KEYSTORE_BASE64" ] && [ -n "$NT_KEYSTORE_PASSWORD" ] && [ -n "$NT_KEY_PASSWORD" ] && [ -n "$NT_KEY_ALIAS" ]; then
             keystore="$RUNNER_TEMP/networktact-release.p12"
-            printf '%s' "$NT_KEYSTORE_BASE64" | base64 --decode > "$keystore"
+            # --ignore-garbage: a secret pasted with line breaks, spaces or a carriage return still decodes.
+            printf '%s' "$NT_KEYSTORE_BASE64" | base64 --decode --ignore-garbage > "$keystore"
             chmod 600 "$keystore"
-            # Fails here, with a clear message, if the file or the password or the alias is wrong.
-            keytool -list -keystore "$keystore" -storetype PKCS12 -storepass:env NT_KEYSTORE_PASSWORD \
-              -alias "$NT_KEY_ALIAS" > /dev/null
+            # Not secret: the size, and the first two bytes (a PKCS12 file starts with 30 82, or 30 81 when small).
+            echo "Decoded key file: $(stat -c %s "$keystore") bytes, first bytes $(head -c 2 "$keystore" | od -An -tx1 | tr -d ' \n')"
+            # Stops here, with the reason, if the file, the password or the alias is wrong. keytool writes its errors
+            # on the standard output, so both streams are kept; GitHub masks the secret values in what is printed.
+            if ! listing=$(keytool -list -keystore "$keystore" -storetype PKCS12 -storepass:env NT_KEYSTORE_PASSWORD \
+              -alias "$NT_KEY_ALIAS" 2>&1); then
+              echo "::error::keytool cannot read the signing key: $(printf '%s' "$listing" | grep -v '^Picked up' | head -n 3 | tr '\n' ' ')"
+              exit 1
+            fi
             # .properties syntax: a backslash in a value has to be doubled.
             escape() { printf '%s' "$1" | sed 's/\\/\\\\/g'; }
             {

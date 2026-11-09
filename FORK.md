@@ -859,7 +859,9 @@ du Réseau, ou bouton « Diagnostic » sous un envoi en échec. Le diagnostic n'
 - **Durée** : un run vert dure environ 27 minutes avant cette tâche ; la construction de la release s'y ajoute, et la
   limite du job passe de 40 à 60 minutes (celle de l'étape : 30 minutes).
 - **Signature** : si les quatre secrets existent, l'étape décode la clé dans un fichier temporaire hors du dépôt
-  (`$RUNNER_TEMP`, droits 600), vérifie avec `keytool` que le mot de passe et l'alias sont bons (échec net sinon), écrit
+  (`$RUNNER_TEMP`, droits 600), vérifie avec `keytool` que le fichier, le mot de passe et l'alias sont bons (sinon l'étape s'arrête en affichant la
+  cause : « keystore password was incorrect », « Alias <…> does not exist », fichier illisible ; `keytool` écrit ses erreurs
+  sur la sortie standard, qu'une première version du script jetait : run 85 rouge sans message), écrit
   `keystore.properties` (ignoré par Git, relu par `androidApp/build.gradle.kts`), construit, puis supprime les deux
   fichiers à la fin du run. Aucun secret n'est affiché. Une étape de contrôle affiche la taille de l'APK, vérifie que le
   profil de démarrage est dedans et lance `apksigner verify --print-certs` (le certificat est public : à comparer avec
