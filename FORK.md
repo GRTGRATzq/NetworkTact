@@ -1,7 +1,7 @@
 # NetworkTact
 
 NetworkTact est un fork de [Meshtastic-Android](https://github.com/meshtastic/Meshtastic-Android),
-modifié à partir du 26 septembre 2026 (dernière mise à jour de ce fichier : 9 novembre 2026, branche `fix/carte-attribution`).
+modifié à partir du 26 septembre 2026 (dernière mise à jour de ce fichier : 9 novembre 2026, branche `feat/apk-release`).
 
 - **Licence** : GPL-3.0-or-later (voir le fichier `LICENSE`, inchangé).
 - **Origine** : code de Meshtastic-Android, © Meshtastic LLC. Les mentions de copyright de
@@ -849,6 +849,87 @@ du Réseau, ou bouton « Diagnostic » sous un envoi en échec. Le diagnostic n'
   `feature:map` et `feature:map-maplibre` passés en local ; `OfflineMapLibrary` et `OfflineMapBasemaps` (variante
   fdroid) ne sont compilés que par la CI.
 
+### 28. APK de release signé (`feat/apk-release`)
+
+- **Ce qui change** : `fork-apk` construit aussi `fdroidRelease` (R8, non débogable, profil de démarrage), en dernière
+  étape pour qu'un échec ne coûte ni l'APK de debug ni les résultats de tests, et publie l'artefact
+  `apk-fdroid-release`. L'APK de debug (`apk-fdroid-debug`, identifiant `….fdroid.debug`) reste construit comme avant ;
+  la release porte l'identifiant `APPLICATION_ID` de `config.properties`, sans suffixe : les deux s'installent côte à
+  côte.
+- **Durée** : un run vert dure environ 27 minutes avant cette tâche ; la construction de la release s'y ajoute, et la
+  limite du job passe de 40 à 60 minutes (celle de l'étape : 30 minutes).
+- **Signature** : si les quatre secrets existent, l'étape décode la clé dans un fichier temporaire hors du dépôt
+  (`$RUNNER_TEMP`, droits 600), vérifie avec `keytool` que le mot de passe et l'alias sont bons (échec net sinon), écrit
+  `keystore.properties` (ignoré par Git, relu par `androidApp/build.gradle.kts`), construit, puis supprime les deux
+  fichiers à la fin du run. Aucun secret n'est affiché. Une étape de contrôle affiche la taille de l'APK, vérifie que le
+  profil de démarrage est dedans et lance `apksigner verify --print-certs` (le certificat est public : à comparer avec
+  la clé du porteur). **Si un des secrets est vide** (un fork, par exemple), l'APK est construit **non signé** avec une
+  note dans le journal, sans faire échouer le run ; un APK non signé ne s'installe pas.
+- **R8** : les règles de la variante fdroid sont celles de toutes les variantes (`androidApp/proguard-rules.pro`,
+  `config/proguard/shared-rules.pro`, déjà éprouvées en `googleRelease`) plus les règles que chaque bibliothèque livre
+  avec elle. Le moteur de carte natif de la variante fdroid (maplibre-compose 0.18.0 et maplibre-native-ffi
+  0.202609.4, JNI via JavaCPP) en livre trois, lues dans les AAR : conservation du pont Vulkan, du paquet JavaCPP et du
+  vérificateur de certificats rustls. Le code propre à la variante (`androidApp/src/fdroid`) s'appuie sur Koin
+  Annotations (code généré, pas de réflexion). Aucune règle n'a donc été ajoutée. **Non vérifié** : la CI prouve que R8
+  passe (sans classe manquante) ; elle ne lance pas l'application. Seul l'essai de l'APK sur téléphone (carte,
+  import d'un `.pmtiles`, QR, Bluetooth) dira si R8 casse quelque chose à l'exécution (`TESTS-A-FAIRE.md` §16). En cas
+  de plantage, `androidApp/build/outputs/mapping/r8-merged-config.txt` (écrit par la construction) donne la
+  configuration complète.
+- **Profil de démarrage** : le profil existant (`androidApp/src/googleRelease/generated/baselineProfiles`, 45 997
+  lignes, produit par `:baselineprofile`, qui n'a que la variante google) peut servir à `fdroidRelease`, avec une
+  couverture partielle : environ 60 % des lignes (androidx, kotlin, code partagé `org.meshtastic`) existent aussi côté
+  fdroid ; Google Maps (7 %), Firebase (5 %) et Datadog (9 %) n'y sont pas et sont ignorés à l'installation. Le code
+  propre à fdroid (MapLibre) n'est pas couvert. `androidApp/build.gradle.kts` donne donc ce dossier au jeu de sources
+  `fdroidRelease` (`baselineProfiles.srcDir`). Pour un profil complet : ajouter la variante fdroid à
+  `:baselineprofile` et le générer sur un appareil ou un émulateur (Gradle Managed Device, avec accélération matérielle,
+  possible sur un exécuteur GitHub ; sinon sur un téléphone branché), puis committer le fichier produit. À décider
+  plus tard.
+- **`DEBUG_KEYSTORE_BASE64`** (secret d'une tâche abandonnée en octobre) : introuvable dans les fichiers du dépôt, dans
+  l'historique et dans les 19 branches locales et distantes ; aucun workflow ne le lit (les secrets de signature de
+  `release.yml` hérité de Meshtastic sont `KEYSTORE`, `KEYSTORE_FILENAME` et `KEYSTORE_PROPERTIES`). Les secrets du
+  dépôt ne peuvent pas être listés d'ici : c'est à confirmer dans Settings → Secrets, où il peut être supprimé sans
+  conséquence pour le code. Rien n'a été supprimé.
+
+#### Signature et passation
+
+- **Les quatre secrets du dépôt** (Settings → Secrets and variables → Actions) :
+
+  | Secret | Contenu |
+  |---|---|
+  | `NT_KEYSTORE_BASE64` | le fichier PKCS12 de la clé, encodé en base64 sur une seule ligne |
+  | `NT_KEYSTORE_PASSWORD` | le mot de passe du fichier |
+  | `NT_KEY_PASSWORD` | le mot de passe de la clé (le même, en général, avec PKCS12) |
+  | `NT_KEY_ALIAS` | l'alias de la clé : `networktact` |
+
+- **Les recréer dans un autre dépôt** :
+  1. Créer la clé, une seule fois, en saisissant le mot de passe quand `keytool` le demande (il est **ASCII
+     seulement** : un accent fait échouer PKCS12) :
+     ```bash
+     keytool -genkeypair -v -storetype PKCS12 -keystore networktact-release.p12 -alias networktact \
+       -keyalg RSA -keysize 4096 -validity 10000
+     ```
+  2. Encoder le fichier (macOS) : `base64 -i networktact-release.p12 | tr -d '\n' | pbcopy` ; Linux :
+     `base64 -w0 networktact-release.p12`.
+  3. Dans le dépôt, créer les quatre secrets du tableau (interface web, ou
+     `gh secret set NT_KEYSTORE_PASSWORD` qui demande la valeur sans l'écrire dans l'historique du terminal).
+  4. Lancer `fork-apk` (poussée vers `fix/**`, `feat/**` ou `docs/**`, ou lancement manuel) : l'étape « Check the
+     release APK » doit afficher `Verified using v2 scheme … true` et le certificat.
+- **Construction locale signée** : créer, à la racine du dépôt, `keystore.properties` (déjà dans `.gitignore`, ne jamais
+  le committer) :
+  ```properties
+  storeFile=/chemin/absolu/vers/networktact-release.p12
+  storePassword=<mot de passe du fichier>
+  keyAlias=networktact
+  keyPassword=<mot de passe de la clé>
+  ```
+  puis `./gradlew :androidApp:assembleFdroidRelease` ; l'APK est dans `androidApp/build/outputs/apk/fdroid/release/`.
+  Sans `keystore.properties`, la construction réussit mais l'APK est non signé (jamais signé avec la clé de debug,
+  qui est publique).
+- **Le fichier de la clé et son mot de passe sont gardés hors du dépôt par le porteur du projet, dans son dossier de
+  passation.** Aucun mot de passe n'est écrit dans ce dépôt, ni dans un fichier, ni dans un message de commit. Perdre
+  la clé interdit toute mise à jour des applications déjà installées (Android refuse une mise à jour signée par une
+  autre clé) : il faut en garder au moins deux copies, hors du dépôt.
+
 ## État d'avancement au 9 novembre 2026
 
 - **Branches** : les sections 1 à 20 sont chacune sur une branche `feat/…`, empilées les unes
@@ -858,7 +939,7 @@ du Réseau, ou bouton « Diagnostic » sous un envoi en échec. Le diagnostic n'
   `PREPARER-LES-RADIOS.md` et ce fichier. La branche `fix/diffusion-nom` (section 21), partie de
   `docs/essais-2026-11-08`, contient tout jusqu'à la section 21. La branche `fix/demo-unique` (section 22), partie de
   `fix/diffusion-nom`, puis `fix/fait-observe` (section 23), partie de `fix/demo-unique`, puis `fix/textes-fr` (section 24), partie de
-  `fix/fait-observe`, puis `fix/diag-lora-attendu` (section 25), puis `fix/organigramme-saisie` (section 26), puis `fix/carte-attribution` (section 27), la dernière, qui contient
+  `fix/fait-observe`, puis `fix/diag-lora-attendu` (section 25), puis `fix/organigramme-saisie` (section 26), puis `fix/carte-attribution` (section 27), puis `feat/apk-release` (section 28), la dernière, qui contient
   tout. Rien n'est fusionné dans `main`,
   qui ne porte que l'identité du fork et le workflow `fork-apk`. Aucune pull request n'est ouverte,
   ni vers `main` ni vers `meshtastic/Meshtastic-Android`.
@@ -880,7 +961,7 @@ du Réseau, ou bouton « Diagnostic » sous un envoi en échec. Le diagnostic n'
   avec une vraie radio, le traceroute de « Tester la liaison », les bandeaux de diagnostic,
   l'affichage de l'écran de bienvenue sur de petits écrans, et la diffusion du nom (section 21) entre
   deux radios, la disparition de l'ancien « Mode Démo » de la liste des appareils (section 22), et le
-  formulaire « Fait observé » (taille, veille, clavier, section 23) l'écart LoRa du diagnostic (section 25), la saisie de l'organigramme (section 26), et le crédit d'une carte importée (section 27).
+  formulaire « Fait observé » (taille, veille, clavier, section 23) l'écart LoRa du diagnostic (section 25), la saisie de l'organigramme (section 26), le crédit d'une carte importée (section 27), et l'APK de release signé (section 28).
   La liste des essais est dans
   `TESTS-A-FAIRE.md`.
 - **Non couvert par la CI** : la variante google, `core:ui` (dont le bandeau de diagnostic),

@@ -1,7 +1,7 @@
 # NetworkTact : essais à faire sur téléphone
 
 Dernière mise à jour : 9 novembre 2026. APK : artefact `apk-fdroid-debug` du dernier run vert de
-`fork-apk` sur la branche `fix/carte-attribution` (qui contient tout). Rien de ce qui suit n'a encore
+`fork-apk` sur la branche `feat/apk-release` (qui contient tout). Rien de ce qui suit n'a encore
 été essayé sur un téléphone, sauf le défaut corrigé au §10 ; la CI ne prouve que la compilation et
 les tests unitaires.
 
@@ -182,6 +182,21 @@ Variante fdroid. Le crédit imposé ne dépend que des métadonnées du fichier.
 - [ ] Un autre `.pmtiles` qui ne déclare aucune attribution : **pas de bouton ⓘ** (rien n'est affiché).
 - [ ] Un fond en ligne (OpenFreeMap, etc.) garde son propre crédit ; un fichier `.mbtiles` importé garde le crédit de
       ses métadonnées, ou celui d'OpenStreetMap à défaut.
+
+## 16. APK de release (§28)
+
+APK : artefact `apk-fdroid-release` du dernier run vert de `fork-apk`. Il remplace l'APK de debug pour l'usage courant ;
+R8 n'a été vérifié que par la compilation, jamais à l'exécution.
+
+- [ ] Installation : l'APK est signé (sinon Android refuse de l'installer) et s'installe **à côté** de la version de
+      debug (identifiant différent). Premier lancement sans plantage, écran de bienvenue.
+- [ ] Parcours de fumée, en cherchant ce que R8 casserait : Réglages, Mode démo, vue PC, Conversations ; carte (fond en
+      ligne, import d'un `.pmtiles`, crédit ⓘ, appui long) ; QR de l'organigramme (affichage et lecture à la caméra) ;
+      Bluetooth (recherche et connexion d'une radio) ; Réglages de la radio.
+- [ ] Fluidité : le démarrage à froid est-il plus rapide qu'avec l'APK de debug ? À noter (ressenti, ou
+      `adb shell am start -W`).
+- [ ] Un plantage au lancement ou dans une fonction qui marchait en debug : noter l'écran et l'heure, récupérer le
+      journal (`adb logcat`), c'est probablement une règle R8 manquante.
 
 ## Avant fusion dans `main`
 - [ ] Les runs 70 et 71 ont été annulés par une poussée plus récente (rien à corriger).
