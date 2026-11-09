@@ -1,7 +1,7 @@
 # NetworkTact : essais à faire sur téléphone
 
 Dernière mise à jour : 9 novembre 2026. APK : artefact `apk-fdroid-debug` du dernier run vert de
-`fork-apk` sur la branche `fix/fait-observe` (qui contient tout). Rien de ce qui suit n'a encore
+`fork-apk` sur la branche `fix/diag-lora-attendu` (qui contient tout). Rien de ce qui suit n'a encore
 été essayé sur un téléphone, sauf le défaut corrigé au §10 ; la CI ne prouve que la compilation et
 les tests unitaires.
 
@@ -141,6 +141,20 @@ voient déjà. Sur le téléphone de OA, ne jamais utiliser « Infos utilisateur
       d'heure et `23:50 (veille)` dans le rapport. Heure déjà passée : pas de « (veille) ».
 - [ ] Clavier de la description : la touche d'action est « Terminé » et ferme le clavier sans
       toucher un autre champ. Idem pour le champ d'heure. Pas de retour à la ligne ajouté.
+
+## 13. Diagnostic : écart LoRa (§25), défaut D8 du 8 novembre
+
+À faire en mode PC, sur une radio réglée en LONG_FAST.
+
+- [ ] Réseau → Diagnostic → carte « Réglage LoRa attendu » → Modifier : choisir le préréglage MEDIUM_FAST
+      (même région que la radio), Enregistrer. Une pastille « Ma radio est en … LONG_FAST : écart avec ce
+      réglage » apparaît **dans cette carte**, sans défiler ; la carte « Constats » en haut montre aussi
+      l'écart et la suggestion de vérifier région et préréglage.
+- [ ] Modifier de nouveau pour LONG_FAST : « Identique au réglage de ma radio », plus de pastille ni de
+      suggestion. « Effacer » : plus rien dans la carte.
+- [ ] Même essai avec une autre région : l'écart apparaît aussi.
+- [ ] Si la pastille manque encore : noter ce que dit la ligne « Réglages LoRa » de la carte « Constats »
+      (« pas encore reçus de la radio » indiquerait que la configuration LoRa n'arrive pas).
 
 ## Avant fusion dans `main`
 - [ ] Les runs 70 et 71 ont été annulés par une poussée plus récente (rien à corriger).

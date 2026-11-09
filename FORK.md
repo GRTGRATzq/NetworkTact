@@ -1,7 +1,7 @@
 # NetworkTact
 
 NetworkTact est un fork de [Meshtastic-Android](https://github.com/meshtastic/Meshtastic-Android),
-modifié à partir du 26 septembre 2026 (dernière mise à jour de ce fichier : 9 novembre 2026, branche `fix/textes-fr`).
+modifié à partir du 26 septembre 2026 (dernière mise à jour de ce fichier : 9 novembre 2026, branche `fix/diag-lora-attendu`).
 
 - **Licence** : GPL-3.0-or-later (voir le fichier `LICENSE`, inchangé).
 - **Origine** : code de Meshtastic-Android, © Meshtastic LLC. Les mentions de copyright de
@@ -763,6 +763,30 @@ du Réseau, ou bouton « Diagnostic » sous un envoi en échec. Le diagnostic n'
   (`runs.using: node24` dans son `action.yml`), ce qui supprime l'avertissement « Node.js 20 is deprecated ».
   Aucun paramètre du workflow n'a changé. `upload-artifact` v5 aurait gardé Node.js 20, d'où v6.
 
+### 25. Diagnostic : l'écart LoRa à côté du réglage attendu (`fix/diag-lora-attendu`)
+
+- **Défaut relevé** (essai du 8 novembre 2026, D8) : sur l'écran de diagnostic en mode PC, un réglage LoRa
+  attendu MEDIUM_FAST alors que la radio est en LONG_FAST n'affichait aucune pastille d'écart.
+- **Constat avant correction** : la règle (`LinkDiagnostics.loraCheck`) et le trajet complet étaient justes.
+  Un test avec le vrai `DiagnosticViewModel` et de faux dépôts (radio EU_868 · LONG_FAST, attendu
+  EU_868 · MEDIUM_FAST) donne `LoraCheck.Different` avec `presetDiffers`, la suggestion « vérifier la région et
+  le préréglage », et le passage à `Different` dès que l'attendu est modifié. Le défaut n'a pas été reproduit sur
+  le code seul ; seul l'essai sur téléphone confirmera.
+- **Cause retenue** : la pastille d'écart n'existait que dans la carte « Constats », en haut de l'écran, alors que
+  le réglage attendu se modifie dans la carte « Réglage LoRa attendu », plus bas : après l'enregistrement, aucun
+  écart n'était visible dans ce qu'on regardait.
+- **Correction** : la carte « Réglage LoRa attendu » affiche elle aussi le résultat, sous le réglage : une pastille
+  inversée (`statusAlert`) « Ma radio est en EU_868 · LONG_FAST : écart avec ce réglage. » quand ils diffèrent, et
+  « Identique au réglage de ma radio. » quand ils sont identiques ; rien tant que la radio n'a pas envoyé sa
+  configuration ou qu'aucun réglage n'est saisi. La carte « Constats » est inchangée.
+- **Mode démo** : la radio fictive et le réglage attendu fictif sont identiques (EU_868 · LONG_FAST), la carte
+  affiche donc « Identique » ; modifier l'attendu en démo fait apparaître l'écart, sans rien écrire dans le vrai
+  réglage (`ScreenFacadesTest`).
+- **Textes** : `diag_expected_gap` et `diag_expected_matches`, en anglais et en français.
+- **Code** : `ExpectedLoraCard` (paramètre `lora`, `LoraGap`), `DiagnosticScreen`. Tests JVM :
+  `DiagnosticViewModelTest` (deux tests de bout en bout). Lint (spotless, detekt) et tests de `feature:node` et
+  `core:demo` passés en local.
+
 ## État d'avancement au 9 novembre 2026
 
 - **Branches** : les sections 1 à 20 sont chacune sur une branche `feat/…`, empilées les unes
@@ -772,7 +796,7 @@ du Réseau, ou bouton « Diagnostic » sous un envoi en échec. Le diagnostic n'
   `PREPARER-LES-RADIOS.md` et ce fichier. La branche `fix/diffusion-nom` (section 21), partie de
   `docs/essais-2026-11-08`, contient tout jusqu'à la section 21. La branche `fix/demo-unique` (section 22), partie de
   `fix/diffusion-nom`, puis `fix/fait-observe` (section 23), partie de `fix/demo-unique`, puis `fix/textes-fr` (section 24), partie de
-  `fix/fait-observe`, la dernière, qui contient tout. Rien n'est fusionné dans `main`,
+  `fix/fait-observe`, puis `fix/diag-lora-attendu` (section 25), la dernière, qui contient tout. Rien n'est fusionné dans `main`,
   qui ne porte que l'identité du fork et le workflow `fork-apk`. Aucune pull request n'est ouverte,
   ni vers `main` ni vers `meshtastic/Meshtastic-Android`.
 - **CI** : `fork-apk` est vert sur `feat/accueil-insignes` (run 72, 23 min 38 s). Les runs 70 et 71
@@ -793,7 +817,7 @@ du Réseau, ou bouton « Diagnostic » sous un envoi en échec. Le diagnostic n'
   avec une vraie radio, le traceroute de « Tester la liaison », les bandeaux de diagnostic,
   l'affichage de l'écran de bienvenue sur de petits écrans, et la diffusion du nom (section 21) entre
   deux radios, la disparition de l'ancien « Mode Démo » de la liste des appareils (section 22), et le
-  formulaire « Fait observé » (taille, veille, clavier, section 23).
+  formulaire « Fait observé » (taille, veille, clavier, section 23) et l'écart LoRa du diagnostic (section 25).
   La liste des essais est dans
   `TESTS-A-FAIRE.md`.
 - **Non couvert par la CI** : la variante google, `core:ui` (dont le bandeau de diagnostic),
