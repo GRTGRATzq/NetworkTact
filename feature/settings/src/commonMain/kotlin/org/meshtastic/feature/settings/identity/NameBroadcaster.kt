@@ -67,13 +67,13 @@ sealed interface NameBroadcastEvent {
 
 /**
  * Broadcasts my radio's name to the whole network ([NameBroadcast]): once automatically after a name or team change
- * made from this phone, and on demand from "Diffuser mon nom". Shared by the User settings and Teams screens, so the
- * 30 s wait after a broadcast holds whichever screen made it.
+ * made from this phone, and on demand from "Diffuser mon nom". Shared by the User settings and Teams screens, so the 30
+ * s wait after a broadcast holds whichever screen made it.
  *
- * The automatic broadcast waits until my radio reports the new names (the firmware applies a new owner, then
- * restarts), so it never carries the old ones. Nothing is sent while the radio is not connected, and nothing at all in
- * demo mode: the broadcast is only simulated, with the same confirmation and the same 30 s wait. Everything comes
- * through the screens' sources ([SCREEN_DATA]), so in demo mode my radio, its name and its connection are the demo's.
+ * The automatic broadcast waits until my radio reports the new names (the firmware applies a new owner, then restarts),
+ * so it never carries the old ones. Nothing is sent while the radio is not connected, and nothing at all in demo mode:
+ * the broadcast is only simulated, with the same confirmation and the same 30 s wait. Everything comes through the
+ * screens' sources ([SCREEN_DATA]), so in demo mode my radio, its name and its connection are the demo's.
  */
 @Single
 class NameBroadcaster(
