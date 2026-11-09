@@ -1743,6 +1743,8 @@
     <string name="diag_expected_summary">Saisi en mode PC et gardé sur ce téléphone seulement. Rien n'est envoyé aux radios.</string>
     <string name="diag_expected_pc_only">Passez en mode PC pour le modifier.</string>
     <string name="diag_expected_edit">Modifier</string>
+    <string name="diag_expected_gap">Ma radio est en %1$s : écart avec ce réglage.</string>
+    <string name="diag_expected_matches">Identique au réglage de ma radio.</string>
     <string name="diag_expected_use_mine">Reprendre celui de ma radio</string>
     <string name="diag_expected_clear">Effacer</string>
     <string name="diag_expected_region">Région</string>

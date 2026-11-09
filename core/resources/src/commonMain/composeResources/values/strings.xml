@@ -468,6 +468,8 @@
     <string name="diag_battery_unknown">Radio battery: not reported</string>
     <string name="diag_expected_clear">Clear</string>
     <string name="diag_expected_edit">Change</string>
+    <string name="diag_expected_gap">My radio is on %1$s: it differs from this setting.</string>
+    <string name="diag_expected_matches">Same as my radio's setting.</string>
     <string name="diag_expected_none">None entered</string>
     <string name="diag_expected_pc_only">Switch to command post mode to change it.</string>
     <string name="diag_expected_preset">Preset</string>

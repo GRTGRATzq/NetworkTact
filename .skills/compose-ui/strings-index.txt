@@ -438,6 +438,8 @@ diag_battery_low
 diag_battery_unknown
 diag_expected_clear
 diag_expected_edit
+diag_expected_gap
+diag_expected_matches
 diag_expected_none
 diag_expected_pc_only
 diag_expected_preset
