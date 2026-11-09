@@ -1,8 +1,9 @@
 # NetworkTact : essais à faire sur téléphone
 
-Dernière mise à jour : 18 octobre 2026. APK : artefact `apk-fdroid-debug` du run 72 de `fork-apk`
-(branche `feat/accueil-insignes`, commit `9196e76`). Rien de ce qui suit n'a encore été essayé sur
-un téléphone ; la CI ne prouve que la compilation et les tests unitaires.
+Dernière mise à jour : 9 novembre 2026. APK : artefact `apk-fdroid-debug` du dernier run vert de
+`fork-apk` sur la branche `fix/diffusion-nom` (qui contient tout). Rien de ce qui suit n'a encore
+été essayé sur un téléphone, sauf le défaut corrigé au §10 ; la CI ne prouve que la compilation et
+les tests unitaires.
 
 **Matériel** : 2 téléphones (A en mode PC, B en mode Terrain), 2 radios allumées avec le même
 réglage LoRa, un troisième nœud si possible. Noms longs : `PC-0` (radio de A) et `ALPHA-1 [Alpha]`
@@ -99,6 +100,26 @@ boucle (temps d'antenne partagé).
 ## 9. Compatibilité
 - [ ] Une radio sous l'application Meshtastic officielle lit les messages `[URG]`, `[EQUIPES]`,
       `[POS]`, `[CR]` comme du texte ordinaire.
+
+## 10. Diffusion du nom (§21), défaut constaté le 8 novembre
+
+Deux radios préparées (`PREPARER-LES-RADIOS.md`) : la radio **CDS TIR** et la radio **OA**, qui se
+voient déjà. Sur le téléphone de OA, ne jamais utiliser « Infos utilisateur » pendant cet essai.
+
+- [ ] Sur OA, noter le nom affiché pour CDS TIR (liste des nœuds et fiche du nœud).
+- [ ] Téléphone de CDS TIR : Réglages → Équipes, choisir une équipe, confirmer. Message « Nom … envoyé
+      à ma radio », la radio redémarre, puis « Nom … diffusé à tous les postes » dès sa reconnexion.
+- [ ] Sur OA, **sans** « Infos utilisateur » : le nom long `CDS TIR [Équipe]` apparaît, en moins d'une
+      minute après la diffusion. Noter le délai.
+- [ ] Téléphone de CDS TIR : Réglages de l'appareil → Utilisateur, changer le nom court, enregistrer.
+      Même vérification sur OA pour le nom court.
+- [ ] « Diffuser mon nom » (Utilisateur ou Équipes) : confirmation obligatoire ; après envoi, bouton
+      bloqué 30 s avec décompte, sur les deux écrans. Radio éteinte : « Aucune radio connectée ».
+- [ ] Changer seulement « Non joignable par message » dans Utilisateur : rien n'est diffusé.
+- [ ] Mode démo, Réglages → Équipes : choisir une équipe puis « Diffuser mon nom » : « diffusion
+      simulée, rien n'est envoyé » ; OA ne reçoit rien.
+- [ ] Si OA garde l'ancien nom : noter la version du firmware des deux radios et si un message
+      « Ma radio n'a pas confirmé le nom » est apparu.
 
 ## Avant fusion dans `main`
 - [ ] Les runs 70 et 71 ont été annulés par une poussée plus récente (rien à corriger).
