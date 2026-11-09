@@ -17,6 +17,7 @@
 package org.meshtastic.core.model.orgchart
 
 import org.meshtastic.core.model.team.TeamSuffix
+import org.meshtastic.core.model.utf8Size
 
 /** Call signs as the organisation chart compares them: trimmed, inner spaces collapsed, case ignored. */
 object Callsign {
@@ -29,4 +30,18 @@ object Callsign {
     fun key(callsign: String): String = OrgChart.clean(callsign).uppercase()
 
     fun sameAs(first: String, second: String): Boolean = key(first) == key(second)
+
+    /**
+     * The call signs to offer when adding a member: those of the radios in [longNames] (most recent first, as given),
+     * once each, without the ones [chart] already holds nor any that [OrgChart.checkMember] would refuse for its size.
+     * Offered only: any other call sign can still be typed, a radio that is off has no long name here.
+     */
+    fun suggestions(longNames: List<String>, chart: OrgChart?): List<String> {
+        val taken = chart?.allMembers?.map { key(it.second.callsign) }.orEmpty().toSet()
+        return longNames
+            .map(::ofLongName)
+            .filter { it.isNotEmpty() && it.utf8Size() <= OrgChart.MAX_CALLSIGN_BYTES }
+            .distinctBy(::key)
+            .filter { key(it) !in taken }
+    }
 }

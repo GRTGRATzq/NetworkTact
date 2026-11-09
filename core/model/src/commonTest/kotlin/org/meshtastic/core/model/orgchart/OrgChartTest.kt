@@ -56,6 +56,17 @@ class OrgChartTest {
     }
 
     @Test
+    fun the_call_sign_limit_counts_bytes_after_cleaning() {
+        assertEquals(39, OrgChart.callsignBytes("  " + "A".repeat(39) + "  "))
+        assertEquals(3, OrgChart.callsignBytes(" A   B "))
+        assertEquals(40, OrgChart.callsignBytes("é".repeat(20)))
+        assertEquals(MemberInput.CallsignTooLong(40), OrgChart.checkMember("é".repeat(20), "", emptyList()))
+        assertEquals(MemberInput.CallsignTooLong(40), OrgChart.checkMember("  " + "A".repeat(40), "", emptyList()))
+        assertTrue(OrgChart.checkMember("é".repeat(19) + "A", "", emptyList()) is MemberInput.Valid)
+        assertEquals(26, OrgChart.roleBytes("é".repeat(13)))
+    }
+
+    @Test
     fun lists_every_member_with_its_team_in_rank_order() {
         val chart =
             OrgChart(

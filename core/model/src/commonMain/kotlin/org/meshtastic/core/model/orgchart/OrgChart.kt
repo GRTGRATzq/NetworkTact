@@ -74,6 +74,12 @@ data class OrgChart(
         /** [text] trimmed and with its inner whitespace collapsed, as call signs and roles are stored. */
         fun clean(text: String): String = text.trim().replace(WHITESPACE, " ")
 
+        /** Size in bytes of [callsign] as stored (trimmed, inner spaces collapsed): what the limit counts. */
+        fun callsignBytes(callsign: String): Int = clean(callsign).utf8Size()
+
+        /** Size in bytes of [role] as it would be stored. */
+        fun roleBytes(role: String): Int = clean(role).utf8Size()
+
         /**
          * Checks a member as typed. [others] are the call signs already in the chart: two members with one call sign
          * could not tell their radios apart.
