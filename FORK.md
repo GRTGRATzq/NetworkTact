@@ -708,10 +708,12 @@ du Réseau, ou bouton « Diagnostic » sous un envoi en échec. Le diagnostic n'
 - **CI** : `fork-apk` est vert sur `feat/accueil-insignes` (run 72, 23 min 38 s). Les runs 70 et 71
   ont été annulés parce qu'une poussée plus récente est arrivée sur la même branche ; le run 68,
   rouge, était une erreur de compilation de l'écran de diagnostic, corrigée au run 69. Bilan des
-  72 runs : 38 verts, 23 rouges, 11 annulés (détail dans `HISTORIQUE.md`). `fork-apk` a été lancé
-  à la main sur `docs/essais-2026-11-08` (même code que le run 72), puis à la poussée de
-  `fix/diffusion-nom`. Aucune compilation locale n'a été possible pour la section 21 (pas d'accès
-  aux dépôts Maven) : lint, compilation et tests ne sont vérifiés que par ce run.
+  72 runs : 38 verts, 23 rouges, 11 annulés (détail dans `HISTORIQUE.md`). Depuis : run 73 vert sur
+  `docs/essais-2026-11-08` (lancé à la main, même code que le run 72) ; runs 74 à 76 rouges sur
+  `fix/diffusion-nom`, tous au lint (formatage ktfmt d'un `when` et d'un commentaire, puis detekt
+  `ViewModelForwarding`), chacun corrigé par un commit ; run 77 vert (lint, compilation, tests dont
+  `NameBroadcastTest` et `NameBroadcasterTest`, APK), 18 min. Aucune compilation locale n'a été
+  possible pour la section 21 (pas d'accès aux dépôts Maven) : seule la CI l'a vérifiée.
 - **Vérifié** : lint (spotless, detekt), compilation fdroid debug, tests Android et JVM des modules
   listés dans chaque section, contrastes des couleurs ajoutées.
 - **Pas encore vérifié sur téléphone** : tout l'usage réel. En particulier, la lecture du QR
