@@ -16,9 +16,13 @@
  */
 package org.meshtastic.feature.node.diagnostic
 
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
@@ -37,6 +41,7 @@ import org.meshtastic.core.testing.FakeServiceRepository
 import org.meshtastic.core.testing.FakeUiPrefs
 import org.meshtastic.proto.Config
 import org.meshtastic.proto.DeviceMetrics
+import org.meshtastic.proto.LocalConfig
 import org.meshtastic.proto.User
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -147,6 +152,77 @@ class DiagnosticViewModelTest {
             assertNull(expected.expected.value)
         } finally {
             Dispatchers.resetMain()
+        }
+    }
+
+    private fun loraConfig(preset: Config.LoRaConfig.ModemPreset, usePreset: Boolean = true) =
+        Config.LoRaConfig.Builder()
+            .also {
+                it.region = Config.LoRaConfig.RegionCode.EU_868
+                it.modem_preset = preset
+                it.use_preset = usePreset
+            }
+            .build()
+
+    /** The screen's own path: the radio's configuration and the saved expected setting, through the view model. */
+    private fun viewModelWith(radioLora: Config.LoRaConfig?, expected: LoraSetting?, commandPost: Boolean = true) =
+        DiagnosticViewModel(
+            FakeNodeRepository(),
+            FakeServiceRepository(),
+            FakeRadioConfigRepository().also {
+                it.setLocalConfigDirect(LocalConfig.Builder().also { local -> local.lora = radioLora }.build())
+            },
+            FakeExpectedLoraPrefs(expected),
+            object : RadioActivityProvider {
+                override val lastPacketFromRadioMillis = MutableStateFlow<Long?>(null)
+            },
+            FakeUiPrefs().also { it.setCommandPostMode(commandPost) },
+            clockMillis = { nowMillis },
+        )
+
+    /** Runs [block] with the view model's state being collected, as the screen does, then shuts everything down. */
+    private fun withScreen(create: () -> DiagnosticViewModel, block: (DiagnosticViewModel) -> Unit) {
+        // The main dispatcher is set before the view model exists: its scope is built in its constructor.
+        Dispatchers.setMain(UnconfinedTestDispatcher())
+        val viewModel = create()
+        val collector = CoroutineScope(UnconfinedTestDispatcher())
+        try {
+            collector.launch { viewModel.uiState.collect {} }
+            block(viewModel)
+        } finally {
+            collector.cancel()
+            viewModel.viewModelScope.cancel()
+            Dispatchers.resetMain()
+        }
+    }
+
+    @Test
+    fun anExpectedMediumFastAgainstALongFastRadioIsAFlaggedDifference() {
+        val create = {
+            viewModelWith(loraConfig(Config.LoRaConfig.ModemPreset.LONG_FAST), LoraSetting("EU_868", "MEDIUM_FAST"))
+        }
+        withScreen(create) { viewModel ->
+            val state = checkNotNull(viewModel.uiState.value)
+            assertEquals(
+                LoraCheck.Different(
+                    local = euLongFast,
+                    expected = LoraSetting("EU_868", "MEDIUM_FAST"),
+                    regionDiffers = false,
+                    presetDiffers = true,
+                ),
+                state.diagnostic.lora,
+            )
+            assertTrue(DiagnosticSuggestion.CHECK_LORA_SETTINGS in state.diagnostic.suggestions)
+        }
+    }
+
+    @Test
+    fun theDifferenceFollowsALaterChangeOfTheExpectedSetting() {
+        val create = { viewModelWith(loraConfig(Config.LoRaConfig.ModemPreset.LONG_FAST), euLongFast) }
+        withScreen(create) { viewModel ->
+            assertEquals(LoraCheck.Same(euLongFast), viewModel.uiState.value?.diagnostic?.lora)
+            assertTrue(viewModel.setExpected(LoraSetting("EU_868", "MEDIUM_FAST")))
+            assertTrue(viewModel.uiState.value?.diagnostic?.lora is LoraCheck.Different)
         }
     }
 }
