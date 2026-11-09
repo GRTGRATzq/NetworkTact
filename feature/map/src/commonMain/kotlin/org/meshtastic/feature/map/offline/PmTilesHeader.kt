@@ -32,6 +32,11 @@ data class PmTilesHeader(
     val maxLatitude: Double,
     /** Where the archive's last section ends: a complete file is at least this long. */
     val minimumFileSize: Long,
+    /** Where the JSON metadata section starts and how long it is (compressed as [internalCompression] says). */
+    val metadataOffset: Long = 0L,
+    val metadataLength: Long = 0L,
+    /** Compression of the directories and of the metadata: 1 none, 2 gzip, 3 brotli, 4 zstd, 0 unknown. */
+    val internalCompression: Int = 0,
 ) {
     companion object {
         /** Bytes to read from the start of a file before calling [check]. */
@@ -44,6 +49,8 @@ data class PmTilesHeader(
         private const val SPEC_VERSION = 3
         private const val VERSION_OFFSET = 7
         private const val ROOT_DIRECTORY_OFFSET = 8
+        private const val METADATA_OFFSET = 24
+        private const val INTERNAL_COMPRESSION_OFFSET = 97
         private const val TILE_TYPE_OFFSET = 99
         private const val MIN_ZOOM_OFFSET = 100
         private const val MAX_ZOOM_OFFSET = 101
@@ -90,6 +97,9 @@ data class PmTilesHeader(
             maxLongitude = bytes.int32(MAX_LONGITUDE_OFFSET) / COORDINATE_SCALE,
             maxLatitude = bytes.int32(MAX_LATITUDE_OFFSET) / COORDINATE_SCALE,
             minimumFileSize = minimumFileSize,
+            metadataOffset = bytes.uint64(METADATA_OFFSET),
+            metadataLength = bytes.uint64(METADATA_OFFSET + LENGTH_FIELD_OFFSET),
+            internalCompression = bytes[INTERNAL_COMPRESSION_OFFSET].toInt() and BYTE_MASK,
         )
 
         private fun ByteArray.uint64(offset: Int): Long {

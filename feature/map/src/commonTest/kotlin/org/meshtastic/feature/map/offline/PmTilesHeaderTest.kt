@@ -33,6 +33,7 @@ class PmTilesHeaderTest {
         putLong(bytes, 32, 200L) // metadata length
         putLong(bytes, 56, 1_000L) // tile data offset
         putLong(bytes, 64, tileDataEnd - 1_000L) // tile data length
+        bytes[97] = 2 // directories and metadata are gzip-compressed
         bytes[99] = tileType.toByte()
         bytes[100] = 0
         bytes[101] = 15
@@ -49,6 +50,14 @@ class PmTilesHeaderTest {
 
     private fun putInt(bytes: ByteArray, offset: Int, value: Int) {
         for (i in 0 until 4) bytes[offset + i] = (value shr (8 * i)).toByte()
+    }
+
+    @Test
+    fun readsWhereTheMetadataIsAndHowItIsCompressed() {
+        val header = assertIs<PmTilesCheck.Valid>(PmTilesHeader.check(header())).header
+        assertEquals(427L, header.metadataOffset)
+        assertEquals(200L, header.metadataLength)
+        assertEquals(2, header.internalCompression)
     }
 
     @Test

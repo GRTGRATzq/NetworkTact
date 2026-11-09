@@ -37,6 +37,7 @@ import org.meshtastic.feature.map.maplibre.component.OfflineMapImportFailure
 import org.meshtastic.feature.map.offline.PMTILES_EXTENSION
 import org.meshtastic.feature.map.offline.PmTilesCheck
 import org.meshtastic.feature.map.offline.PmTilesHeader
+import org.meshtastic.feature.map.offline.PmTilesMetadata
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.IOException
@@ -54,7 +55,7 @@ sealed interface OfflineMapAssetsState {
 }
 
 /** An installed map, with the path MapLibre opens it by. */
-data class InstalledOfflineMap(val file: OfflineMapFile, val path: String)
+data class InstalledOfflineMap(val file: OfflineMapFile, val path: String, val metadata: PmTilesMetadata? = null)
 
 /**
  * The offline maps (.pmtiles) stored on this phone, for the F-Droid flavor's MapLibre map.
@@ -206,6 +207,7 @@ class OfflineMapLibrary(
                     InstalledOfflineMap(
                         OfflineMapFile(id, name, file.length(), header.minZoom, header.maxZoom),
                         file.absolutePath,
+                        readMetadata(file, header),
                     )
                 }
                 .sortedBy { it.file.name.lowercase() }
@@ -229,6 +231,25 @@ class OfflineMapLibrary(
                 .map { OfflineMapAssetsState.Installed(it) }
                 .getOrDefault(OfflineMapAssetsState.Failed)
     }
+
+    /**
+     * The archive's JSON metadata, or null when it is missing, too large, compressed in an unsupported way or
+     * unreadable.
+     */
+    private fun readMetadata(file: File, header: PmTilesHeader): PmTilesMetadata? = safeCatching {
+        val length = header.metadataLength
+        if (length in 1..PmTilesMetadata.MAX_BYTES && header.metadataOffset + length <= file.length()) {
+            val bytes = ByteArray(length.toInt())
+            RandomAccessFile(file, "r").use {
+                it.seek(header.metadataOffset)
+                it.readFully(bytes)
+            }
+            PmTilesMetadata.decode(bytes, header.internalCompression)
+        } else {
+            null
+        }
+    }
+        .getOrNull()
 
     private fun readHeader(file: File): PmTilesHeader? = safeCatching {
         val bytes = ByteArray(PmTilesHeader.SIZE)

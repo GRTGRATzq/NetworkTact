@@ -34,6 +34,7 @@ import org.meshtastic.core.resources.offline_map_default_name
 import org.meshtastic.core.ui.theme.TactColors
 import org.meshtastic.feature.map.layers.getFileName
 import org.meshtastic.feature.map.maplibre.style.Basemap
+import org.meshtastic.feature.map.offline.importedCredit
 import org.meshtastic.feature.map.offline.offlineMapName
 import org.meshtastic.feature.map.offline.offlineMapStyle
 
@@ -51,13 +52,16 @@ fun offlineMapBasemaps(): List<Basemap>? {
     val maps by library.installedMaps.collectAsStateWithLifecycle()
     val assets by library.assets.collectAsStateWithLifecycle()
     val flavor = if (TactColors.isDarkBackground(MaterialTheme.colorScheme.background)) "dark" else "light"
-    val attribution = stringResource(Res.string.map_attribution_osm_protomaps)
+    val protomapsCredit = stringResource(Res.string.map_attribution_osm_protomaps)
 
     val basemaps =
-        remember(maps, assets, flavor, attribution) {
+        remember(maps, assets, flavor, protomapsCredit) {
             val installed = (assets as? OfflineMapAssetsState.Installed)?.assets ?: return@remember emptyList()
             val template = installed.styleTemplates.getValue(flavor)
             maps.map { map ->
+                // The app's credit only for a Protomaps basemap. Any other file keeps what its metadata declares, or
+                // nothing: the style then declares an empty credit instead of falling back on ours.
+                val credit = importedCredit(map.metadata, protomapsCredit)
                 Basemap.LocalVector(
                     id = OfflineMapLibrary.basemapId(map.file.id),
                     label = map.file.name,
@@ -67,9 +71,9 @@ fun offlineMapBasemaps(): List<Basemap>? {
                         archivePath = map.path,
                         assetsDir = installed.dir.absolutePath,
                         flavor = flavor,
-                        attribution = attribution,
+                        attribution = credit.orEmpty(),
                     ),
-                    attribution = attribution,
+                    attribution = credit,
                 )
             }
         }

@@ -76,6 +76,23 @@ class OfflineMapFilesTest {
             """"attribution":"x"}},"layers":[{"id":"earth","type":"fill","source":"protomaps"}]}"""
 
     @Test
+    fun styleDeclaresNoCreditForAFileThatImposesNone() {
+        val style =
+            Json.parseToJsonElement(
+                offlineMapStyle(
+                    template = template,
+                    archivePath = "/data/user/0/app/files/pmtiles/a1.pmtiles",
+                    assetsDir = "/data/user/0/app/files/offline-map/v1",
+                    flavor = "light",
+                    attribution = "",
+                ),
+            )
+                .jsonObject
+        val source = style.getValue("sources").jsonObject.getValue("protomaps").jsonObject
+        assertEquals("", source.getValue("attribution").jsonPrimitive.content)
+    }
+
+    @Test
     fun styleReadsEverythingFromDevice() {
         val style =
             Json.parseToJsonElement(
