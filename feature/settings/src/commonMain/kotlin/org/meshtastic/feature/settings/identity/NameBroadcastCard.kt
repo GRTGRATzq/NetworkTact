@@ -51,6 +51,7 @@ import org.meshtastic.core.resources.name_broadcast_not_applied
 import org.meshtastic.core.resources.name_broadcast_refused_no_node
 import org.meshtastic.core.resources.name_broadcast_refused_not_connected
 import org.meshtastic.core.resources.name_broadcast_sent
+import org.meshtastic.core.resources.name_broadcast_simulated
 import org.meshtastic.core.resources.name_broadcast_title
 import org.meshtastic.core.resources.name_broadcast_wait
 import org.meshtastic.core.resources.name_broadcast_waiting
@@ -136,6 +137,7 @@ private fun NameBroadcastRefusal.text(): String = when (this) {
 private fun NameBroadcastEvent.message(): String = when (this) {
     is NameBroadcastEvent.Waiting -> stringResource(Res.string.name_broadcast_waiting, longName)
     is NameBroadcastEvent.Sent -> stringResource(Res.string.name_broadcast_sent, longName)
+    is NameBroadcastEvent.Simulated -> stringResource(Res.string.name_broadcast_simulated, longName)
     NameBroadcastEvent.Failed -> stringResource(Res.string.name_broadcast_failed)
     is NameBroadcastEvent.NotApplied -> stringResource(Res.string.name_broadcast_not_applied, longName)
 }

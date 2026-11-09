@@ -27,6 +27,7 @@ import org.meshtastic.core.model.ConnectionState
 import org.meshtastic.core.model.Node
 import org.meshtastic.core.model.NodeAddress
 import org.meshtastic.core.model.identity.NameBroadcastCheck
+import org.meshtastic.core.testing.FakeDemoMode
 import org.meshtastic.core.testing.FakeNodeRepository
 import org.meshtastic.core.testing.FakeRadioController
 import org.meshtastic.core.testing.FakeServiceRepository
@@ -64,6 +65,7 @@ class NameBroadcasterTest {
     private val nodes = FakeNodeRepository()
     private val service = FakeServiceRepository()
     private val radio = FakeRadioController()
+    private val demoMode = FakeDemoMode()
 
     private fun TestScope.broadcaster(): NameBroadcaster {
         nodes.setOurNode(Node(num = myNum, user = owner))
@@ -73,6 +75,7 @@ class NameBroadcasterTest {
                 nodeRepository = nodes,
                 connectionStateProvider = service,
                 messagingController = radio,
+                demoMode = demoMode,
                 scope = backgroundScope.asServiceScope(),
             )
         broadcaster.clock = { start + testScheduler.currentTime / MILLIS_PER_SECOND }
@@ -194,6 +197,32 @@ class NameBroadcasterTest {
 
         advanceTimeBy(21_000)
         assertEquals(listOf(owner, renamed), sentUsers())
+    }
+
+    @Test
+    fun in_demo_mode_the_broadcast_is_simulated_and_nothing_is_sent() = runTest {
+        val broadcaster = broadcaster()
+        demoMode.activate()
+
+        assertTrue(broadcaster.broadcastNow())
+
+        assertTrue(radio.sentPackets.isEmpty())
+        assertEquals(NameBroadcastEvent.Simulated("CDS TIR"), broadcaster.event.value)
+        assertEquals(NameBroadcastCheck.CoolingDown(30), broadcaster.check())
+    }
+
+    @Test
+    fun in_demo_mode_a_team_change_is_followed_by_a_simulated_broadcast() = runTest {
+        val broadcaster = broadcaster()
+        demoMode.activate()
+        val renamed = owner.withLongName("CDS TIR [Alpha]")
+
+        broadcaster.ownerWritten(before = owner, sent = renamed)
+        nodes.setOurNode(Node(num = myNum, user = renamed))
+        runCurrent()
+
+        assertTrue(radio.sentPackets.isEmpty())
+        assertEquals(NameBroadcastEvent.Simulated("CDS TIR [Alpha]"), broadcaster.event.value)
     }
 
     private companion object {

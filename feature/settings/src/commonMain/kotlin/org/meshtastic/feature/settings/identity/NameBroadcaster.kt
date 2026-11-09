@@ -38,6 +38,7 @@ import org.meshtastic.core.model.ConnectionState
 import org.meshtastic.core.model.identity.NameBroadcast
 import org.meshtastic.core.model.identity.NameBroadcastCheck
 import org.meshtastic.core.repository.ConnectionStateProvider
+import org.meshtastic.core.repository.DemoMode
 import org.meshtastic.core.repository.MessagingController
 import org.meshtastic.core.repository.NodeRepository
 import org.meshtastic.core.repository.SCREEN_DATA
@@ -54,6 +55,9 @@ sealed interface NameBroadcastEvent {
     /** [longName] was handed to my radio for broadcast. */
     data class Sent(val longName: String, val automatic: Boolean) : NameBroadcastEvent
 
+    /** Demo mode: the broadcast of [longName] was only simulated, nothing went to the radio. */
+    data class Simulated(val longName: String) : NameBroadcastEvent
+
     /** The packet was not handed to my radio. */
     data object Failed : NameBroadcastEvent
 
@@ -67,13 +71,16 @@ sealed interface NameBroadcastEvent {
  * 30 s wait after a broadcast holds whichever screen made it.
  *
  * The automatic broadcast waits until my radio reports the new names (the firmware applies a new owner, then
- * restarts), so it never carries the old ones. Nothing is sent while the radio is not connected.
+ * restarts), so it never carries the old ones. Nothing is sent while the radio is not connected, and nothing at all in
+ * demo mode: the broadcast is only simulated, with the same confirmation and the same 30 s wait. Everything comes
+ * through the screens' sources ([SCREEN_DATA]), so in demo mode my radio, its name and its connection are the demo's.
  */
 @Single
 class NameBroadcaster(
     @Named(SCREEN_DATA) private val nodeRepository: NodeRepository,
     @Named(SCREEN_DATA) private val connectionStateProvider: ConnectionStateProvider,
     @Named(SCREEN_DATA) private val messagingController: MessagingController,
+    private val demoMode: DemoMode,
     private val scope: ServiceScope,
 ) {
     /** The clock, in epoch seconds; replaced in tests. */
@@ -133,11 +140,12 @@ class NameBroadcaster(
             node?.user?.takeIf { connection is ConnectionState.Connected }
         }
 
-    /** Hands the packet to my radio if it is still connected. */
+    /** Demo mode only simulates; otherwise the packet is handed to my radio if it is still connected. */
     private suspend fun send(user: User, automatic: Boolean): Boolean {
         val now = clock()
         val event =
             when {
+                demoMode.isActive.value -> NameBroadcastEvent.Simulated(user.long_name)
                 !connected() -> NameBroadcastEvent.Failed
                 else -> handOver(user, automatic)
             }
