@@ -40,6 +40,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.viewmodel.koinViewModel
 import org.meshtastic.core.model.Capabilities
 import org.meshtastic.core.model.HamName
 import org.meshtastic.core.model.excludes
@@ -66,6 +67,8 @@ import org.meshtastic.core.ui.component.SwitchPreference
 import org.meshtastic.core.ui.component.TitledCard
 import org.meshtastic.core.ui.icon.Close
 import org.meshtastic.core.ui.icon.MeshtasticIcons
+import org.meshtastic.feature.settings.identity.NameBroadcastCard
+import org.meshtastic.feature.settings.identity.NameBroadcastViewModel
 import org.meshtastic.feature.settings.radio.RadioConfigViewModel
 import org.meshtastic.proto.ExcludedModules
 import org.meshtastic.proto.ModuleConfig
@@ -87,7 +90,12 @@ internal const val USER_SHORT_NAME_TEST_TAG = "user_short_name"
 internal const val USER_STATUS_MESSAGE_TEST_TAG = "user_status_message"
 
 @Composable
-fun UserConfigScreen(viewModel: RadioConfigViewModel, onBack: () -> Unit, focusStatusMessage: Boolean = false) {
+fun UserConfigScreen(
+    viewModel: RadioConfigViewModel,
+    onBack: () -> Unit,
+    focusStatusMessage: Boolean = false,
+    nameBroadcastViewModel: NameBroadcastViewModel = koinViewModel(),
+) {
     val state by viewModel.radioConfigState.collectAsStateWithLifecycle()
     val destNode by viewModel.destNode.collectAsStateWithLifecycle()
     val userConfig = state.userConfig
@@ -132,7 +140,11 @@ fun UserConfigScreen(viewModel: RadioConfigViewModel, onBack: () -> Unit, focusS
         onDismissPacketResponse = viewModel::clearPacketResponse,
         additionalDirtyCheck = { statusMessageDirty },
         onDiscard = { statusMessageInput = statusMessage },
-        onSave = { viewModel.save(it, formState.isDirty, statusMessageInput, statusMessageDirty) },
+        onSave = {
+            // My own radio only: a broadcast from this phone always announces the radio it is connected to.
+            if (state.isLocal && formState.isDirty) nameBroadcastViewModel.ownerWritten(before = userConfig, sent = it)
+            viewModel.save(it, formState.isDirty, statusMessageInput, statusMessageDirty)
+        },
     ) {
         item {
             TitledCard(title = stringResource(Res.string.user_config)) {
@@ -204,6 +216,7 @@ fun UserConfigScreen(viewModel: RadioConfigViewModel, onBack: () -> Unit, focusS
                 )
             }
         }
+        if (state.isLocal) item { NameBroadcastCard(viewModel = nameBroadcastViewModel) }
     }
 }
 
