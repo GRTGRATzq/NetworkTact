@@ -1,7 +1,7 @@
 # NetworkTact
 
 NetworkTact est un fork de [Meshtastic-Android](https://github.com/meshtastic/Meshtastic-Android),
-modifié à partir du 26 septembre 2026 (dernière mise à jour de ce fichier : 9 novembre 2026, branche `docs/essais-2026-11-08`).
+modifié à partir du 26 septembre 2026 (dernière mise à jour de ce fichier : 9 novembre 2026, branche `fix/diffusion-nom`).
 
 - **Licence** : GPL-3.0-or-later (voir le fichier `LICENSE`, inchangé).
 - **Origine** : code de Meshtastic-Android, © Meshtastic LLC. Les mentions de copyright de
@@ -10,10 +10,10 @@ modifié à partir du 26 septembre 2026 (dernière mise à jour de ce fichier : 
 - **Code source** : https://github.com/GRTGRATzq/NetworkTact
 - **Radios** : le firmware des radios n'est pas modifié. Aucun nouveau protocole radio ni
   nouveau type de paquet : toutes les conventions ci-dessous sont du texte ordinaire, lisible
-  par l'application Meshtastic officielle. Trois exceptions, qui utilisent des paquets que
+  par l'application Meshtastic officielle. Quatre exceptions, qui utilisent des paquets que
   Meshtastic sait déjà envoyer : le partage d'un point sur la carte (section 12, point de repère),
-  « Diffuser ma position maintenant » (section 15, position standard) et « Tester la liaison »
-  (section 19, traceroute).
+  « Diffuser ma position maintenant » (section 15, position standard), « Tester la liaison »
+  (section 19, traceroute) et « Diffuser mon nom » (section 21, NodeInfo standard).
 
 Le détail de chaque changement est dans l'historique Git de ce dépôt.
 
@@ -654,27 +654,71 @@ du Réseau, ou bouton « Diagnostic » sous un envoi en échec. Le diagnostic n'
   remet seulement l'indicateur d'introduction terminée ; nœuds, messages et réglages sont gardés
   (ligne verrouillée en mode démo).
 
+### 21. Diffusion du nom après un changement (`fix/diffusion-nom`)
+
+- **Défaut corrigé** (essai du 8 novembre 2026) : après un changement de nom long ou court
+  (Réglages de l'appareil → Utilisateur) ou d'équipe (Réglages → Équipes), la radio enregistre le
+  nouveau nom, mais les autres postes gardent l'ancien ; seul « Infos utilisateur » sur la fiche du
+  nœud, poste par poste, le corrigeait.
+- **Cause, vérifiée dans le firmware Meshtastic** (2.7.9 et 2.8.3, `AdminModule::handleSetOwner`,
+  `MeshService::reloadOwner`, `NodeInfoModule::allocReply`) : à un changement de nom, le firmware
+  diffuse bien le nouveau `User`, mais seulement s'il n'a pas diffusé de NodeInfo récemment (5 min en
+  2.7 ; au moins 30 min en 2.8, délai conservé à travers le redémarrage qui suit le changement). Sinon
+  il ne diffuse rien jusqu'à sa prochaine annonce périodique.
+- **Pourquoi la diffusion par le téléphone marche** (même vérification, `PhoneAPI`, `Router`,
+  `NodeInfoModule::handleReceivedProtobuf`, `NodeDB::updateUser`) : un paquet `NODEINFO_APP` venu
+  du téléphone n'est soumis à aucune limite de fréquence ; le firmware l'émet avec le numéro de la
+  radio comme expéditeur (et le signe en 2.8, comme ses propres diffusions) ; chaque nœud qui le
+  reçoit enregistre le nouveau nom et le transmet à son téléphone. Condition : la charge utile porte
+  la clé publique de la radio, sinon un nœud qui la connaît déjà rejette le paquet. Aucune
+  alternative n'a donc été nécessaire.
+- **Diffusion automatique** : après un changement réussi de nom ou d'équipe fait depuis ce
+  téléphone, sur ma propre radio, l'application attend que la radio rapporte les nouveaux noms (elle
+  applique le `User`, redémarre, puis se reconnecte), puis diffuse une fois ce `User`, tel que la
+  radio le rapporte (clé publique comprise) : paquet `NODEINFO_APP` en broadcast, canal principal,
+  sans `want_response` (sinon chaque nœud répondrait) ni accusé. Abandon, avec un message, si la
+  radio n'a pas rapporté le nouveau nom en 3 minutes. Rien n'est diffusé quand seuls d'autres champs
+  changent, ni en mode radioamateur (le firmware compose lui-même le nom long), ni pour une radio
+  administrée à distance.
+- **Bouton « Diffuser mon nom »**, dans Réglages de l'appareil → Utilisateur (ma radio seulement)
+  et dans Réglages → Équipes, sous le choix d'équipe : confirmation obligatoire (temps d'antenne
+  partagé), un seul envoi, refus si la radio n'est pas connectée ou si son nom n'est pas encore
+  connu, puis 30 s de blocage avec décompte, comme « Diffuser ma position maintenant ». Le blocage
+  est commun aux deux écrans et à la diffusion automatique, qui attend sa fin si besoin.
+- **Mode démo** : le choix d'équipe renomme le nœud fictif, la diffusion automatique et le bouton
+  sont simulés (« diffusion simulée, rien n'est envoyé ») avec la même confirmation et le même
+  blocage ; aucun paquet n'est remis à la radio.
+- **Code** : règle et paquet dans `core:model` (`identity/NameBroadcast`), diffusion partagée et
+  carte dans `feature:settings` (`identity/NameBroadcaster`, `NameBroadcastViewModel`,
+  `NameBroadcastCard`), branchements dans `UserConfigScreen` et `TeamsScreen` / `TeamsViewModel`.
+  Textes `name_broadcast_*` en anglais et en français. Tests JVM : `NameBroadcastTest`,
+  `NameBroadcasterTest`, `TeamsViewModelTest`.
+- **CI** : `fork-apk` se déclenche désormais aussi sur les poussées vers `fix/**` et `docs/**`.
+
 ## État d'avancement au 9 novembre 2026
 
-- **Branches** : les 20 sections ci-dessus sont chacune sur une branche `feat/…`, empilées les unes
-  sur les autres. La dernière, `feat/accueil-insignes` (commit `9196e76`), contient tout le code.
+- **Branches** : les sections 1 à 20 sont chacune sur une branche `feat/…`, empilées les unes
+  sur les autres ; la dernière, `feat/accueil-insignes` (commit `9196e76`), contient tout leur code.
   La branche `docs/essais-2026-11-08`, partie de `feat/accueil-insignes`, n'ajoute que de la
-  documentation (aucun changement de code) : `TESTS-A-FAIRE.md`, `HISTORIQUE.md`,
-  `FLASHER-LA-RADIO.md`, `PREPARER-LES-RADIOS.md` et ce fichier. Rien n'est fusionné dans `main`,
+  documentation : `TESTS-A-FAIRE.md`, `HISTORIQUE.md`, `FLASHER-LA-RADIO.md`,
+  `PREPARER-LES-RADIOS.md` et ce fichier. La branche `fix/diffusion-nom` (section 21), partie de
+  `docs/essais-2026-11-08`, est la dernière et contient tout. Rien n'est fusionné dans `main`,
   qui ne porte que l'identité du fork et le workflow `fork-apk`. Aucune pull request n'est ouverte,
   ni vers `main` ni vers `meshtastic/Meshtastic-Android`.
 - **CI** : `fork-apk` est vert sur `feat/accueil-insignes` (run 72, 23 min 38 s). Les runs 70 et 71
   ont été annulés parce qu'une poussée plus récente est arrivée sur la même branche ; le run 68,
   rouge, était une erreur de compilation de l'écran de diagnostic, corrigée au run 69. Bilan des
-  72 runs : 38 verts, 23 rouges, 11 annulés (détail dans `HISTORIQUE.md`). `fork-apk` est relancé
-  sur `docs/essais-2026-11-08` pour fournir l'APK des essais ; le code étant celui du run 72, le
-  résultat attendu est le même.
+  72 runs : 38 verts, 23 rouges, 11 annulés (détail dans `HISTORIQUE.md`). `fork-apk` a été lancé
+  à la main sur `docs/essais-2026-11-08` (même code que le run 72), puis à la poussée de
+  `fix/diffusion-nom`. Aucune compilation locale n'a été possible pour la section 21 (pas d'accès
+  aux dépôts Maven) : lint, compilation et tests ne sont vérifiés que par ce run.
 - **Vérifié** : lint (spotless, detekt), compilation fdroid debug, tests Android et JVM des modules
   listés dans chaque section, contrastes des couleurs ajoutées.
 - **Pas encore vérifié sur téléphone** : tout l'usage réel. En particulier, la lecture du QR
   d'organigramme à la caméra, l'import d'un `.pmtiles` réel, le recalage et la diffusion de position
-  avec une vraie radio, le traceroute de « Tester la liaison », les bandeaux de diagnostic, et
-  l'affichage de l'écran de bienvenue sur de petits écrans. La liste des essais est dans
+  avec une vraie radio, le traceroute de « Tester la liaison », les bandeaux de diagnostic,
+  l'affichage de l'écran de bienvenue sur de petits écrans, et la diffusion du nom (section 21) entre
+  deux radios. La liste des essais est dans
   `TESTS-A-FAIRE.md`.
 - **Non couvert par la CI** : la variante google, `core:ui` (dont le bandeau de diagnostic),
   `core:navigation` (`NavigationConfigTest`) et les cibles iOS (`ios-check.yml`, à la main).
