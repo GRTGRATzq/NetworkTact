@@ -17,16 +17,11 @@
 package org.meshtastic.core.network.radio
 
 import android.content.Context
-import android.provider.Settings
 import co.touchlab.kermit.Logger
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import org.koin.core.annotation.Single
 import org.meshtastic.core.ble.BleConnectionFactory
 import org.meshtastic.core.ble.BleScanner
 import org.meshtastic.core.ble.BluetoothRepository
-import org.meshtastic.core.common.BuildConfigProvider
-import org.meshtastic.core.common.state.HiddenFeaturesUnlock
 import org.meshtastic.core.di.CoroutineDispatchers
 import org.meshtastic.core.model.DeviceType
 import org.meshtastic.core.model.InterfaceId
@@ -43,9 +38,7 @@ import org.meshtastic.core.repository.RadioTransportFactory
 @Suppress("LongParameterList")
 class AndroidRadioTransportFactory(
     private val context: Context,
-    private val buildConfigProvider: BuildConfigProvider,
     private val usbRepository: UsbRepository,
-    hiddenFeaturesUnlock: HiddenFeaturesUnlock,
     scanner: BleScanner,
     bluetoothRepository: BluetoothRepository,
     connectionFactory: BleConnectionFactory,
@@ -53,27 +46,6 @@ class AndroidRadioTransportFactory(
 ) : BaseRadioTransportFactory(scanner, bluetoothRepository, connectionFactory, dispatchers) {
 
     override val supportedDeviceTypes: List<DeviceType> = listOf(DeviceType.BLE, DeviceType.TCP, DeviceType.USB)
-
-    /**
-     * Demo Mode gate.
-     *
-     * Debug builds and Firebase Test Lab get it unconditionally, as before. Release builds get it only after the user
-     * performs the hidden-features gesture (five taps on the Settings app-version row) — the same deliberate,
-     * process-scoped unlock that reveals the firmware-excluded module screens. That keeps a permanently visible fake
-     * radio out of the picker for ordinary users while making Demo Mode genuinely reachable in a shipped build, which
-     * is what a Play reviewer with no LoRa hardware needs.
-     *
-     * [HiddenFeaturesUnlock.unlocked] is a hot [StateFlow], so no scope is needed to observe it here.
-     */
-    override val mockTransportEnabled: StateFlow<Boolean> =
-        if (buildConfigProvider.isDebug || isFirebaseTestLab()) {
-            MutableStateFlow(true)
-        } else {
-            hiddenFeaturesUnlock.unlocked
-        }
-
-    private fun isFirebaseTestLab(): Boolean =
-        Settings.System.getString(context.contentResolver, "firebase.test.lab") == "true"
 
     /**
      * Probed once: the asset is baked into the APK, so its presence cannot change while the process lives. Empty counts

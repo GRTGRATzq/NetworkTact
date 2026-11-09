@@ -17,6 +17,8 @@
 package org.meshtastic.core.network.radio
 
 import co.touchlab.kermit.Logger
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import org.meshtastic.core.ble.BleConnectionFactory
 import org.meshtastic.core.ble.BleScanner
 import org.meshtastic.core.ble.BluetoothRepository
@@ -36,6 +38,14 @@ abstract class BaseRadioTransportFactory(
     protected val connectionFactory: BleConnectionFactory,
     protected val dispatchers: CoroutineDispatchers,
 ) : RadioTransportFactory {
+
+    /**
+     * NetworkTact: the virtual transports inherited from Meshtastic (`m` mock, `r` replay) are never offered and never
+     * admitted. They replaced the real radio, had no way out, and were confused with NetworkTact's own demo mode
+     * (Settings), which is the only demo. Closing this one flow hides the entries from the device list and refuses a
+     * saved `m`/`r` address or a deep link to it. A subclass may still override it (tests do).
+     */
+    override val mockTransportEnabled: StateFlow<Boolean> = MutableStateFlow(false)
 
     init {
         if (!bluetoothRepository.isSupported) Logger.w { "No Bluetooth LE on this hardware; BLE addresses are refused" }
