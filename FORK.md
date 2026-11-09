@@ -713,6 +713,10 @@ du Réseau, ou bouton « Diagnostic » sous un envoi en échec. Le diagnostic n'
 - **Tests** : `NoInheritedDemoTransportTest` (porte fermée par défaut, `m`, `r` et `m1` refusés
   même si la capture existe, radios réelles admises) ; `MockTransportAddressAdmissionTest` et les
   tests de `ScannerViewModel` continuent de couvrir le comportement quand la porte est ouverte.
+- **CI** : run 79 vert sur `fix/demo-unique` (lint, compilation, tests dont `NoInheritedDemoTransportTest`,
+  APK). Le crochet `.claude/hooks/pre-bash-guard.sh` laisse désormais passer la poussée, avec un avertissement,
+  quand Gradle ne peut pas démarrer pour une raison d'environnement (JDK ou dépôts inaccessibles) ; une vraie
+  violation detekt bloque toujours.
 
 ## État d'avancement au 9 novembre 2026
 
@@ -732,7 +736,7 @@ du Réseau, ou bouton « Diagnostic » sous un envoi en échec. Le diagnostic n'
   `docs/essais-2026-11-08` (lancé à la main, même code que le run 72) ; runs 74 à 76 rouges sur
   `fix/diffusion-nom`, tous au lint (formatage ktfmt d'un `when` et d'un commentaire, puis detekt
   `ViewModelForwarding`), chacun corrigé par un commit ; run 77 vert (lint, compilation, tests dont
-  `NameBroadcastTest` et `NameBroadcasterTest`, APK), 18 min. Aucune compilation locale n'a été
+  `NameBroadcastTest` et `NameBroadcasterTest`, APK), 18 min. Run 79 vert sur `fix/demo-unique` (section 22). Aucune compilation locale n'a été
   possible pour la section 21 (pas d'accès aux dépôts Maven) : seule la CI l'a vérifiée.
 - **Vérifié** : lint (spotless, detekt), compilation fdroid debug, tests Android et JVM des modules
   listés dans chaque section, contrastes des couleurs ajoutées.
