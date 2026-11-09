@@ -68,13 +68,15 @@ class NameBroadcasterTest {
     private fun TestScope.broadcaster(): NameBroadcaster {
         nodes.setOurNode(Node(num = myNum, user = owner))
         service.setConnectionState(ConnectionState.Connected)
-        return NameBroadcaster(
-            nodeRepository = nodes,
-            connectionStateProvider = service,
-            messagingController = radio,
-            scope = backgroundScope.asServiceScope(),
-        )
-            .also { it.clock = { start + testScheduler.currentTime / MILLIS_PER_SECOND } }
+        val broadcaster =
+            NameBroadcaster(
+                nodeRepository = nodes,
+                connectionStateProvider = service,
+                messagingController = radio,
+                scope = backgroundScope.asServiceScope(),
+            )
+        broadcaster.clock = { start + testScheduler.currentTime / MILLIS_PER_SECOND }
+        return broadcaster
     }
 
     private fun sentUsers(): List<User> = radio.sentPackets.map { User.ADAPTER.decode(assertNotNull(it.bytes)) }

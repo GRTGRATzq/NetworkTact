@@ -114,9 +114,10 @@ class NameBroadcaster(
     }
 
     private suspend fun broadcastOnceApplied(expected: User) {
-        val applied = withTimeoutOrNull(APPLY_TIMEOUT) {
-            reportedWhileConnected().first { NameBroadcast.isApplied(it, expected) }
-        }
+        val applied =
+            withTimeoutOrNull(APPLY_TIMEOUT) {
+                reportedWhileConnected().first { NameBroadcast.isApplied(it, expected) }
+            }
         if (applied == null) {
             _event.value = NameBroadcastEvent.NotApplied(expected.long_name)
             return
@@ -132,21 +133,24 @@ class NameBroadcaster(
             node?.user?.takeIf { connection is ConnectionState.Connected }
         }
 
+    /** Hands the packet to my radio if it is still connected. */
     private suspend fun send(user: User, automatic: Boolean): Boolean {
-        if (!connected()) {
-            _event.value = NameBroadcastEvent.Failed
-            return false
-        }
         val now = clock()
+        val event =
+            when {
+                !connected() -> NameBroadcastEvent.Failed
+                else -> handOver(user, automatic)
+            }
+        val done = event != NameBroadcastEvent.Failed
+        if (done) lastBroadcastEpochSeconds = now
+        _event.value = event
+        return done
+    }
+
+    private suspend fun handOver(user: User, automatic: Boolean): NameBroadcastEvent {
         val sent = safeCatching { messagingController.sendMessage(NameBroadcast.packet(user)) }
-        if (sent.isSuccess) {
-            lastBroadcastEpochSeconds = now
-            _event.value = NameBroadcastEvent.Sent(user.long_name, automatic)
-        } else {
-            Logger.w(sent.exceptionOrNull()) { "Name broadcast was not handed to the radio" }
-            _event.value = NameBroadcastEvent.Failed
-        }
-        return sent.isSuccess
+        sent.exceptionOrNull()?.let { Logger.w(it) { "Name broadcast was not handed to the radio" } }
+        return if (sent.isSuccess) NameBroadcastEvent.Sent(user.long_name, automatic) else NameBroadcastEvent.Failed
     }
 
     private fun connected() = connectionStateProvider.connectionState.value is ConnectionState.Connected
