@@ -172,13 +172,16 @@ En mode PC, Réseau → organigramme → Ajouter un membre, clavier ouvert.
 
 ## 15. Crédit d'une carte importée (§27), défaut D6 du 8 novembre
 
-Variante fdroid, avec une carte `.pmtiles` Protomaps importée (voir §5 et `CARTE-HORS-LIGNE.md`).
+Variante fdroid. Le crédit imposé ne dépend que des métadonnées du fichier.
 
-- [ ] Choisir la carte importée comme fond, toucher le bouton ⓘ : « © contributeurs OpenStreetMap · Protomaps »
-      (téléphone en français), « © OpenStreetMap contributors · Protomaps » (téléphone en anglais), même si le
-      fichier ne déclare que « © OpenStreetMap ». Le logo MapLibre reste affiché à gauche.
-- [ ] Un fond en ligne (OpenFreeMap, etc.) garde son propre crédit.
-- [ ] Un fichier `.mbtiles` importé garde le crédit de ses métadonnées, ou celui d'OpenStreetMap à défaut.
+- [ ] Carte Protomaps (le fichier de Cincu, `name` = « Protomaps Basemap »), choisie comme fond : le bouton ⓘ affiche
+      « © contributeurs OpenStreetMap · Protomaps » (téléphone en français) ou « © OpenStreetMap contributors ·
+      Protomaps » (anglais), même si le fichier ne déclare que « © OpenStreetMap ». Le logo MapLibre reste à gauche.
+- [ ] Un autre `.pmtiles` vectoriel dont les métadonnées déclarent une attribution (autre `name`, sans Protomaps dans la
+      description) : le bouton ⓘ affiche **celle du fichier**, pas celle de l'application.
+- [ ] Un autre `.pmtiles` qui ne déclare aucune attribution : **pas de bouton ⓘ** (rien n'est affiché).
+- [ ] Un fond en ligne (OpenFreeMap, etc.) garde son propre crédit ; un fichier `.mbtiles` importé garde le crédit de
+      ses métadonnées, ou celui d'OpenStreetMap à défaut.
 
 ## Avant fusion dans `main`
 - [ ] Les runs 70 et 71 ont été annulés par une poussée plus récente (rien à corriger).

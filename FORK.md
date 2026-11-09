@@ -821,18 +821,33 @@ du Réseau, ou bouton « Diagnostic » sous un envoi en échec. Le diagnostic n'
   que le moteur lit dans le fichier lui-même, et ne retombe sur celle du style que si le fichier n'en déclare aucune.
   Un fichier dont les métadonnées disent seulement « © OpenStreetMap » l'emporte donc sur le style. Vérifié dans le
   code source de la bibliothèque, pas sur un téléphone.
-- **Correction** : `Basemap.LocalVector` porte le crédit de l'application (`attribution`, le texte
-  `map_attribution_osm_protomaps` : « © OpenStreetMap contributors · Protomaps » en anglais, « © contributeurs
-  OpenStreetMap · Protomaps » en français, déjà traduits). `meshMapOrnaments(archiveCredit)` garde le logo et le
-  bouton ⓘ de la bibliothèque, mais en remplace le contenu déplié (`ExpandingAttributionButton.expandedContent`) par
-  ce crédit seul (`shownAttributions`), quelles que soient les métadonnées du fichier. Les autres cartes (fonds en
-  ligne, cartes d'un autre format) gardent les crédits que leur style déclare. Le crédit reste affiché, comme l'exigent
-  les licences ; il est seulement celui de l'application.
+- **Correction** : `Basemap.LocalVector` porte le crédit à imposer (`attribution`). `meshMapOrnaments(archiveCredit)`
+  garde le logo et le bouton ⓘ de la bibliothèque, mais en remplace le contenu déplié
+  (`ExpandingAttributionButton.expandedContent`) par ce crédit seul (`shownAttributions`), quelles que soient les
+  métadonnées du fichier. Les cartes sans crédit imposé (fonds en ligne, autres formats) gardent les crédits que leur
+  style ou leur fichier déclare.
+- **Seulement pour un fond Protomaps** : le crédit « © contributeurs OpenStreetMap · Protomaps » (anglais : « ©
+  OpenStreetMap contributors · Protomaps », texte `map_attribution_osm_protomaps`, déjà traduit) n'est imposé que si les
+  métadonnées JSON du fichier le désignent comme tel : `name` égal à « Protomaps Basemap » (casse et espaces ignorés) ou
+  `description` qui mentionne Protomaps (`PmTilesMetadata.isProtomapsBasemap`, `importedCredit`). Le fichier de Cincu a
+  `name` = « Protomaps Basemap ». Toute autre carte `.pmtiles` garde **le crédit déclaré dans ses métadonnées**, ou
+  **aucun** s'il n'en déclare pas : le style qu'on lui construit déclare alors un crédit vide au lieu de retomber sur celui
+  de l'application, et le bouton ⓘ n'apparaît pas. C'est ce qu'il faut pour les cartes raster converties depuis des GeoTIFF
+  (à venir), qui auront leur propre source.
+- **Lecture des métadonnées** : `PmTilesHeader` donne maintenant l'emplacement de la section de métadonnées
+  (`metadataOffset`, `metadataLength`) et la compression interne (octet 97). `OfflineMapLibrary.readMetadata`, appelée
+  quand les cartes du téléphone sont listées, lit cette section (1 Mio au plus), la décompresse (aucune ou gzip, comme
+  les fichiers Protomaps ; brotli, zstd ou inconnue : le fichier est alors traité comme ne déclarant rien) et
+  `PmTilesMetadata.parse` en extrait `name`, `description` et `attribution`. Un fichier dont les métadonnées sont
+  illisibles n'est donc pas pris pour un fond Protomaps.
 - **Mode démo** : sans effet, la carte de démo n'a pas de fichier importé.
 - **Textes** : aucun nouveau.
-- **Tests** : `MapOrnamentsTest` (crédit imposé avec des métadonnées « © OpenStreetMap », vides ou en HTML ; crédits du
-  style conservés sans crédit imposé ; `LocalVector` porte son crédit). Lint (spotless, detekt) et tests de
-  `feature:map-maplibre` passés en local ; `OfflineMapBasemaps` (variante fdroid) n'est compilée que par la CI.
+- **Tests** : `PmTilesMetadataTest` (un test par cas : fond Protomaps par son nom ou par sa description, autre fichier
+  avec crédit déclaré, autre fichier sans crédit, métadonnées illisibles ; lecture gzip, non compressée, compression non
+  gérée ou octets cassés), `PmTilesHeaderTest` (emplacement des métadonnées, compression), `OfflineMapFilesTest` (style
+  sans crédit), `MapOrnamentsTest` (crédit imposé ou conservé, `LocalVector`). Lint (spotless, detekt) et tests de
+  `feature:map` et `feature:map-maplibre` passés en local ; `OfflineMapLibrary` et `OfflineMapBasemaps` (variante
+  fdroid) ne sont compilés que par la CI.
 
 ## État d'avancement au 9 novembre 2026
 
