@@ -28,9 +28,6 @@ import io.ktor.client.plugins.HttpTimeout
 import kotlinx.coroutines.runBlocking
 import okio.FileSystem
 import okio.Path.Companion.toPath
-import java.time.LocalDate
-import java.time.ZoneOffset
-import java.time.format.DateTimeFormatter
 import kotlin.system.exitProcess
 
 private class CountingSource(private val inner: RangeSource) : RangeSource {
@@ -61,16 +58,16 @@ fun main(args: Array<String>) {
     val code =
         runBlocking {
             client.use { http ->
-                val today = LocalDate.now(ZoneOffset.UTC)
-                val url =
-                    (0L..7L)
-                        .map { "$base/${today.minusDays(it).format(DateTimeFormatter.BASIC_ISO_DATE)}.pmtiles" }
-                        .firstOrNull { HttpRangeSource(http, it).head().status == 200 }
-                if (url == null) {
-                    println("Aucune édition sur les 8 derniers jours")
+                // The app's own edition search: newest of the last 8 days, no date written anywhere.
+                val mapSource = MapSource.parse(base) ?: error("adresse de source refusée : $base")
+                val edition =
+                    EditionFinder { HttpRangeSource(http, it).head() }.find(mapSource, System.currentTimeMillis())
+                if (edition !is EditionResult.Found) {
+                    println("Pas d'édition : $edition")
                     return@runBlocking 2
                 }
-                println("Édition : $url")
+                val url = edition.url
+                println("Édition : $url (${edition.info.length} octets, ETag ${edition.info.etag})")
                 FileSystem.SYSTEM.write("edition.txt".toPath()) { writeUtf8(url) }
                 val http1 = HttpRangeSource(http, url)
                 val source = CountingSource(http1)
@@ -78,6 +75,9 @@ fun main(args: Array<String>) {
                 val t0 = System.nanoTime()
                 val archive = extractor.readSource()
                 println("Métadonnées : ${archive.metadataText().take(160)}…")
+                val schema = BasemapSchema.check(archive.metadataText())
+                println("Schéma : $schema")
+                if (schema != SchemaCheck.Compatible) return@runBlocking 3
                 val plan = extractor.plan(archive, bounds, 0, maxZoom)
                 val planSeconds = (System.nanoTime() - t0) / 1e9
                 val planRequests = source.requests
