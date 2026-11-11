@@ -37,8 +37,13 @@ Branche partie de `feat/carte-telechargement` (`801af88`). Spécification : `doc
 | Mode démo | `DemoRoutes.isAvailable` (liste fermée), `DemoSendMessageUseCase` (en file → remis 1,5 s → relayé 3 s → accusé 5 s, échec 8 s pour CHARLIE-3, rien ne part), `DemoDataSet.history` (messages `Received`/`Sent`), `ScreenFacadesTest` | `core/demo/` |
 | CI | `fork-apk` lance `core:model`, `core:prefs`, `feature:messaging`, `core:demo` ; une poussée de Markdown seul ne lance rien | `.github/workflows/fork-apk.yml` |
 
-Constat important : **la maquette validée (4 écrans) n'est pas dans le dépôt.** Le plan suit la spécification ; la
-disposition sera alignée sur la maquette quand elle sera fournie (décision D1).
+Maquette validée (4 écrans) : `docs/maquette-demande-de-tir.pdf` (export du 11/11/2026). Elle fixe la disposition :
+puce « DT Demande de tir » sur sa propre ligne sous « Ma position · Fait observé · Convertisseur » ; formulaire
+« Brouillon gardé sur le téléphone » avec « Renouveler » en haut ; aperçu « Message k / N · X octets sur 200 » ; fiche
+reconstituée (bandeau rose, badge DT bordeaux, « 3 / 3 reçus », boutons GDH, « Voir les 3 messages bruts ») ; fiche
+incomplète (« Partie 3/3 manquante (cases 9 à 11) », « Dernière partie reçue il y a 40 s ») ; carte émetteur
+(« 1/3 Accusé par CDS TIR », « GDH attribution reçu : … », « GDH fin : en attente »). Les textes d'interface du § 5 sont
+repris de la maquette.
 
 ## 3. Architecture
 
@@ -86,20 +91,45 @@ feature/messaging/.../firerequest/
 - En-tête (première partie seulement) : `Origine OA · Destinataire CDS TIR · GDH demande 112250 loc NOV 26`.
 - Séparateur de lignes : `\n` (1 octet). L'exemple de la spécification, recompté : 166 + 154 + 168 = **488 octets**, avec
   `\n` entre les lignes et rien en fin de partie ; le découpage glouton du § 3.3 redonne exactement ces 3 parties.
-- Écritures proposées là où la spécification n'a pas d'exemple (toutes à valider, D7 à D14) :
+- Écritures validées le 11/11/2026 (cases 2, 3, 7, 9 et exemple de la spécification) :
 
-| Case | Proposition | Exemple |
+| Case | Règle | Exemple |
 |---|---|---|
 | 2 | lettres cochées d'abord, séparées par une espace, puis les types | `2 A G Emblée · Mettre en place 2 · Préparer` |
 | 3 | `Éclairement 2` ; Panaché : code, et pour 4 la lettre collée | `3 Neutralisation · Panaché 4A et 2` |
-| 4 | une moitié vide reste vide de part et d'autre de « / » | `4 Nb de cps 2 / 6 · Durée / 3 min · Intervalle entre les coups 10 / 20 s` |
-| 5 | Mode : code puis valeur et unité de la fiche | `5 Lanceurs 2 · Trajectoire 1 / 3 · Mode 2 30 ms et 3 10 m` |
-| 6 | libellés de la fiche, sélection multiple | `6 Pick-up en mouvement · Personnel abrité · Bâtiment` |
 | 7 | **une ligne de texte par ligne de la fiche**, chacune commençant par `7` puis la lettre de ligne ; TLE en dernier élément | `7 A G 1600 · D 2500 m · S 20 m` / `7 D X 34550 · Y 88800 · Z 640 m` / `7 Rep R1 R2 · Plus à l'est 200 m · Plus près 100 m` / `7 G 35T LL 33000 - 90300 · Z 610 m · TLE 2` |
-| 8 | libellés de la fiche | `8 Linéaire · Point central P1 · LG · Gisement 1600 · Front 200 m · Profondeur 100 m · Ouvert` |
 | 9 | comme l'exemple (Z sans « m », comme l'exemple) | `9 Grille · Gisement d'observ. 4800 · Observateur X 34550 Y 88800 Z 640` |
-| 10 | Gisement en millièmes ou lettre N/O/E/S | `10 Distance 800 m · Gisement N · Niveau de protection 3` |
-| 11 | heures en `..H..` | `11 HSO limité début 14H30 fin 14H45` |
+
+- **Cases 4, 5, 6, 8, 10 et 11 : tableau D26, en attente de validation case par case** (aucun code avant). Règles
+  communes : un élément dont tous les champs sont vides n'est pas écrit ; une case sans aucun élément s'écrit
+  `<n> non rempli` ; gisements écrits sans unité dans le message, suivis de « m̶ » (millièmes, m barré) à l'affichage,
+  comme la maquette ; à l'affichage, un élément par ligne, sauf quand la maquette les met sur une ligne (cases 8 et 10).
+
+| Case | Message envoyé (octets) | Affichage en clair chez le destinataire |
+|---|---|---|
+| 4 | `4 Nb de cps 2 / 6 · Durée 1 / 3 min · Intervalle entre les coups 10 / 20 s` (77) | Nb de cps 2 / 6 ⏎ Durée 1 / 3 min ⏎ Intervalle entre les coups 10 / 20 s |
+| 4 | `4 Nb de cps / 6 · Intervalle entre les coups 10 / s` (52) : moitié vide laissée vide, Durée absente | Nb de cps / 6 ⏎ Intervalle entre les coups 10 / s |
+| 4 | `4 non rempli` | non rempli (gris) |
+| 5 | `5 Lanceurs 2 · Trajectoire 1 / 3 · Mode 2 et 3 · Court retard 30 ms · Fusant 10 m` (85) : valeurs dans les champs « Court retard … ms », « Fusant … m », « Retard … m » de la maquette | Lanceurs 2 : Mo 120 ⏎ Trajectoire 1 : Plongeante / 3 : Nominale ⏎ Mode 2 : Percutant court retard 30 ms et 3 : Fusant 10 m |
+| 5 | `5 Lanceurs 1 · Trajectoire 1 · Mode 1` | Lanceurs 1 : Mo 81 mm ⏎ Trajectoire 1 : Plongeante ⏎ Mode 1 : Percutant instantané |
+| 5 | `5 Lanceurs 4 · Mode 4 · Retard 20 m` (37) | Lanceurs 4 : LRU ⏎ Mode 4 : Retard 20 m |
+| 6 | `6 Pick-up en mouvement · Personnel abrité · Artillerie pièces` (65) | Pick-up en mouvement ⏎ Personnel abrité ⏎ Artillerie pièces |
+| 6 | `6 Chars · Bâtiment` (20) | Chars ⏎ Bâtiment |
+| 6 | `6 Blindés légers · Pont` (26) : « Bâtiment ou [ ] », la case libre remplace « Bâtiment » | Blindés légers ⏎ Pont |
+| 8 | `8 Convergent` (12) | Convergent |
+| 8 | `8 Linéaire · Point central P1 · LG 200 · Gisement 1600 · Front 400 m · Profondeur 100 m · Ouvert` (103) | Linéaire · Point central P1 · LG 200 ⏎ Gisement 1600 m̶ · Front 400 m · Profondeur 100 m · Ouvert |
+| 8 | `8 Circulaire · Centre P2 · Rayon 100 m` (40) | Circulaire · Centre P2 · Rayon 100 m |
+| 10 | `10 Distance 800 m · Gisement 1600 · Niveau de protection 1` (exemple validé) | Distance 800 m · Gisement 1600 m̶ ⏎ Niveau de protection 1 : à découvert |
+| 10 | `10 Distance 1200 m · Gisement N · Niveau de protection 3` (58) | Distance 1200 m · Gisement N ⏎ Niveau de protection 3 : sous blindage |
+| 11 | `11 Aussitôt prêt` (exemple validé) | Aussitôt prêt |
+| 11 | `11 Aussitôt prêt limité NLT 14H30` (36) | Aussitôt prêt limité NLT 14H30 |
+| 11 | `11 HSO limité début 14H30 fin 14H45` (37) | HSO limité début 14H30 fin 14H45 |
+| 11 | `11 Synchro S1` · `11 Heure sur objectif 14H30` · `11 Heure de tir 14H25` · `11 Au commandement de OA` · `11 À mon commandement` | identiques |
+
+  Questions liées au tableau : case 6, « en mouvement / à l'arrêt » ne vaut-il que pour Pick-up (spécification) ou aussi
+  pour Chars et Blindés légers (rangée placée sous les trois sur la maquette) ? Case 8, LG et LD ont-ils une unité (la
+  spécification n'en donne pas : rien n'est écrit) ? Case 11, un seul choix ou plusieurs ? Heures `..H..` écrites
+  telles que saisies, sans fuseau (la fiche n'en porte pas).
 
 Pourquoi une ligne par ligne de la fiche en case 7 : dans `A G 1600 · D 2500 m`, « D » est la distance, mais D est aussi
 une lettre de ligne (RECTANG. D) ; et « G » est à la fois le gisement polaire et la ligne L R U G. Écrire chaque ligne de
@@ -121,7 +151,7 @@ l'exemple (une seule ligne G).
 
 ### 3.4 Lecture des parties reçues (`FireRequestPart`)
 
-- Une partie : texte qui **commence** par `[DT <n°> <k>/<N>]` puis un saut de ligne, avec `n°` = `[A-Z0-9]{1,8}` (D11),
+- Une partie : texte qui **commence** par `[DT <n°> <k>/<N>]` puis un saut de ligne, avec `n°` = `[A-Z0-9]{1,10}` (D3),
   `1 ≤ k ≤ N ≤ 9`. Tout autre texte reste un message ordinaire (pas de faux positif sur `[DT` au milieu d'un texte).
 - Réponse GDH : texte exactement `[DT <n°>] GDH attribution <gdh>` ou `[DT <n°>] GDH fin <gdh>`.
 - Lecture tolérante : une ligne de case qui ne se lit pas (autre version, saisie à la main) est gardée et **affichée
@@ -162,9 +192,15 @@ l'exemple (une seule ligne G).
 
 ### 3.7 Voir sur la carte (case 7) sans faux positif
 
-- `LruCoordinate` lit **seulement** les lignes L R U (G et H) de la case 7 d'une demande lue : `^\d{1,2}[C-X] [A-Z]{2}
-  \d{5} - \d{5}$` (D15 pour le nombre de chiffres), remis en MGRS `35T LL 33000 90300` et validé par `CoordinateParser`
-  (zone, bande et carré qui existent). Une ligne invalide n'a pas de bouton.
+- Écriture (D15, validée) : `35T LL 33000 - 90300` = fuseau UTM `35`, bande de latitude `T`, carré de 100 km `LL`,
+  X (abscisse, est-ouest) `33000`, Y (ordonnée, nord-sud) `90300`, **toujours 5 chiffres** (au mètre). Z (altitude ou
+  élévation, facultatif, en mètres) est un élément à part : `· Z 610 m`.
+- Formulaire, ligne L R U : champs Fuseau, Bande, Carré, X, Y, Z. **Chaque coordonnée est vérifiée par le convertisseur
+  existant** (`CoordinateParser`, MGRS) dès la saisie et à la lecture : zone, bande et carré qui existent, X et Y à
+  5 chiffres. Une ligne incomplète ou invalide est signalée sous la ligne (sans bloquer l'envoi, aucune case obligatoire).
+- `LruCoordinate` lit **seulement** les lignes L R U (G et H) de la case 7 d'une demande lue : `^(\d{1,2})([C-X])
+  ([A-Z]{2}) (\d{5}) - (\d{5})$`, remis en MGRS `35T LL 33000 90300` et validé par `CoordinateParser`. Une ligne
+  invalide n'a pas de bouton « Voir sur la carte ».
 - `MessageCoordinate` **n'est pas modifié** : le tiret ne fait pas partie de ses formats, donc aucun autre texte (un
   message ordinaire, `Observateur X 34550 Y 88800`, un X/Y de la ligne RECTANG.) n'est jamais pris pour une coordonnée.
   Test de non-régression : aucune partie de l'exemple n'est lue par `MessageCoordinate.find`.
@@ -173,14 +209,13 @@ l'exemple (une seule ligne G).
 
 ### 3.8 GDH (`Gdh`)
 
-- Forme : `JJHHMM <fuseau> <MOIS> <AA>`, `fuseau` ∈ `loc`, `Z`, `fra`, exactement comme l'exemple `112250 loc NOV 26`
-  (espace avant le fuseau aussi pour `Z`, par uniformité : D17).
+- Forme (D17, validée) : `JJHHMM loc MOIS AA` et `JJHHMM fra MOIS AA` avec une espace (`112150 loc NOV 26`,
+  `112150 fra NOV 26`) ; zoulou à l'usage militaire, Z collé : `112150Z NOV 26`.
 - Conversion depuis l'heure du téléphone (kotlinx-datetime) : `loc` = fuseau du téléphone
   (`TimeZone.currentSystemDefault()`), `Z` = UTC, `fra` = `Europe/Paris` (heure légale française, été/hiver gérés par la
   base de fuseaux). Le jour, le mois et l'année sont ceux **du fuseau choisi** (à 00 h 30 heure française, le Z est
   encore la veille).
-- Mois proposés (D18) : **OTAN** `JAN FEB MAR APR MAY JUN JUL AUG SEP OCT NOV DEC` (ASCII, usage des GDH militaires) ou
-  **français** `JAN FEV MAR AVR MAI JUN JUL AOU SEP OCT NOV DEC` (sans accents). `NOV` est commun aux deux.
+- Mois (D18, validé) : **OTAN** `JAN FEB MAR APR MAY JUN JUL AUG SEP OCT NOV DEC`.
 - Saisie : prérempli, modifiable ; lecture stricte (jour 01–31 valide pour le mois, heure 00–23, minute 00–59) ; un GDH
   qui ne se lit pas est signalé sous le champ mais n'empêche pas l'envoi (aucune case obligatoire) — à confirmer (D19).
 - Le choix du fuseau est mémorisé (`FireRequestPrefs`).
@@ -193,6 +228,23 @@ l'exemple (une seule ligne G).
   actuelle (D21). N'écrase pas un brouillon non vide sans confirmation.
 - En mode démo, brouillon et dernière demande sont ceux de la démo (`DemoFireRequestPrefs`, en mémoire), jamais les vrais.
 
+### 3.10 Une seule notification par demande (D25, validé)
+
+Lu dans le code : `MeshDataHandlerImpl.updateNotification` (`core:data`) appelle, pour chaque texte reçu,
+`MeshNotificationManager.updateMessageNotification` avec un drapeau `isSilent` ; sous Android,
+`MeshNotificationManagerImpl.showConversationNotification` (`core:service`) **reconstruit une notification par
+conversation** (même identifiant `contactKey.hashCode()`) à partir de l'historique non lu. D'où :
+
+- **Contenu** : dans l'historique affiché par la notification, les parties d'une même demande sont fondues en une seule
+  ligne « Demande de tir AB1234 · 2 / 3 reçus » (puis « 3 / 3 reçus ») ; une réponse GDH en une ligne « DT AB1234 · GDH
+  attribution 112252 loc NOV 26 ». Fonction pure dans `core:model` (`FireRequestNotificationLines`), testée en
+  `commonTest`, appelée par `core:service`.
+- **Une seule alerte** : la première partie reçue d'une demande sonne ; les suivantes de la même demande mettent la
+  notification à jour **en silence** (`isSilent = true`), décision prise par une fonction pure de `core:model`
+  (`FireRequestAnnouncement`) appelée par `core:data`. Les autres messages ne changent pas.
+- `core:data` n'est pas testé dans `fork-apk` : la règle est donc dans `core:model` (testée), l'appel dans `core:data`
+  reste d'une ligne. Bureau (`DesktopMeshNotificationManager`) : inchangé en v1.
+
 ## 4. Écrans
 
 1. **Puce « Demande de tir »** dans `FieldShortcutsRow` (après « Fait observé »), contour rouge, badge `DT`. Contrairement
@@ -201,7 +253,9 @@ l'exemple (une seule ligne G).
 2. **Formulaire** (écran plein, route `ContactsRoute.FireRequest`, D2) : en-tête, puis cases 1 à 11 dans l'ordre de la
    fiche, chacune repliable, avec son numéro et son titre de la fiche ; champs numériques au clavier numérique ; unités
    affichées comme sur la fiche (millièmes, m, min, s, ms). Barre du bas : taille totale et nombre de parties en direct,
-   « Aperçu ». Case 7 : bouton « Coller une coordonnée » sur les lignes G et H (D22).
+   « Aperçu ». Case 7 : bouton « Coller une coordonnée » en tête de case, comme la maquette ; le texte copié (appui
+   long sur la carte ou convertisseur) remplit la ligne L R U choisie (G ou H) : Fuseau, Bande, Carré, X, Y (D22).
+   Le bouton « Depuis la carte » (aller-retour vers la carte) est noté pour une suite, hors v1.
 3. **Aperçu** : toutes les parties, telles qu'elles partiront, avec « Partie k/N · X octets » ; « Modifier » ou
    « Envoyer la demande ». Rappel du destinataire.
 4. **Conversation** : carte émetteur ou fiche reconstituée (§ 3.6) ; feuille « Messages bruts » ; dialogue GDH.
@@ -284,8 +338,9 @@ Radio non connectée : le formulaire s'ouvre (brouillon), « Envoyer la demande 
 | 18 | Réponse GDH : envoi par le destinataire, affichage chez l'émetteur | feature:messaging |
 | 19 | Brouillon et « Renouveler » | feature:messaging |
 | 20 | Mode démo : demande reçue fictive, réponse GDH simulée + tests | core:demo |
-| 21 | Tests Compose du formulaire et des cartes | feature:messaging |
-| 22 | `FORK.md` § 30 et état d'avancement ; `TESTS-A-FAIRE.md` § 18 ; passation | docs |
+| 21 | Une seule notification par demande, mise à jour en silence + tests | core:model, core:data, core:service |
+| 22 | Tests Compose du formulaire et des cartes | feature:messaging |
+| 23 | `FORK.md` § 30 et état d'avancement ; `TESTS-A-FAIRE.md` § 18 ; passation | docs |
 
 Avant chaque commit : `spotlessApply spotlessCheck detekt` et les tests JVM du module touché, en local. Modifications
 ciblées (Edit), jamais de remplacement sur un fichier entier.
@@ -308,7 +363,7 @@ Tous en `commonTest` (lancés par `jvmTest` et `testAndroidHostTest` en CI), sau
   différent, délai dépassé, texte qui ressemble (`[DT` au milieu, `[DT AB 0/3]`, `[DT AB 4/3]`, `[DT AB 1/10]`) non pris.
 - **Réponse GDH** : rattachement à la bonne instance (expéditeur + n°), réponse avant les parties, réponse sans demande,
   deux GDH attribution (le plus récent affiché), GDH fin avant attribution.
-- **GDH** : `112250 loc NOV 26` aux trois fuseaux ; changement de jour et de mois entre Z et fra ; passage heure
+- **GDH** : `112250 loc NOV 26`, `112150Z NOV 26`, `112250 fra NOV 26` ; mois OTAN ; changement de jour et de mois entre Z et fra ; passage heure
   d'été/hiver à Paris ; 31 décembre → janvier de l'année suivante ; lecture stricte (32, 24 h, 60 min refusés).
 - **Coordonnée L R U** : `35T LL 33000 - 90300` lu ; zone, bande ou carré inexistants refusés ; `Observateur X 34550 Y
   88800 Z 640`, `X 34550 · Y 88800` et les lignes POLAIRES / RECTANG. jamais lus ; `MessageCoordinate.find` ne trouve
@@ -325,7 +380,7 @@ Tous en `commonTest` (lancés par `jvmTest` et `testAndroidHostTest` en CI), sau
 - Aucun nouveau module : `core:model`, `core:prefs`, `core:demo`, `feature:messaging` tournent déjà dans `fork-apk`.
   `core:navigation` n'y tourne pas (connu, FORK.md) : la route est couverte par `DemoRoutesTest` et la compilation de l'APK.
 - Runs groupés pour ne pas en annuler : un run après le commit 9 (code commun), un après le 15 (formulaire et envoi), un
-  après le 21. Pendant un run, poussée sur `wip/demande-de-tir`, puis sur `feat/demande-de-tir` une fois le run terminé.
+  après le 22. Pendant un run, poussée sur `wip/demande-de-tir`, puis sur `feat/demande-de-tir` une fois le run terminé.
   Les poussées de Markdown seul ne lancent pas `fork-apk`.
 
 ## 10. Essais sur téléphone (futur `TESTS-A-FAIRE.md` § 18)
@@ -344,7 +399,8 @@ Deux radios, deux téléphones (A émetteur, B destinataire), puis la radio du p
 - [ ] B envoie GDH attribution puis GDH fin : ils s'affichent sur la carte de A.
 - [ ] Brouillon gardé après fermeture de l'application ; « Renouveler » reprend la dernière demande.
 - [ ] Un client Meshtastic officiel reçoit les parties en texte lisible.
-- [ ] Notifications : ce que B reçoit pour 3 parties (D25).
+- [ ] Notifications : B reçoit 3 parties, **une seule** notification « Demande de tir AB1234 », qui sonne une fois et passe
+      de « 1 / 3 reçus » à « 3 / 3 reçus » ; la réponse GDH chez A : une ligne.
 - [ ] Mode démo : formulaire, envoi simulé, demande fictive reçue, réponse GDH simulée.
 
 ## 11. Risques
@@ -353,7 +409,7 @@ Deux radios, deux téléphones (A émetteur, B destinataire), puis la radio du p
 |---|---|
 | Écriture d'une case inventée faute d'exemple | Propositions soumises (§ 3.2, D7 à D14) ; test « aucun libellé hors fiche » |
 | Liste paginée : masquer des lignes peut faire sauter le défilement ou fausser le compteur de non-lus | Filtre au même endroit que les filtres de fil existants ; non-lus comptés par message (D14) ; essai sur téléphone |
-| Une notification par partie | D25 ; en v1 sans changement, ou résumé « DT AB1234 · partie k/N » |
+| Notification : parties suivantes en silence, mais une partie d'une autre demande ou un autre message doit toujours sonner | Règle pure testée (`FireRequestAnnouncement`) ; essai sur téléphone |
 | Aperçu de la liste des conversations montre le texte brut de la dernière partie | Accepté en v1 sauf décision contraire |
 | Recherche : un résultat peut pointer une ligne masquée | Le résultat mène à la carte de l'instance |
 | Temps d'antenne : N messages de 200 octets d'affilée, chacun avec accusé et renvois | N ≤ 9 ; la file existante espace les envois ; essai à mesurer |
@@ -364,13 +420,14 @@ Deux radios, deux téléphones (A émetteur, B destinataire), puis la radio du p
 
 ## 12. Décisions à prendre (questions ouvertes)
 
-Rien n'est codé avant les réponses du porteur du projet.
+Réponses du porteur du projet le 11/11/2026 : **toutes les propositions acceptées**, avec les précisions ci-dessous (colonne
+« Proposition » mise à jour). Seul D26 reste ouvert : rien n'est codé avant sa validation case par case.
 
 | N° | Question | Proposition |
 |---|---|---|
-| D1 | Maquette validée (4 écrans) : la déposer dans `docs/` (images) pour aligner la disposition ? | Oui, avant le commit 12 |
+| D1 | Maquette validée (4 écrans) : la déposer dans `docs/` (images) pour aligner la disposition ? | **Fait** : `docs/maquette-demande-de-tir.pdf` (ligne L R U avec Fuseau, Bande, Carré) |
 | D2 | Formulaire en écran plein (route) plutôt qu'en dialogue comme « Fait observé » | Écran plein |
-| D3 | Longueur maximale du n° de tir (lettres et chiffres) | 1 à 8, majuscules |
+| D3 | Longueur maximale du n° de tir (lettres et chiffres) | **1 à 10**, majuscules |
 | D4 | Majuscules forcées dans le n° de tir et l'origine ? | n° oui, origine non |
 | D5 | Destinataire présélectionné quand on vient d'une conversation directe ; après l'envoi, ouvrir la conversation directe avec lui | Oui / oui |
 | D6 | « Destinataire » écrit dans le message (`CDS TIR`) : texte libre saisi, ou nom du nœud choisi ? | Texte libre prérempli avec le nom du nœud, modifiable |
@@ -382,17 +439,17 @@ Rien n'est codé avant les réponses du porteur du projet.
 | D12 | Délai au-delà duquel une partie de même n° ouvre une nouvelle demande | 2 h |
 | D13 | Cases d'une partie manquante : « non reçu » (texte d'interface, distinct de « non rempli ») | Oui |
 | D14 | Carte placée au dernier message reçu de la demande (elle descend), autres lignes masquées | Oui |
-| D15 | Ligne L R U : X et Y toujours à 5 chiffres, ou 1 à 5 chiffres (précision MGRS réduite) ? « LL » est bien le carré de 100 km ? | 5 chiffres ; oui |
+| D15 | Ligne L R U : X et Y toujours à 5 chiffres, ou 1 à 5 chiffres (précision MGRS réduite) ? « LL » est bien le carré de 100 km ? | **5 chiffres (au mètre) ; LL = carré de 100 km ; Z facultatif ; champs Fuseau, Bande, Carré, X, Y, Z ; vérification par le convertisseur** |
 | D16 | Deux lignes G et H : deux boutons « Voir G / Voir H sur la carte » | Oui |
-| D17 | Z écrit `112150 Z NOV 26` (espace, comme loc) ou `112150Z NOV 26` (usage militaire) | Avec espace, comme la spécification |
-| D18 | Mois : OTAN (`FEB APR MAY AUG`) ou français (`FEV AVR MAI AOU`) | À choisir |
+| D17 | Z écrit `112150 Z NOV 26` (espace, comme loc) ou `112150Z NOV 26` (usage militaire) | **`112150Z NOV 26`** (Z collé) ; `112150 loc NOV 26`, `112150 fra NOV 26` |
+| D18 | Mois : OTAN (`FEB APR MAY AUG`) ou français (`FEV AVR MAI AOU`) | **OTAN** |
 | D19 | GDH illisible : signalé sans bloquer l'envoi | Oui (aucune case obligatoire en v1) |
 | D20 | Un seul brouillon pour le téléphone (pas un par conversation) | Oui |
 | D21 | « Renouveler » : GDH demande remis à l'heure actuelle, n° de tir gardé | Oui |
-| D22 | Remplir une ligne L R U depuis la carte ou le convertisseur : en v1 par « Coller une coordonnée » (le texte copié par l'appui long ou le convertisseur), sans aller-retour de navigation | Oui ; aller-retour plus tard |
+| D22 | Remplir une ligne L R U depuis la carte ou le convertisseur : en v1 par « Coller une coordonnée » (le texte copié par l'appui long ou le convertisseur), sans aller-retour de navigation | Oui ; **« Depuis la carte » noté en suite** |
 | D23 | Radio non connectée : formulaire ouvert, envoi grisé | Oui |
 | D24 | Libellés de la fiche en français sur tous les téléphones, interface traduite ; badge `DT` gardé en anglais | Oui |
-| D25 | Notifications : une par partie (comme aujourd'hui) ou une seule « Demande de tir AB1234 » | Une par partie en v1 |
-| D26 | Écritures proposées pour les cases 4, 5, 6, 8, 10, 11 (§ 3.2) | À valider case par case |
+| D25 | Notifications : une par partie (comme aujourd'hui) ou une seule « Demande de tir AB1234 » | **Une seule par demande, mise à jour à l'arrivée des parties** (§ 3.10) |
+| D26 | Écritures proposées pour les cases 4, 5, 6, 8, 10, 11 (§ 3.2) | **Ouvert** : tableau du § 3.2, validation case par case avant tout code |
 | D27 | Case 7 : une ligne de texte par ligne de la fiche, préfixée `7 <lettre>` ; TLE en fin de la dernière ligne | Oui |
 | D28 | Le filtre de fil « Info » montre aussi les demandes de tir, ou un filtre « DT » à part | Info en v1 |
