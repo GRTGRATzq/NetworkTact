@@ -100,7 +100,7 @@ feature/messaging/.../firerequest/
 | 7 | **une ligne de texte par ligne de la fiche**, chacune commençant par `7` puis la lettre de ligne ; TLE en dernier élément | `7 A G 1600 · D 2500 m · S 20 m` / `7 D X 34550 · Y 88800 · Z 640 m` / `7 Rep R1 R2 · Plus à l'est 200 m · Plus près 100 m` / `7 G 35T LL 33000 - 90300 · Z 610 m · TLE 2` |
 | 9 | comme l'exemple (Z sans « m », comme l'exemple) | `9 Grille · Gisement d'observ. 4800 · Observateur X 34550 Y 88800 Z 640` |
 
-- **Cases 4, 5, 6, 8, 10 et 11 : tableau D26, en attente de validation case par case** (aucun code avant). Règles
+- **Cases 4, 5, 6, 8, 10 et 11 : tableau D26, validé case par case le 11/11/2026**, règles communes comprises. Règles
   communes : un élément dont tous les champs sont vides n'est pas écrit ; une case sans aucun élément s'écrit
   `<n> non rempli` ; gisements écrits sans unité dans le message, suivis de « m̶ » (millièmes, m barré) à l'affichage,
   comme la maquette ; à l'affichage, un élément par ligne, sauf quand la maquette les met sur une ligne (cases 8 et 10).
@@ -126,10 +126,13 @@ feature/messaging/.../firerequest/
 | 11 | `11 HSO limité début 14H30 fin 14H45` (37) | HSO limité début 14H30 fin 14H45 |
 | 11 | `11 Synchro S1` · `11 Heure sur objectif 14H30` · `11 Heure de tir 14H25` · `11 Au commandement de OA` · `11 À mon commandement` | identiques |
 
-  Questions liées au tableau : case 6, « en mouvement / à l'arrêt » ne vaut-il que pour Pick-up (spécification) ou aussi
-  pour Chars et Blindés légers (rangée placée sous les trois sur la maquette) ? Case 8, LG et LD ont-ils une unité (la
-  spécification n'en donne pas : rien n'est écrit) ? Case 11, un seul choix ou plusieurs ? Heures `..H..` écrites
-  telles que saisies, sans fuseau (la fiche n'en porte pas).
+  Réponses du 11/11/2026 :
+  - case 6 : « en mouvement / à l'arrêt » vaut pour **Chars, Blindés légers et Pick-up** (l'accolade de la fiche couvre
+    les trois lignes) : `6 Chars à l'arrêt · Blindés légers en mouvement · Pick-up` (l'état reste facultatif) ;
+  - case 8 : LG et LD **sans unité**, comme sur la fiche ;
+  - case 11 : **sélection multiple** en v1, éléments séparés par « · » : `11 Aussitôt prêt · Heure de tir 14H25`
+    (les restrictions viendront avec le verrouillage des cases) ;
+  - heures `..H..` écrites **telles que saisies, sans fuseau** (`14H30`), comme sur la fiche.
 
 Pourquoi une ligne par ligne de la fiche en case 7 : dans `A G 1600 · D 2500 m`, « D » est la distance, mais D est aussi
 une lettre de ligne (RECTANG. D) ; et « G » est à la fois le gisement polaire et la ligne L R U G. Écrire chaque ligne de
@@ -421,7 +424,7 @@ Deux radios, deux téléphones (A émetteur, B destinataire), puis la radio du p
 ## 12. Décisions à prendre (questions ouvertes)
 
 Réponses du porteur du projet le 11/11/2026 : **toutes les propositions acceptées**, avec les précisions ci-dessous (colonne
-« Proposition » mise à jour). Seul D26 reste ouvert : rien n'est codé avant sa validation case par case.
+« Proposition » mise à jour). D26 validé case par case le 11/11/2026 : toutes les décisions sont prises.
 
 | N° | Question | Proposition |
 |---|---|---|
@@ -450,6 +453,6 @@ Réponses du porteur du projet le 11/11/2026 : **toutes les propositions accept�
 | D23 | Radio non connectée : formulaire ouvert, envoi grisé | Oui |
 | D24 | Libellés de la fiche en français sur tous les téléphones, interface traduite ; badge `DT` gardé en anglais | Oui |
 | D25 | Notifications : une par partie (comme aujourd'hui) ou une seule « Demande de tir AB1234 » | **Une seule par demande, mise à jour à l'arrivée des parties** (§ 3.10) |
-| D26 | Écritures proposées pour les cases 4, 5, 6, 8, 10, 11 (§ 3.2) | **Ouvert** : tableau du § 3.2, validation case par case avant tout code |
+| D26 | Écritures proposées pour les cases 4, 5, 6, 8, 10, 11 (§ 3.2) | **Validé** case par case (tableau du § 3.2 et réponses qui le suivent) |
 | D27 | Case 7 : une ligne de texte par ligne de la fiche, préfixée `7 <lettre>` ; TLE en fin de la dernière ligne | Oui |
 | D28 | Le filtre de fil « Info » montre aussi les demandes de tir, ou un filtre « DT » à part | Info en v1 |

@@ -137,5 +137,7 @@ Aucune case obligatoire en v1. Case vide = « <n> non rempli ». Les gisements s
 - Radio non connectée : formulaire ouvert, envoi grisé.
 - Libellés de la fiche en français sur tous les téléphones ; interface traduite (EN/FR) ; badge DT.
 - Demandes de tir rangées sous le filtre « Info ».
-- Écriture des cases 4, 5, 6, 8, 10 et 11 : validée case par case par le porteur du projet avant tout
-  code (plan, § 3.2).
+- Écriture des cases 4, 5, 6, 8, 10 et 11 : validée case par case (tableau D26 du plan, § 3.2, règles
+  communes comprises). Case 6 : « en mouvement / à l'arrêt » vaut pour Chars, Blindés légers et Pick-up
+  (l'accolade de la fiche couvre les trois lignes). Case 8 : LG et LD sans unité, comme sur la fiche.
+  Case 11 : sélection multiple en v1. Heures [..H..] écrites telles que saisies, sans fuseau (14H30).
