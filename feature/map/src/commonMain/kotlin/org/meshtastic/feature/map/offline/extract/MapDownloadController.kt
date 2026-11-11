@@ -70,6 +70,19 @@ class MapDownloadController(
     val pending: StateFlow<PendingDownload?> = _pending.asStateFlow()
     val source: StateFlow<MapSource> = _source.asStateFlow()
 
+    private val _frameOpen = MutableStateFlow(false)
+
+    /** Whether the download frame is shown over the map: opened from the list of maps, closed from the frame. */
+    val frameOpen: StateFlow<Boolean> = _frameOpen.asStateFlow()
+
+    fun openFrame() {
+        _frameOpen.value = true
+    }
+
+    fun closeFrame() {
+        _frameOpen.value = false
+    }
+
     /** An edition found and read once, kept while the source does not change (its directories are cached too). */
     private class Session(
         val source: MapSource,

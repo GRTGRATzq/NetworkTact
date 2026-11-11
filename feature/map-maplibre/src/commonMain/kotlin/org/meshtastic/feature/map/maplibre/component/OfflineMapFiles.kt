@@ -53,6 +53,7 @@ import org.meshtastic.core.resources.offline_map_copying
 import org.meshtastic.core.resources.offline_map_delete_message
 import org.meshtastic.core.resources.offline_map_delete_title
 import org.meshtastic.core.resources.offline_map_detail
+import org.meshtastic.core.resources.offline_map_download
 import org.meshtastic.core.resources.offline_map_error_copy
 import org.meshtastic.core.resources.offline_map_error_incomplete
 import org.meshtastic.core.resources.offline_map_error_not_pmtiles
@@ -118,10 +119,16 @@ interface OfflineMapFiles {
  * The basemap menu's entry for the maps stored on the device, and the sheet it opens.
  *
  * @param onImport Opens the platform's file picker; the host starts the copy when a file comes back.
+ * @param onDownload Opens the download frame over the map; null (no "Download a map" button) where the host has none.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun OfflineMapFilesMenuItem(files: OfflineMapFiles, onImport: () -> Unit, modifier: Modifier = Modifier) {
+fun OfflineMapFilesMenuItem(
+    files: OfflineMapFiles,
+    onImport: () -> Unit,
+    modifier: Modifier = Modifier,
+    onDownload: (() -> Unit)? = null,
+) {
     var sheetVisible by remember { mutableStateOf(false) }
 
     DropdownMenuItem(
@@ -138,6 +145,14 @@ fun OfflineMapFilesMenuItem(files: OfflineMapFiles, onImport: () -> Unit, modifi
                 maps = maps,
                 status = status,
                 onImport = onImport,
+                // The frame goes over the map: the sheet closes first.
+                onDownload =
+                onDownload?.let { open ->
+                    {
+                        sheetVisible = false
+                        open()
+                    }
+                },
                 onCancelImport = files::cancelImport,
                 onClearOutcome = files::clearImportOutcome,
                 onDelete = { map -> files.delete(map.id) },
@@ -151,6 +166,7 @@ private fun OfflineMapFilesSheet(
     maps: List<OfflineMapFile>,
     status: OfflineMapImport,
     onImport: () -> Unit,
+    onDownload: (() -> Unit)?,
     onCancelImport: () -> Unit,
     onClearOutcome: () -> Unit,
     onDelete: (OfflineMapFile) -> Unit,
@@ -205,6 +221,18 @@ private fun OfflineMapFilesSheet(
                 modifier = Modifier.fillMaxWidth().padding(16.dp),
             ) {
                 Text(stringResource(Res.string.offline_map_import))
+            }
+        }
+
+        if (onDownload != null) {
+            item {
+                OutlinedButton(
+                    onClick = onDownload,
+                    enabled = status !is OfflineMapImport.Copying,
+                    modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, bottom = 16.dp),
+                ) {
+                    Text(stringResource(Res.string.offline_map_download))
+                }
             }
         }
     }

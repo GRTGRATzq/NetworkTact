@@ -42,11 +42,17 @@ fun getMapViewProvider(): MapViewProvider = MapLibreMapViewProvider(
         CustomTileSourcesMenuItem(onAddLocalMbTiles = rememberMbTilesImport())
         // Offline .pmtiles maps: imported from a file, drawn with the style, fonts and sprites the APK carries.
         val offlineMaps: OfflineMapLibrary = koinInject()
-        OfflineMapFilesMenuItem(files = offlineMaps, onImport = rememberPmTilesImport(offlineMaps))
+        OfflineMapFilesMenuItem(
+            files = offlineMaps,
+            onImport = rememberPmTilesImport(offlineMaps),
+            onDownload = offlineMaps.downloads::openFrame,
+        )
     },
     // waypointEditor is not passed: EditWaypointDialog is multiplatform now and the provider defaults to it.
     // MapLibre's offline packs actually download here; on desktop they never do, so the default is off.
     offlineMapsSupported = true,
     // The same imported-layer manager the Google flavour opens from its layers button.
     layersSheetExtra = { ImportedLayersSlot() },
+    // Offline map downloads (docs/PLAN-CARTE-TELECHARGEMENT.md): the same library holds the downloaded maps.
+    mapDownloads = { koinInject<OfflineMapLibrary>().downloads },
 )

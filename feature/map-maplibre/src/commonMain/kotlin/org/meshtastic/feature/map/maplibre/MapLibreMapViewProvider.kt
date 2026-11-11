@@ -66,6 +66,7 @@ import org.meshtastic.feature.map.maplibre.component.BasemapButton
 import org.meshtastic.feature.map.maplibre.component.BasemapSelection
 import org.meshtastic.feature.map.maplibre.component.BoxAuthoringBar
 import org.meshtastic.feature.map.maplibre.component.CustomTileSourcesMenuItem
+import org.meshtastic.feature.map.maplibre.component.MapDownloadSlot
 import org.meshtastic.feature.map.maplibre.component.MapFootCards
 import org.meshtastic.feature.map.maplibre.component.MapLayersButton
 import org.meshtastic.feature.map.maplibre.component.MapPointSlot
@@ -85,6 +86,7 @@ import org.meshtastic.feature.map.maplibre.geojson.ClusterMember
 import org.meshtastic.feature.map.maplibre.layers.CustomLayer
 import org.meshtastic.feature.map.maplibre.style.Basemap
 import org.meshtastic.feature.map.maplibre.style.MapOverlay
+import org.meshtastic.feature.map.offline.extract.MapDownloadController
 
 /**
  * MapLibre implementation of [MapViewProvider], shared by the F-Droid flavor and the desktop app.
@@ -136,6 +138,11 @@ class MapLibreMapViewProvider(
      * picker behind its Add button is the platform-specific part, which is why the slot is the host's to fill.
      */
     private val layersSheetExtra: @Composable () -> Unit = {},
+    /**
+     * The map downloads of the host (docs/PLAN-CARTE-TELECHARGEMENT.md): their frame is drawn over this map when the
+     * host's list of maps opens it. Null, the default, for a host without downloads (desktop).
+     */
+    private val mapDownloads: @Composable () -> MapDownloadController? = { null },
 ) : MapViewProvider {
 
     @Composable
@@ -179,6 +186,7 @@ class MapLibreMapViewProvider(
             )
 
         val recenter = rememberRecenterControls(mapState)
+        val downloads = mapDownloads()
         FocusCamera(mapState, focus, focusRequests)
         SaveCameraPosition(mapState)
 
@@ -213,6 +221,8 @@ class MapLibreMapViewProvider(
                 offlineMapsSupported = offlineMapsSupported,
                 onSitePlannerClick = sitePlanner?.let { { screen.plannerOpen = true } },
             )
+
+            downloads?.let { MapDownloadSlot(it, mapState) }
 
             ClusterMembersSlot(screen.clusterMembers, navigateToNodeDetails) { screen.clusterMembers = emptyList() }
 
