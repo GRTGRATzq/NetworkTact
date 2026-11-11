@@ -199,9 +199,11 @@ R8 n'a été vérifié que par la compilation, jamais à l'exécution.
 - [ ] Un plantage au lancement ou dans une fonction qui marchait en debug : noter l'écran et l'heure, récupérer le
       journal (`adb logcat`), c'est probablement une règle R8 manquante.
 
-## 17. Téléchargement d'une carte (tâche 7) : pas encore disponible
+## 17. Téléchargement d'une carte (tâche 7)
 
-À faire **quand la fonction existera** (`docs/PLAN-CARTE-TELECHARGEMENT.md`, branche `feat/carte-telechargement`). Variante fdroid.
+Branche `feat/carte-telechargement`, variante fdroid (`docs/PLAN-CARTE-TELECHARGEMENT.md`, procédure dans `CARTE-HORS-LIGNE.md`).
+**Rien de l'écran n'a encore tourné sur un téléphone** : il compile, sa logique et ses boutons sont testés (JVM), le fichier
+produit est identique à `pmtiles extract` (CI) ; tout ce qui suit est à voir à l'œil et au doigt.
 
 - [ ] **Possible dès maintenant** : télécharger l'artefact `cartes-cincu` du dernier run vert de `fork-carte-interop`, copier
       `networktact-cincu.pmtiles` (écrit par l'extracteur de NetworkTact, 14,65 Mo) sur le téléphone, l'importer par « Importer
@@ -215,7 +217,11 @@ R8 n'a été vérifié que par la compilation, jamais à l'exécution.
 - [ ] Écran de la source : le texte « Le serveur source voit la zone demandée et l'adresse du téléphone » est lisible en entier ;
       une adresse `http://` est refusée ; une adresse `https://` valide est gardée.
 - [ ] Annulation en cours : aucun fichier résiduel, espace libre inchangé. Coupure (mode avion) puis reprise : fichier complet.
-      Fermeture de l'application pendant le téléchargement, réouverture : « Reprendre ».
+      Fermeture de l'application pendant le téléchargement, réouverture : « Reprendre », dans le panneau et dans « Cartes sur
+      le téléphone » (ligne « Téléchargement interrompu », pourcentage fait) ; « Reprendre » depuis la liste ouvre le cadre et
+      la progression.
+- [ ] « Cartes sur le téléphone » : sous une carte téléchargée, la ligne « Édition du AAAA-MM-JJ, build.protomaps.com · L × H km »
+      (dimensions du cadre) ; une carte importée n'a que la ligne taille et zooms.
 - [ ] Mode démo : bouton désactivé, rien téléchargé. Espace presque plein : refus avec les tailles.
 - [ ] Un ancien fichier importé du Mac (`cincu-30km.pmtiles`) fonctionne toujours à côté.
 - [ ] **Comparaison sur Mac** : récupérer le fichier du téléphone (APK de debug : `adb exec-out run-as

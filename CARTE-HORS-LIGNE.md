@@ -8,6 +8,47 @@ ordinateur relié à Internet.
 Les données viennent d'OpenStreetMap, via le fond de carte Protomaps : « © contributeurs
 OpenStreetMap », licence ODbL. L'application affiche cette mention sur la carte.
 
+## Méthode principale : télécharger la carte depuis le téléphone
+
+Le téléphone doit avoir Internet **pendant le téléchargement seulement** ; ensuite la carte
+fonctionne en mode avion.
+
+1. Onglet **Carte** → bouton des fonds de carte → **Cartes sur le téléphone** → **Télécharger
+   une carte**. La liste se ferme ; un cadre à quatre poignées apparaît sur la carte, qui est
+   remise au nord et à plat.
+2. Placer la zone : déplacer et zoomer la carte, tirer les coins du cadre, ou **Utiliser la
+   vue** (toute la zone visible). Le panneau affiche la largeur et la hauteur en km.
+3. Choisir le **zoom maximal** (15 par défaut ; 14 divise la taille par deux à quatre). Une
+   estimation grossière s'affiche aussitôt, sans réseau.
+4. **Calculer la taille** : le téléphone lit l'index de la carte (environ 1 Mo) et affiche la
+   taille exacte, le nombre de tuiles et l'édition (la plus récente des 8 derniers jours).
+5. Modifier le nom si besoin, puis **Télécharger**. Au-delà de 50 Mo, une confirmation est
+   demandée, en Wi-Fi comme en données mobiles. Garder l'écran allumé ; **Annuler** ne laisse
+   rien sur le téléphone.
+6. Une fois terminée, la carte devient le fond choisi et apparaît dans **Cartes sur le
+   téléphone**, avec son édition, sa source et ses dimensions.
+
+**Ce que voit le serveur source** : la zone demandée et l'adresse du téléphone (ou celle du
+réseau, du VPN). L'application ne lui envoie rien d'autre (ni nom d'application, ni compte). Pour
+ne rien révéler à Protomaps, régler une autre source (**Modifier**, à côté de « Source ») : un
+miroir interne en `https://`, soit un modèle d'éditions (`https://hôte/chemin/AAAAMMJJ.pmtiles`),
+soit l'adresse d'un seul fichier `.pmtiles` ; le serveur doit accepter les requêtes par plages
+(`Range`).
+
+**Coupure de réseau** : le téléchargement s'arrête et se garde ; **Reprendre** (dans le panneau
+ou dans **Cartes sur le téléphone**) ne télécharge que ce qui manque. Une reprise n'est possible
+que tant que l'édition existe (environ 7 jours, voir l'étape 2 ci-dessous) ; sinon, recommencer.
+
+**Exporter une carte** : dans **Cartes sur le téléphone**, l'icône d'export ouvre le sélecteur de
+fichiers Android ; la copie ne va qu'à l'endroit choisi (par exemple `Download`), d'où elle peut
+être copiée sur un ordinateur ou un autre téléphone (garder la mention « © contributeurs
+OpenStreetMap »).
+
+## Méthode de secours : produire le fichier sur un Mac
+
+À utiliser si le téléphone n'a pas Internet, ou pour une zone non rectangulaire (un
+département, étape 4).
+
 ## 1. Installer l'outil `pmtiles` sur le Mac
 
 ```sh
@@ -99,7 +140,9 @@ carte : **Cartes sur le téléphone**, icône corbeille, confirmer.
   l'application ; un `.pmtiles` raster est refusé à l'import.
 - Les libellés sont en français quand OpenStreetMap a un nom français, sinon dans la langue
   locale ; les caractères hors alphabets latin, grec et cyrillique ne s'affichent pas.
-- La carte montre l'état d'OpenStreetMap à la date de l'édition choisie à l'étape 2.
+- La carte montre l'état d'OpenStreetMap à la date de l'édition (choisie à l'étape 2, ou
+  affichée dans la liste pour une carte téléchargée).
+- Le téléchargement dans l'application prend un rectangle seulement.
 - Au-delà du zoom 15, la carte est agrandie, sans nouveaux détails.
 - Diffuser le fichier à d'autres équipes est permis par l'ODbL, à condition de garder la
   mention « © contributeurs OpenStreetMap ».
