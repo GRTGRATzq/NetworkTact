@@ -1,0 +1,40 @@
+name: fork-carte-sonde
+
+# Sonde ponctuelle d'une édition Protomaps (tâche 7, docs/PLAN-CARTE-TELECHARGEMENT.md, D1) : en-tête, métadonnées,
+# requêtes Range, répertoires de la zone de Cincu. Lecture seule par requêtes Range (quelques dizaines de Ko à quelques
+# Mo), aucune tuile de la zone n'est téléchargée, aucun secret n'est utilisé. Le résultat est dans le journal du run et
+# dans l'artefact `sonde`.
+#
+# Lancement : manuel (workflow_dispatch), ou poussée sur feat/carte-telechargement qui change un de ces fichiers
+# (un workflow_dispatch ne se déclenche que depuis la branche par défaut, où ce fichier n'est pas).
+on:
+  workflow_dispatch:
+  push:
+    branches: ["feat/carte-telechargement"]
+    paths:
+      - ".github/workflows/fork-carte-sonde.yml"
+      - "scripts/carte-sonde/**"
+
+concurrency:
+  group: fork-carte-sonde-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  sonde:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - name: Essai local de la sonde (archive synthétique, sans Internet)
+        run: python3 -I scripts/carte-sonde/test_sonde.py
+      - name: Sonde de l'édition Protomaps
+        run: python3 -I scripts/carte-sonde/sonde.py --json-out sonde.json
+      - uses: actions/upload-artifact@v6
+        if: always()
+        with:
+          name: sonde
+          path: sonde.json
+          if-no-files-found: ignore
