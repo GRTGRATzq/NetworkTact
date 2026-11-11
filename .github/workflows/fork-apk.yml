@@ -4,6 +4,9 @@ on:
   workflow_dispatch:
   push:
     branches: ["feat/**", "fix/**", "docs/**"]
+    # A push that only changes Markdown files (plans, FORK.md, TESTS-A-FAIRE.md...) builds nothing new: no run.
+    # A push that also touches any other file still runs. workflow_dispatch above is not filtered.
+    paths-ignore: ["**.md"]
 
 # A new push to a branch cancels that branch's run still in progress: only the latest commit is worth testing.
 concurrency:
