@@ -320,6 +320,9 @@ dependencies {
     // okio is only an `implementation` dependency of :feature:map-terrain, not `api` — this flavor needs its own
     // dependency to construct a TerrainTileStore itself.
     googleImplementation(libs.okio)
+    // Map downloads (fdroid): the shared extractor writes through Okio's FileSystem, an `implementation` of
+    // :feature:map only, so this flavor names it to hand over FileSystem.SYSTEM and the app's paths.
+    fdroidImplementation(libs.okio)
     // maps-compose-widgets requests androidx.compose.material:material version-less (expects a BOM
     // we exclude). Name it with a version so the version is published in the app's graph metadata.
     googleImplementation(libs.androidx.compose.material)

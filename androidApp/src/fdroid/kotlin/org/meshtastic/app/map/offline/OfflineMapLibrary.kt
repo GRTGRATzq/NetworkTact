@@ -19,6 +19,9 @@ package org.meshtastic.app.map.offline
 import android.content.Context
 import android.net.Uri
 import co.touchlab.kermit.Logger
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.okhttp.OkHttp
+import io.ktor.client.plugins.HttpTimeout
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -26,9 +29,12 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import okio.FileSystem
+import okio.Path.Companion.toOkioPath
 import org.koin.core.annotation.Single
 import org.meshtastic.core.common.di.ApplicationCoroutineScope
 import org.meshtastic.core.common.util.safeCatching
+import org.meshtastic.core.repository.DemoMode
 import org.meshtastic.core.repository.MapTileProviderPrefs
 import org.meshtastic.feature.map.maplibre.component.OfflineMapFile
 import org.meshtastic.feature.map.maplibre.component.OfflineMapFiles
@@ -38,6 +44,8 @@ import org.meshtastic.feature.map.offline.PMTILES_EXTENSION
 import org.meshtastic.feature.map.offline.PmTilesCheck
 import org.meshtastic.feature.map.offline.PmTilesHeader
 import org.meshtastic.feature.map.offline.PmTilesMetadata
+import org.meshtastic.feature.map.offline.extract.KtorMapSourceClient
+import org.meshtastic.feature.map.offline.extract.MapDownloadController
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.IOException
@@ -64,14 +72,18 @@ data class InstalledOfflineMap(val file: OfflineMapFile, val path: String, val m
  * `pmtiles-import/` for the copy in progress. A copy is moved into `pmtiles/` only once it is complete and checked, so
  * that directory never holds a partial file; `pmtiles-import/` is emptied before every import and on start.
  *
- * Nothing here touches the network: the file comes from the system file picker, and the style, fonts and sprites from
- * the APK ([OfflineMapAssets]).
+ * An import never touches the network: the file comes from the system file picker, and the style, fonts and sprites
+ * from the APK ([OfflineMapAssets]). A download ([downloads]) does, through its own HTTP client: not the app's shared
+ * one, which names the app in its `User-Agent`, caches responses on disk and logs requests in debug builds. The
+ * download in progress stays in `pmtiles-download/` and joins `pmtiles/` only once checked (see
+ * docs/PLAN-CARTE-TELECHARGEMENT.md §10).
  */
 @Single
 class OfflineMapLibrary(
     private val context: Context,
     private val scope: ApplicationCoroutineScope,
     private val tilePrefs: MapTileProviderPrefs,
+    private val demoMode: DemoMode,
 ) : OfflineMapFiles {
 
     private val mapsDir = File(context.filesDir, MAPS_DIR)
@@ -97,6 +109,25 @@ class OfflineMapLibrary(
     override val maps: StateFlow<List<OfflineMapFile>> = _maps.asStateFlow()
     override val importStatus: StateFlow<OfflineMapImport> = _importStatus.asStateFlow()
 
+    /** Map downloads from a Protomaps edition or another source (fdroid only, like the whole library). */
+    val downloads: MapDownloadController =
+        MapDownloadController(
+            scope = scope,
+            fileSystem = FileSystem.SYSTEM,
+            downloadDir = File(context.filesDir, DOWNLOAD_DIR).toOkioPath(),
+            mapsDir = mapsDir.toOkioPath(),
+            client = KtorMapSourceClient(downloadHttpClient()),
+            isDemoActive = { demoMode.isActive.value },
+            freeBytes = { File(it.toString()).usableSpace },
+            nowEpochMillis = { System.currentTimeMillis() },
+            newId = { Uuid.random().toString() },
+            onInstalled = { id, _ ->
+                mutex.withLock { refresh() }
+                // A map just downloaded is the one wanted, as after an import.
+                tilePrefs.setSelectedCustomTileProviderId(basemapId(id))
+            },
+        )
+
     init {
         scope.launch {
             mutex.withLock {
@@ -104,6 +135,8 @@ class OfflineMapLibrary(
                 refresh()
             }
         }
+        // A download stopped by a cut in an earlier run is offered again, or dropped when too old.
+        downloads.scanPending()
     }
 
     /** Copies the picked [uri] into the library under [name]. One import at a time; the button is off meanwhile. */
@@ -145,6 +178,7 @@ class OfflineMapLibrary(
             mutex.withLock {
                 File(mapsDir, "$id.$PMTILES_EXTENSION").delete()
                 File(mapsDir, "$id$NAME_SUFFIX").delete()
+                File(mapsDir, "$id$INFO_SUFFIX").delete()
                 refresh()
             }
         }
@@ -213,7 +247,9 @@ class OfflineMapLibrary(
                 .sortedBy { it.file.name.lowercase() }
         val ids = maps.map { it.file.id }.toSet()
         files
-            .filter { it.name.endsWith(NAME_SUFFIX) && it.name.removeSuffix(NAME_SUFFIX) !in ids }
+            .filter { file ->
+                listOf(NAME_SUFFIX, INFO_SUFFIX).any { file.name.endsWith(it) && file.name.removeSuffix(it) !in ids }
+            }
             .forEach { it.delete() }
 
         if (maps.isNotEmpty()) installAssets()
@@ -267,6 +303,18 @@ class OfflineMapLibrary(
         private const val TAG = "OfflineMapLibrary"
         private const val MAPS_DIR = "pmtiles"
         private const val IMPORT_DIR = "pmtiles-import"
-        private const val NAME_SUFFIX = ".name"
+        private const val DOWNLOAD_DIR = "pmtiles-download"
+        private const val NAME_SUFFIX = MapDownloadController.NAME_SUFFIX
+        private const val INFO_SUFFIX = MapDownloadController.INFO_SUFFIX
+        private const val CONNECT_TIMEOUT_MS = 15_000L
+        private const val SOCKET_TIMEOUT_MS = 30_000L
+
+        /** No cache, no logging, no default headers: the source learns only the ranges asked and a neutral agent. */
+        private fun downloadHttpClient(): HttpClient = HttpClient(OkHttp) {
+            install(HttpTimeout) {
+                connectTimeoutMillis = CONNECT_TIMEOUT_MS
+                socketTimeoutMillis = SOCKET_TIMEOUT_MS
+            }
+        }
     }
 }
