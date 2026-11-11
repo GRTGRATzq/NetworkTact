@@ -105,7 +105,7 @@ class ExtractFixture(val source: SyntheticPmTiles, val bounds: GeoBounds, val mi
          * Every tile of [wider] from zoom 0 to 12, plus a far-away tile; at zoom 12 the western columns are "sea" (one
          * shared content, a run in the directory), and a few tiles are missing as in a real build.
          */
-        fun source(leafSize: Int = 50): SyntheticPmTiles {
+        fun source(leafSize: Int = 50, metadata: ByteArray = metadata()): SyntheticPmTiles {
             val tiles = HashMap<Long, ByteArray>()
             for (zoom in 0..12) {
                 val range = TileCover.rangeAt(wider, zoom)
@@ -119,8 +119,13 @@ class ExtractFixture(val source: SyntheticPmTiles, val bounds: GeoBounds, val mi
                 }
             }
             tiles[PmTilesTileId.of(12, 100, 100)] = gzipped("far away")
-            val metadata = """{"name":"Protomaps Basemap","version":"4.15.2"}""".encodeToByteArray()
             return SyntheticPmTiles(tiles, metadata, leafSize)
+        }
+
+        /** Metadata like the daily build's (probe of 11 November 2026): schema 4.15.2 and the 9 layers of the style. */
+        fun metadata(version: String = "4.15.2"): ByteArray {
+            val layers = BasemapSchema.STYLE_LAYERS.joinToString(",") { "{\"id\":\"$it\",\"fields\":{}}" }
+            return """{"name":"Protomaps Basemap","version":"$version","vector_layers":[$layers]}""".encodeToByteArray()
         }
 
         /** Tiles are gzip in the Protomaps builds; the final check looks for it. */

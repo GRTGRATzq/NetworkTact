@@ -44,6 +44,9 @@ data class DownloadJournal(
     val rangeCount: Int,
     val doneRanges: List<Int> = emptyList(),
     val startedAtEpochSeconds: Long,
+    /** The map's id once finished (`pmtiles/<id>.pmtiles`) and the name it will be listed under. */
+    val mapId: String = "",
+    val name: String = "",
     val version: Int = VERSION,
 ) {
     val bounds: GeoBounds
