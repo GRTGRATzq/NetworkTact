@@ -184,13 +184,27 @@ autour de Cincu donne 43,7 Mo (45,8 Mo transférés), sous le seuil ; un départ
 - **Conservation mesurée** : le 11 novembre, **sept éditions répondent (11 au 5 novembre) ; celle du 4 novembre et toutes les
   plus anciennes (jusqu'à 90 jours) répondent 404.** Les éditions ne vivent donc qu'**environ une semaine**. Conséquences :
   l'exemple `20261007` de `CARTE-HORS-LIGNE.md` n'existe plus (à remplacer par « une date des sept derniers jours » au commit de
-  documentation) ; l'application **sonde de J à J-7 par `HEAD`** (8 requêtes au plus, pas 16) et prend la première qui répond 200 ;
-  l'édition du jour est publiée en cours de matinée (celle du 11 novembre : `Last-Modified` 09:03 UTC), d'où le retour à J-1 la
-  nuit ; chaque édition de cette semaine est complète (139,3 à 139,4 Go).
+  documentation) ; l'édition du jour est publiée en cours de matinée (celle du 11 novembre : `Last-Modified` 09:03 UTC) ;
+  chaque édition de cette semaine est complète (139,3 à 139,4 Go).
+- **Trouver l'édition la plus récente, sans aucune date codée en dur** :
+  1. Les candidates sont **calculées** : date du jour en UTC, puis J-1, …, J-7 (8 dates), au format `AAAAMMJJ`. Aucune date
+     n'est écrite dans le code ni dans les ressources ; seul le modèle d'URL l'est (et il est réglable, §9).
+  2. Une requête `HEAD` par date, **de la plus récente à la plus ancienne**, arrêt à la première qui répond 200 (avec
+     `Accept-Ranges: bytes` et une longueur) : c'est l'édition disponible la plus récente. La nuit, J répond 404 et J-1 est prise.
+  3. **Horloge du téléphone fausse** : chaque réponse, même 404, porte un en-tête `Date` du serveur. Si les 8 dates échouent et
+     que ce `Date` diffère de plus de 24 h de l'horloge du téléphone, les 8 candidates sont recalculées une fois à partir du
+     `Date` du serveur. Aucune autre tentative.
+  4. **Messages distincts** (§12) : aucune réponse du tout (pas de réseau, DNS, TLS) → « Impossible de joindre la source
+     <hôte>. Vérifiez la connexion Internet. » ; le serveur répond mais aucune des 8 dates n'existe → « Aucune édition de carte
+     n'a été trouvée sur <hôte> pour les 8 derniers jours. Réessayez plus tard ou changez l'adresse de la source. » ; source
+     réglée sur une URL directe (un seul fichier) qui répond 404 → « Le fichier <URL> est introuvable. » Rien n'est écrit sur le
+     téléphone dans ces trois cas.
+  5. Tests (commit 7) : dates calculées autour d'un changement de mois et d'année, J absent et J-1 présent, toutes absentes,
+     horloge en avance ou en retard de plusieurs jours (recalcul par `Date`), réseau injoignable, URL directe.
 - **Mémorisation** : l'édition (date, taille, ETag) est écrite avec la carte (`<id>.json`) et affichée dans la liste
   (« édition du 11 novembre 2026 »).
 - **Si l'édition disparaît** : (1) en cours de téléchargement, c'est un 404 ou un 412 : le téléchargement s'arrête proprement, rien
-  n'est gardé (ou reprise impossible, §10) ; (2) au sondage, si aucune édition ne répond : « Aucune édition disponible » ;
+  n'est gardé (ou reprise impossible, §10) ; (2) au sondage, si aucune édition ne répond : message du point 4 ci-dessous ;
   (3) **adresse de source réglable** (miroir) ; (4) la procédure du Mac reste documentée.
 - **Changement en cours de route** : chaque requête de tuile porte `If-Match` avec l'ETag du premier appel (**mesuré : 206 avec le
   bon ETag, 412 avec un faux**, l'ETag est de type multipart S3, `"…-520"`) ; un 412 arrête le téléchargement
@@ -249,7 +263,9 @@ autour de Cincu donne 43,7 Mo (45,8 Mo transférés), sous le seuil ; un départ
 |---|---|
 | Pas de réseau / DNS / TLS | message précis, rien écrit |
 | Coupure pendant le téléchargement | trois essais par plage, puis pause « reprise possible » |
-| 404 / 403 sur l'édition | nouveau sondage, sinon « Aucune édition disponible » |
+| Aucune réponse au sondage | « Impossible de joindre la source » |
+| 404 sur les 8 dates (après recalcul éventuel par `Date`) | « Aucune édition de carte n'a été trouvée… » |
+| 404 / 412 en cours de téléchargement ou à la reprise | arrêt ; « Cette édition de la carte n'existe plus : recommencez », journal supprimé |
 | 416, ou 200 au lieu de 206 | « Ce serveur ne gère pas les téléchargements partiels » (arrêt) |
 | 429 / 503 | attente croissante, puis pause |
 | ETag changé, 412 | arrêt, proposer de recommencer |
@@ -291,7 +307,13 @@ Clés `offline_map_download_*` dans `values/strings.xml` et `values-fr/strings.x
 | `…_done` | “%1$s” is ready: choose it in the map style menu. | « %1$s » est prête : choisissez-la dans le menu des fonds de carte. |
 | `…_edition` | Edition of %1$s | Édition du %1$s |
 | `…_error_offline` | No Internet connection. Nothing was kept. | Pas de connexion Internet. Rien n'a été conservé. |
-| `…_error_no_edition` | No map edition is available right now. | Aucune édition de carte n'est disponible pour le moment. |
+| `…_error_unreachable` | Cannot reach the source %1$s. Check the Internet connection. | Impossible de joindre la source %1$s. Vérifiez la connexion Internet. |
+| `…_error_no_edition` | No map edition was found on %1$s for the last 8 days. Try again later or change the source address. | Aucune édition de carte n'a été trouvée sur %1$s pour les 8 derniers jours. Réessayez plus tard ou changez l'adresse de la source. |
+| `…_error_file_missing` | The file %1$s cannot be found. | Le fichier %1$s est introuvable. |
+| `…_error_edition_gone` | This map edition no longer exists: start again. | Cette édition de la carte n'existe plus : recommencez. |
+| `offline_map_export` | Export | Exporter |
+| `offline_map_exported` | “%1$s” exported. | « %1$s » exportée. |
+| `offline_map_export_failed` | The export failed. Nothing was written. | L'export a échoué. Rien n'a été écrit. |
 | `…_error_changed` | The map edition changed during the download. | L'édition de la carte a changé pendant le téléchargement. |
 | `…_error_server` | This server does not allow partial downloads. | Ce serveur ne permet pas les téléchargements partiels. |
 | `…_error_schema` | This map edition is not compatible with the app yet. | Cette édition de la carte n'est pas encore compatible avec l'application. |
@@ -349,7 +371,7 @@ des résultats de la sonde.** Ensuite :
 13. Workflow d'interopérabilité (`pmtiles verify` et `pmtiles show`).
 14. Documentation : `FORK.md` §29, `CARTE-HORS-LIGNE.md` (nouvelle procédure ; celle du Mac gardée en secours),
     `TESTS-A-FAIRE.md` §17 complété.
-15. (selon D12) « Exporter une carte » vers un fichier choisi par l'utilisateur.
+15. « Exporter une carte » par le sélecteur de fichiers Android (D12) + essai dans `TESTS-A-FAIRE.md` §17.
 16. (lot ultérieur) saisie des dimensions au clavier ; raster (§17).
 
 Chaque commit est vérifié avant la poussée (lint local, tests du module) ; la CI `fork-apk` fait foi pour la compilation fdroid.
@@ -471,7 +493,13 @@ Validées le 11 novembre 2026 (D1 à D11), avec les précisions de l'utilisateur
 
 Reste à décider :
 
-- **D12** : la comparaison sur Mac demande de sortir le fichier du téléphone. Avec l'APK de release (non débogable), `adb run-as`
-  est impossible ; avec l'APK de debug (`com.geeksville.mesh.fdroid.debug`) il fonctionne. Faut-il ajouter « Exporter une carte »
-  (enregistrement dans un dossier choisi, commit 15, environ 60 lignes), utile aussi pour partager une carte entre équipes (ODbL
-  : mention à conserver) ? Recommandation : oui.
+Validées ensuite (même jour) :
+
+| | Décision |
+|---|---|
+| D3 | Confirmé : rectangle à poignées, « Utiliser la vue » en repli. |
+| D12 | **« Exporter une carte »** : bouton dans la liste « Cartes sur le téléphone », qui ouvre le **sélecteur de fichiers Android** (`ACTION_CREATE_DOCUMENT`, type `application/octet-stream`, nom proposé `<nom>.pmtiles`) ; la copie va **uniquement** à l'emplacement choisi par l'utilisateur, rien n'est envoyé ailleurs, aucune permission nouvelle. Utile aussi pour la comparaison sur Mac et pour partager une carte (ODbL : mention à conserver). Commit 15. |
+| D13 | Calcul exact de la taille par un **bouton explicite** « Calculer la taille », jamais automatique au déplacement du cadre. |
+
+D7 est précisé par la durée de vie des éditions : un téléchargement interrompu est gardé au plus 7 jours **et** tant que son
+édition répond (§10).
