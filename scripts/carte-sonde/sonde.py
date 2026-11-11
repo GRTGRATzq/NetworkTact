@@ -254,6 +254,10 @@ def probe_metadata(url, header, style_dir):
     print(f"  vector_layers ({len(layers)}) : {', '.join(sorted(layers))}")
     result = {"keys": sorted(meta.keys()), "name": meta.get("name"), "version": meta.get("version"),
               "attribution": meta.get("attribution"), "layers": sorted(layers)}
+    print("  Champs déclarés par couche :")
+    for layer_id in sorted(layers):
+        print(f"    {layer_id}: {', '.join(layers[layer_id]) or '(aucun déclaré)'}")
+    result["fields"] = layers
     if style_dir:
         import glob
         import os
@@ -262,13 +266,52 @@ def probe_metadata(url, header, style_dir):
         for f in sorted(glob.glob(os.path.join(style_dir, "*.json"))):
             style = json.load(open(f, encoding="utf-8"))
             used[os.path.basename(f)] = sorted({lay["source-layer"] for lay in style["layers"] if "source-layer" in lay})
-        for name, ids in used.items():
-            missing = [i for i in ids if i not in layers]
-            extra = [i for i in layers if i not in ids]
-            print(f"  Style {name} utilise {len(ids)} couches ; absentes de l'édition : {missing or 'aucune'} ; "
-                  f"présentes dans l'édition mais pas dans le style : {extra or 'aucune'}")
-            result.setdefault("style_missing", {})[name] = missing
+            fields_used = style_fields(style)
+            for name, ids in [(os.path.basename(f), used[os.path.basename(f)])]:
+                missing = [i for i in ids if i not in layers]
+                extra = [i for i in layers if i not in ids]
+                print(f"  Style {name} utilise {len(ids)} couches ; absentes de l'édition : {missing or 'aucune'} ; "
+                      f"présentes dans l'édition mais pas dans le style : {extra or 'aucune'}")
+                result.setdefault("style_missing", {})[name] = missing
+                absent_fields = {}
+                for layer_id, keys in sorted(fields_used.items()):
+                    gone = sorted(k for k in keys if layer_id in layers and k not in layers[layer_id]
+                                  and not k.startswith(("name:", "$")))
+                    if gone:
+                        absent_fields[layer_id] = gone
+                print(f"  Style {name} : champs lus par le style mais non déclarés dans les métadonnées de la couche : "
+                      f"{absent_fields or 'aucun'}")
+                result.setdefault("style_missing_fields", {})[name] = absent_fields
     return result
+
+
+def style_fields(style):
+    """{couche de tuiles: champs lus} d'après les expressions get/has, les filtres hérités et les {jetons} de texte."""
+    import re
+
+    found = {}
+
+    def walk(node, bucket):
+        if isinstance(node, list):
+            if len(node) >= 2 and node[0] in ("get", "has", "!has") and isinstance(node[1], str):
+                bucket.add(node[1])
+            elif len(node) >= 3 and node[0] in ("==", "!=", "in", "!in", ">", "<", ">=", "<=") and isinstance(node[1], str):
+                bucket.add(node[1])  # filtre hérité : ["==", "kind", "x"]
+            for child in node:
+                walk(child, bucket)
+        elif isinstance(node, dict):
+            for child in node.values():
+                walk(child, bucket)
+        elif isinstance(node, str):
+            bucket.update(re.findall(r"\{([^{}]+)\}", node))
+
+    for layer in style.get("layers", []):
+        if "source-layer" not in layer:
+            continue
+        bucket = found.setdefault(layer["source-layer"], set())
+        for key in ("filter", "layout", "paint"):
+            walk(layer.get(key), bucket)
+    return found
 
 
 def walk_directories(url, header, root_entries, tile_ids, etag):
@@ -344,12 +387,13 @@ def main():
     p.add_argument("--style-dir", default="androidApp/src/fdroid/assets/offline-map/styles")
     p.add_argument("--today", help="AAAA-MM-JJ (essais) ; par défaut aujourd'hui, UTC")
     p.add_argument("--json-out", default="sonde.json")
+    p.add_argument("--no-retention", action="store_true", help="ne pas sonder les éditions de plus de 16 jours")
     a = p.parse_args()
     started = time.time()
     today = datetime.strptime(a.today, "%Y-%m-%d").date() if a.today else datetime.now(timezone.utc).date()
 
     summary = {"parameters": vars(a)}
-    found = probe_editions(a.base, today, 16, [20, 30, 45, 60, 90])
+    found = probe_editions(a.base, today, 16, [] if a.no_retention else [20, 30, 45, 60, 90])
     if not found:
         print("\nAucune édition ne répond : arrêt.")
         summary["edition"] = None
@@ -379,7 +423,7 @@ def main():
     for z, (r, c) in per_zoom.items():
         rect_total += r
         circle_total += c
-        if z >= 10:
+        if z >= 12:
             print(f"  zoom {z:>2} : rectangle {r:>6} tuiles, cercle {c:>6}")
     print(f"  total zooms 0 à {zmax} : rectangle {rect_total}, cercle {circle_total}")
     ids = {tile_id(z, x, y): z for tiles in circle.values() for (z, x, y) in tiles}
@@ -403,9 +447,13 @@ def main():
     tile_bytes = sum(length for (_, length) in unique)
     print(f"  tuiles présentes : {len(entries)} sur {len(ids)} demandées ; contenus distincts : {len(unique)} ; "
           f"octets de tuiles : {tile_bytes} ({tile_bytes / 1e6:.1f} Mo)")
+    found_per_zoom = {}
+    for tid in entries:
+        found_per_zoom[ids[tid]] = found_per_zoom.get(ids[tid], 0) + 1
+    print("  Par zoom (tuiles du cercle présentes, Mo sans dédoublonnage, Ko par tuile) :")
     for z in sorted(per_zoom_bytes):
-        if z >= 12:
-            print(f"    zoom {z:>2} : {per_zoom_bytes[z] / 1e6:6.2f} Mo (sans dédoublonnage)")
+        n = found_per_zoom[z]
+        print(f"    zoom {z:>2} : {n:>5} tuiles {per_zoom_bytes[z] / 1e6:7.2f} Mo {per_zoom_bytes[z] / n / 1000:8.1f} Ko/tuile")
     merged, fetched = merge_ranges(list(unique.keys()), 0.05)
     print(f"  plages à télécharger après fusion (excédent 5 %) : {len(merged)} requêtes, {fetched / 1e6:.1f} Mo à transférer")
     if entries:
@@ -417,7 +465,8 @@ def main():
                          "directory_requests": dir_requests, "directory_seconds": round(dir_seconds, 2)}
 
     print("\n== 6. Tuiles d'essai ==")
-    sample = sorted(entries.items(), key=lambda kv: kv[1][1])[-3:]
+    by_size = sorted(entries.items(), key=lambda kv: kv[1][1])
+    sample = by_size[-2:] + [kv for kv in by_size if ids[kv[0]] == zmax][-1:]
     for tid, (off, length) in sample:
         data = read_range(url, header["tiledata_offset"] + off, length, {"If-Match": etag} if etag else None)
         ok = data[:2] == b"\x1f\x8b"

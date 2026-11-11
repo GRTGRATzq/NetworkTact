@@ -32,9 +32,15 @@ jobs:
         run: python3 -I scripts/carte-sonde/test_sonde.py
       - name: Sonde de l'édition Protomaps
         run: python3 -I scripts/carte-sonde/sonde.py --json-out sonde.json
+      # Deux autres zones : une petite zone urbaine dense (Draguignan, 8 km, la ville de CARTE-HORS-LIGNE.md) et une grande zone
+      # (60 km autour de Cincu), pour mesurer la densité (Ko par tuile) et la croissance des répertoires lus.
+      - name: Zone urbaine dense (Draguignan, 8 km)
+        run: python3 -I scripts/carte-sonde/sonde.py --no-retention --lat 43.537 --lon 6.465 --radius-km 8 --json-out sonde-urbain.json
+      - name: Grande zone (60 km autour de Cincu)
+        run: python3 -I scripts/carte-sonde/sonde.py --no-retention --radius-km 60 --json-out sonde-grande.json
       - uses: actions/upload-artifact@v6
         if: always()
         with:
           name: sonde
-          path: sonde.json
+          path: sonde*.json
           if-no-files-found: ignore
