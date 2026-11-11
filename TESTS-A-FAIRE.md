@@ -214,13 +214,20 @@ R8 n'a été vérifié que par la compilation, jamais à l'exécution.
 - [ ] Mode démo : bouton désactivé, rien téléchargé. Espace presque plein : refus avec les tailles.
 - [ ] Un ancien fichier importé du Mac (`cincu-30km.pmtiles`) fonctionne toujours à côté.
 - [ ] **Comparaison sur Mac** : récupérer le fichier du téléphone (APK de debug : `adb exec-out run-as
-      com.geeksville.mesh.fdroid.debug cat files/pmtiles/<identifiant>.pmtiles > telephone.pmtiles` ; l'APK de release n'est pas
-      débogable, d'où l'export prévu à la décision D12 du plan). Puis `pmtiles verify telephone.pmtiles` et
+      com.geeksville.mesh.fdroid.debug cat files/pmtiles/<identifiant>.pmtiles > telephone.pmtiles` ; avec l'APK de release, qui
+      n'est pas débogable, passer par « Exporter une carte », essai ci-dessous). Puis `pmtiles verify telephone.pmtiles` et
       `pmtiles show telephone.pmtiles`, à comparer à `pmtiles show cincu-30km.pmtiles` (produit le 8 novembre) : type de
       tuile, zooms, nombres de tuiles adressées, d'entrées et de contenus, taille des tuiles. Les bornes et nombres diffèrent
       si les zones diffèrent. **Pour une comparaison à zone égale**, refaire sur le Mac, avec **l'édition affichée par le
       téléphone**, `pmtiles extract <source>/<édition>.pmtiles essai.pmtiles --bbox=<ouest,sud,est,nord du cadre>
       --maxzoom=15` et comparer `pmtiles show essai.pmtiles` : mêmes nombres de tuiles et de contenus attendus.
+- [ ] **Exporter une carte** (D12) : « Cartes sur le téléphone » → Exporter sur la carte téléchargée : le sélecteur de fichiers
+      Android s'ouvre avec le nom `<nom>.pmtiles` ; choisir `Download` ; le fichier apparaît là, de même taille que dans la
+      liste ; rien d'autre n'est demandé (aucune permission, aucun partage vers une application). Annuler le sélecteur : rien
+      n'est écrit. Le fichier exporté, copié sur le Mac, sert à la comparaison ci-dessus (`pmtiles verify`, `pmtiles show`) et
+      se réimporte dans NetworkTact (« Importer un fichier .pmtiles »).
+- [ ] Aucune édition joignable (mode avion juste avant « Calculer la taille ») : « Impossible de joindre la source … » ;
+      source réglée sur une adresse sans édition : « Aucune édition de carte n'a été trouvée … pour les 8 derniers jours ».
 - [ ] Écran des licences : `pmtiles-reader` apparaît avec la licence BSD-3-Clause.
 
 ## Avant fusion dans `main`
