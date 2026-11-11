@@ -148,45 +148,61 @@ toucher à l'extracteur.
 
 ## 7. Estimation de taille avant téléchargement
 
+**Mesures de la sonde (§15, édition du 11 novembre 2026)** qui commandent la conception :
+
+- Le coût d'une estimation **exacte** est **à peu près constant** : le répertoire racine (15 567 octets, déjà dans les 16 Ko du premier
+  appel) et **8 à 9 répertoires feuilles, 1,05 à 1,10 Mo au total**, en 8 ou 9 requêtes, 2,7 à 3,4 s depuis un exécuteur GitHub. Même
+  volume pour 8 km, 30 km et 60 km : chaque niveau de zoom tombe dans une feuille, et ce sont les mêmes feuilles.
+- La taille **ne suit pas le nombre de tuiles** : les tuiles de bas zoom sont énormes (zoom 7 : 220 à 490 Ko pièce, zoom 8 : 220 à
+  350 Ko) et celles du zoom 15 petites en campagne (1,0 Ko) mais grosses en ville (6,4 Ko). Cincu, 30 km : zooms 0 à 11 = **4,1 Mo
+  pour 48 tuiles**, zoom 12 : 0,92 Mo, 13 : 1,35, 14 : 2,20, 15 : 4,15 ; total **12,7 Mo** pour 5 485 tuiles (2,3 Ko en moyenne).
+  Draguignan, 8 km : zooms 0 à 11 = 1,6 Mo, 12 : 0,21, 13 : 0,35, 14 : 0,70, 15 : 1,87 ; total **4,7 Mo** pour 428 tuiles
+  (**11 Ko** en moyenne, 4,8 fois plus par tuile que Cincu).
+- Cohérence avec le fichier du Mac : le rectangle circonscrit de Cincu compte 6 822 tuiles contre 5 485 pour le cercle ; les
+  1 337 tuiles de plus (zooms 13 à 15, environ 1,5 Ko) ajoutent environ 2 Mo : de l'ordre des **15 Mo** obtenus sur le Mac.
+
 Deux niveaux, pour que le chiffre ne soit jamais présenté comme plus sûr qu'il n'est :
 
-1. **Immédiate, hors ligne** : nombre de tuiles (calculé, exact) × octets moyens par tuile, affichée comme une
-   **fourchette** (« environ 10 à 40 Mo »). Nombre de tuiles du cas de référence (rectangle circonscrit, calcul de ce
-   plan) : zooms 0 à 12 : 143 ; à 13 : 485 ; à 14 : 1 781 ; à 15 : 6 822 (5 041 au seul zoom 15). 15 Mo pour 6 822 tuiles
-   donne **2,2 Ko par tuile** : c'est la campagne roumaine. Une ville est beaucoup plus dense : `CARTE-HORS-LIGNE.md` annonce
-   « quelques Mo » pour Draguignan, soit une centaine de tuiles au zoom 15 (calcul sommaire, à mesurer), donc de l'ordre
-   de dix fois plus par tuile. **La densité fait varier le résultat d'un facteur 10** : d'où le niveau 2.
-2. **Exacte, après « Calculer la taille »** : exécute les étapes 1 à 4 de l'algorithme (en-tête, répertoires, réencodage),
-   sans télécharger une seule tuile, et donne la taille finale du fichier à l'octet près (plus l'excédent de fusion).
-   Coût réseau : le répertoire racine, quelques répertoires feuilles, probablement quelques centaines de Ko (**à mesurer par la sonde**, §15).
-   C'est ce chiffre qui commande le contrôle d'espace libre et l'avertissement de réseau mobile.
+1. **Immédiate, hors ligne, indicative** : nombre de tuiles du cadre (calculé, exact) et **fourchette** de taille
+   `[campagne, ville]` : par zoom, 1,0 / 2,1 / 4,9 / 12 Ko par tuile aux zooms 15 / 14 / 13 / 12 (campagne, Cincu) contre
+   6,4 / 8,5 / 13,5 / 23 Ko (ville, Draguignan), plus une part fixe de 1,5 à 4 Mo pour les zooms 0 à 11. Ces coefficients viennent
+   de **deux zones seulement** : une grande ville peut dépasser la borne haute. L'écran l'écrit (« estimation grossière »).
+2. **Exacte, après « Calculer la taille »** (bouton explicite, pas automatique, pour ne rien envoyer à chaque mouvement du cadre) :
+   étapes 1 à 4 de l'algorithme, sans télécharger une tuile ; **taille finale à l'octet près** (plus l'excédent de fusion de
+   5 %). Les répertoires lus sont gardés en mémoire pour la séance : un second calcul sur une zone voisine ne coûte presque rien.
+   C'est ce chiffre qui commande le contrôle d'espace libre et la confirmation.
 
 Le bouton « Télécharger » lance le niveau 2 s'il n'a pas été fait, puis **demande confirmation si la taille dépasse 50 Mo**
 (« Ce téléchargement fera environ X. Continuer ? »). **La règle est la même sur Wi-Fi et sur données mobiles** : le
 téléchargement est permis sur les deux, l'application ne distingue pas le type de connexion et n'en lit pas l'état
-(`ACCESS_NETWORK_STATE` n'est pas utilisé par cette tâche). Sous 50 Mo, il démarre sans confirmation.
+(`ACCESS_NETWORK_STATE` n'est pas utilisé par cette tâche). Sous 50 Mo, il démarre sans confirmation. Repère : 60 km de rayon
+autour de Cincu donne 43,7 Mo (45,8 Mo transférés), sous le seuil ; un département dense le dépasserait.
 
 ## 8. Édition Protomaps
 
-- **Source** : `https://build.protomaps.com/AAAAMMJJ.pmtiles`. Il n'existe pas d'alias « dernière » : on **sonde** en
-  arrière à partir de la date du jour (UTC) par `HEAD`, comme `PmTilesDailyBuild` (16 jours au plus), et on garde la
-  première qui répond 200. La publication quotidienne peut manquer quelques heures : c'est la raison du retour arrière.
+- **Source** : `https://build.protomaps.com/AAAAMMJJ.pmtiles` (139,4 Go le 11 novembre 2026). Pas d'alias « dernière ».
+- **Conservation mesurée** : le 11 novembre, **sept éditions répondent (11 au 5 novembre) ; celle du 4 novembre et toutes les
+  plus anciennes (jusqu'à 90 jours) répondent 404.** Les éditions ne vivent donc qu'**environ une semaine**. Conséquences :
+  l'exemple `20261007` de `CARTE-HORS-LIGNE.md` n'existe plus (à remplacer par « une date des sept derniers jours » au commit de
+  documentation) ; l'application **sonde de J à J-7 par `HEAD`** (8 requêtes au plus, pas 16) et prend la première qui répond 200 ;
+  l'édition du jour est publiée en cours de matinée (celle du 11 novembre : `Last-Modified` 09:03 UTC), d'où le retour à J-1 la
+  nuit ; chaque édition de cette semaine est complète (139,3 à 139,4 Go).
 - **Mémorisation** : l'édition (date, taille, ETag) est écrite avec la carte (`<id>.json`) et affichée dans la liste
-  (« édition du 5 novembre 2026 »).
-- **Si l'édition disparaît** (404 ou 403 : durée de conservation des anciennes éditions non documentée à ma
-  connaissance, à vérifier) : (1) nouveau sondage vers une date plus récente, sans toucher aux cartes installées ;
-  (2) si aucune ne répond : message « Aucune édition disponible » et pas de téléchargement ; (3) **adresse de source
-  réglable** (réglages avancés : une URL `.pmtiles` quelconque, par exemple un fichier hébergé par l'équipe), avec les mêmes
-  contrôles d'en-tête ; (4) la procédure du Mac reste valable et documentée.
-- **Changement en cours de route** : on envoie `If-Range`/`If-Match` avec l'ETag de la première réponse ; une réponse 412 ou
-  un ETag différent arrête le téléchargement avec « L'édition a changé pendant le téléchargement », et propose de
-  recommencer (le journal est invalidé).
-- **Compatibilité de schéma (risque majeur)** : le style embarqué est Protomaps Basemaps **5.7.2** ; une édition plus
-  récente peut changer les couches. Les éditions essayées jusqu'ici avec ce style sont celles de la procédure du Mac (`CARTE-HORS-LIGNE.md` cite celle du
-  7 octobre 2026 en exemple) ; je ne sais pas si une édition plus récente change le schéma. Fait en premier, par la sonde (§15) : lire la clé de version des métadonnées d'une édition réelle,
-  et la comparer à celle que le style connaît ; une version inconnue bloque le téléchargement avec un message, au lieu
-  de produire une carte vide.
-- **Option** : figer la date par défaut dans l'application et la mettre à jour à la main ? Rejetée : elle expirerait.
+  (« édition du 11 novembre 2026 »).
+- **Si l'édition disparaît** : (1) en cours de téléchargement, c'est un 404 ou un 412 : le téléchargement s'arrête proprement, rien
+  n'est gardé (ou reprise impossible, §10) ; (2) au sondage, si aucune édition ne répond : « Aucune édition disponible » ;
+  (3) **adresse de source réglable** (miroir) ; (4) la procédure du Mac reste documentée.
+- **Changement en cours de route** : chaque requête de tuile porte `If-Match` avec l'ETag du premier appel (**mesuré : 206 avec le
+  bon ETag, 412 avec un faux**, l'ETag est de type multipart S3, `"…-520"`) ; un 412 arrête le téléchargement
+  (« L'édition a changé pendant le téléchargement ») et invalide le journal. `If-Range` est écarté : en cas d'écart il
+  renverrait le fichier entier (139 Go).
+- **Compatibilité de schéma** : mesurée sur l'édition du 11 novembre : métadonnées `version` = **4.15.2**, `name` = « Protomaps
+  Basemap », 9 couches (`boundaries`, `buildings`, `earth`, `landcover`, `landuse`, `places`, `pois`, `roads`, `water`) **identiques
+  aux 9 couches du style embarqué 5.7.2** (clair et sombre), et **tous les champs lus par le style sont déclarés dans les
+  métadonnées, sauf `pgf:name`, `pgf:name2` (couche `earth`) et `pgf:name3` (quatre couches)**, qui ne servent qu'au texte
+  devanagari. La règle de l'application : accepter si les couches du style sont toutes présentes et si `version` est 4.x ;
+  sinon refuser avec un message au lieu de produire une carte vide. Reste à vérifier à l'œil : l'aspect de la carte, sur téléphone.
+- **Option** : figer la date par défaut dans l'application ? Rejetée : elle expirerait en une semaine.
 
 ## 9. Réseau, permissions, confidentialité (source réglable dès la v1)
 
@@ -217,7 +233,7 @@ téléchargement est permis sur les deux, l'application ne distingue pas le type
   pour elles. La suppression retire les trois fichiers ; `refresh()` supprime les orphelins comme il le fait pour `.name`.
 - Téléchargement en cours : dossier **séparé** `pmtiles-download/<id>.part` + `<id>.journal.json` (plan, ETag, plages
   terminées). `OfflineMapLibrary` vide aujourd'hui `pmtiles-import/` au démarrage ; il ne doit **pas** toucher
-  `pmtiles-download/` (sinon la reprise est perdue), mais en supprime les journaux de plus de 7 jours (D7).
+  `pmtiles-download/` (sinon la reprise est perdue), mais en supprime les journaux de plus de 7 jours (D7) **et ceux dont l'édition n'existe plus** (les éditions ne durent qu'environ une semaine, §8 : une reprise n'est possible que tant que l'édition répond ; sinon « L'édition n'existe plus : recommencer », sans rien garder).
 - Comme la mise en page est connue d'avance (§4, point 6), chaque plage terminée est écrite **à sa place** dans le
   fichier et notée dans le journal : reprendre revient à relire le journal, vérifier l'ETag (une requête `HEAD`) et ne
   télécharger que les plages manquantes. Reprise proposée par un bouton « Reprendre » dans la liste.
@@ -319,7 +335,7 @@ des résultats de la sonde.** Ensuite :
 
 1. Commentaires « MIT » de `pmtiles-reader` corrigés en « BSD-3-Clause » (3 fichiers de commentaires, aucun code).
 2. Identifiants de Hilbert et couverture d'un rectangle (tuiles par zoom) + tests.
-3. Codec de répertoires PMTiles v3 et écrivain d'en-tête + tests.
+3. Codec de répertoires PMTiles v3, écrivain d'en-tête et découpage en répertoires feuilles (racine ≤ 16 257 octets) + tests.
 4. Fusion de plages et plan d'extraction (entrées pertinentes, réencodage, taille finale) + tests sur archive synthétique.
 5. Source HTTP par plages (Ktor, ETag/`If-Match`, essais, délais, `User-Agent` fixe) + tests `MockEngine`.
 6. Écriture du fichier, journal de reprise, contrôle final + tests.
@@ -341,7 +357,7 @@ Branche `feat/carte-telechargement`, partie de `feat/apk-release`, aucune pull r
 
 ## 15. Sonde de l'édition (D1) : ce qui est vérifié et ce qui ne l'est pas encore
 
-- **`build.protomaps.com` est refusé depuis l'environnement de travail** (le proxy répond 403 au tunnel HTTPS ; `maps.protomaps.com`
+- **`build.protomaps.com` est refusé depuis l'environnement de travail de Claude** (le proxy répond 403 au tunnel HTTPS ; `maps.protomaps.com`
   de même). Aucun contournement n'a été cherché. La sonde est donc écrite pour tourner **sur un exécuteur GitHub**
   (`fork-carte-sonde.yml`) ; en attendant ses résultats, tout ce qui suit est une **hypothèse** tirée de la spécification, de
   `go-pmtiles` et du code google existant.
@@ -356,12 +372,31 @@ Branche `feat/carte-telechargement`, partie de `feat/apk-release`, aucune pull r
   `HEAD`, `Range`, `ETag` et `If-Match` : deux niveaux de répertoires, tuile partagée, résultats recomptés. Cela vérifie le
   script, pas le serveur Protomaps. Les identifiants de Hilbert coïncident avec la spécification (zoom 12, 3423, 1763 → 19 078 479 ;
   zoom 1 → 1 à 4).
-- **Résultats de la sonde** : à ajouter ici après son premier run (section « Résultats de la sonde » ci-dessous).
+- **Résultats de la sonde** : section « Résultats de la sonde » ci-dessous (run 2, 11 novembre 2026).
 - Pas d'accès à un téléphone : aucune ouverture dans MapLibre du fichier produit.
 
 ### Résultats de la sonde
 
-(en attente du premier run de `fork-carte-sonde`)
+Run `fork-carte-sonde` n° 2 (11 novembre 2026, 15:25 UTC, exécuteur GitHub, 8 à 9 s par zone, 32 à 38 requêtes, 1,6 à 2,3 Mo lus par
+zone, aucune limitation de débit rencontrée). Le journal et l'artefact `sonde` (JSON) sont dans le run. Les zones : Cincu 30 km
+(cas de référence), Draguignan 8 km (ville dense), Cincu 60 km.
+
+| | Résultat |
+|---|---|
+| Éditions | 11 au 5 novembre : HTTP 200 (139,3 à 139,4 Go) ; du 4 novembre à 90 jours : 404. **Sept éditions conservées.** |
+| `Range` | 206, `Content-Range`, `Accept-Ranges: bytes`, **ETag** `"3026a200…-520"`, serveur Cloudflare (`cf-cache-status: DYNAMIC`). **`If-Match`** : bon ETag 206, faux 412. **Plages multiples : 400** (inutilisées : une plage par requête). |
+| En-tête | v3 ; **clustered** ; compression interne **gzip** ; tuiles **gzip** ; type **MVT** ; zooms 0 à 15 ; monde entier ; 1 431 655 765 tuiles adressées, 178 630 665 entrées, 136 716 699 contenus. Sections : répertoire racine 15 567 octets (en-tête + racine = 15 694 ≤ 16 384, **tient dans le premier appel**), **tuiles au début (décalage 16 384)**, métadonnées (1 179 octets) et répertoires feuilles (353 548 914 octets, 2 917 feuilles) **à la fin**. L'extracteur doit donc suivre les décalages de l'en-tête, pas l'ordre de la spécification. |
+| Métadonnées | `version` 4.15.2 ; `name` « Protomaps Basemap » ; `description` « Basemap layers derived from OpenStreetMap and Natural Earth » ; `attribution` en HTML (`<a href=…>&copy; OpenStreetMap</a>`) ; `type` `baselayer` ; clés `planetiler:*` et `pgf:devanagari:*`. La règle de crédit de la tâche 27 (nom « Protomaps Basemap ») s'applique donc sans rien changer. |
+| Schéma / style 5.7.2 | 9 couches identiques ; champs lus par le style tous déclarés, sauf `pgf:name`, `pgf:name2`, `pgf:name3` (devanagari). |
+| Répertoires pour la zone | 2 niveaux (racine puis feuilles). **Cincu 30 km : 9 feuilles, 1 095 110 octets, 3,1 s ; Draguignan 8 km : 8 feuilles, 1 053 086 octets, 2,7 s ; Cincu 60 km : 9 feuilles (les mêmes), 1 095 110 octets, 3,4 s.** |
+| Tuiles (cercle, zooms 0 à 15) | **Cincu 30 km : 5 485 tuiles, toutes présentes, 5 468 contenus distincts, 12 716 161 octets (12,7 Mo), 63 requêtes après fusion à 5 % (13,3 Mo transférés).** Draguignan 8 km : 428 tuiles, 4 713 674 octets (4,7 Mo), 33 requêtes (4,9 Mo). Cincu 60 km : 21 410 tuiles, 43 674 532 octets (43,7 Mo), 95 requêtes (45,8 Mo). |
+| Par zoom, Ko par tuile (Cincu 30 km) | z0 à 6 : 67 à 143 ; z7 : 486 ; z8 : 352 ; z9 : 195 ; z10 : 79 ; z11 : 27 ; z12 : 12,2 ; z13 : 4,9 ; z14 : 2,1 ; z15 : 1,0. Draguignan : z15 : 6,4 ; z14 : 8,5 ; z13 : 13,5 ; z12 : 23. |
+| Tuiles d'essai | trois tuiles lues, toutes en gzip valide (début `1f 8b`), 70 Ko à 750 Ko décompressées. |
+
+Ce que cela change dans le plan : estimation exacte constante à environ 1,1 Mo (§7) ; fourchette hors ligne à deux jeux de
+coefficients (§7) ; durée de vie des éditions d'une semaine, sonde réduite à 8 jours, reprise limitée par l'édition (§8, §10) ;
+`If-Match` plutôt que `If-Range` (§8) ; écrivain de répertoires à prévoir avec **découpage en répertoires feuilles** si le
+répertoire racine dépasse 16 257 octets (cas probable pour 20 000 tuiles ou plus) : dans le commit 3 (§14).
 
 ## 16. Essais sur téléphone (futur `TESTS-A-FAIRE.md` §17)
 
@@ -406,9 +441,13 @@ sur la production avec GDAL. Une tâche à part, après celle-ci.
 
 ## 19. Questions ouvertes
 
-- Taille réelle des répertoires nécessaires à l'estimation exacte (à mesurer, commit 1).
-- Valeur exacte du paramètre de version du schéma dans les métadonnées d'une édition réelle (commit 1).
-- Durée de conservation des anciennes éditions sur `build.protomaps.com`.
+- ~~Taille des répertoires pour l'estimation exacte~~ : mesurée, 1,1 Mo constants (§7, §15).
+- ~~Clé de version du schéma~~ : `version` 4.15.2, couches identiques au style (§8).
+- ~~Durée de conservation des éditions~~ : sept jours (§8).
+- Le débit réel d'un téléphone sur 4G pour 60 à 100 requêtes en parallèle (la sonde mesure un exécuteur de centre de données).
+- Un comportement du serveur sous charge (limitation de débit non observée sur environ 110 requêtes) : à surveiller si l'usage se répand.
+- Densité d'une très grande ville (la borne haute de la fourchette vient de Draguignan seulement).
+- Ne pas proposer de zoom minimal : les zooms 0 à 6 coûtent environ 0,7 Mo au total et leur retrait empêcherait de dézoomer.
 - Faut-il aussi remplacer l'extracteur google (MBTiles, 2 000 tuiles) par celui-ci ? Hors sujet : NetworkTact est publié
   sur Android fdroid.
 

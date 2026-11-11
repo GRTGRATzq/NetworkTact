@@ -957,6 +957,21 @@ du Réseau, ou bouton « Diagnostic » sous un envoi en échec. Le diagnostic n'
   la clé interdit toute mise à jour des applications déjà installées (Android refuse une mise à jour signée par une
   autre clé) : il faut en garder au moins deux copies, hors du dépôt.
 
+### 29. Téléchargement d'une carte hors ligne : plan et sonde (`feat/carte-telechargement`)
+
+- **État** : **plan validé, aucun code d'application**. `docs/PLAN-CARTE-TELECHARGEMENT.md` décrit l'extracteur (lecture par
+  requêtes `Range` d'une édition Protomaps, écriture d'un `.pmtiles` v3), le rectangle à poignées, la source réglable et les
+  décisions D1 à D11. Rien n'est codé avant la validation des résultats de la sonde.
+- **Sonde** (`scripts/carte-sonde/`, workflow `fork-carte-sonde`, lancé à la main ou par poussée de ses fichiers sur cette branche) :
+  lit l'en-tête, les métadonnées et les répertoires d'une vraie édition, sans télécharger de tuile ni utiliser de secret.
+  Résultats du 11 novembre 2026 (détail au §15 du plan) : édition de 139,4 Go, `Range` accepté (206, ETag, `If-Match` 412),
+  plages multiples refusées (400), sept éditions conservées seulement, schéma 4.15.2 aux couches identiques au style embarqué,
+  zone de Cincu (30 km, zoom 15) : 12,7 Mo de tuiles, 1,1 Mo de répertoires à lire.
+- **CI** : `fork-apk` ne se lance plus pour une poussée qui ne change que des fichiers `.md`, ni pour les fichiers de la sonde ;
+  le lancement manuel est inchangé.
+- **Licence** : `pmtiles-reader` (déjà dans l'APK) est BSD 3-Clause d'après son POM, « MIT » seulement dans des commentaires du
+  dépôt ; les deux sont compatibles avec la GPL-3.0.
+
 ## État d'avancement au 11 novembre 2026
 
 - **Branches** : les sections 1 à 20 sont chacune sur une branche `feat/…`, empilées les unes
@@ -966,7 +981,7 @@ du Réseau, ou bouton « Diagnostic » sous un envoi en échec. Le diagnostic n'
   `PREPARER-LES-RADIOS.md` et ce fichier. La branche `fix/diffusion-nom` (section 21), partie de
   `docs/essais-2026-11-08`, contient tout jusqu'à la section 21. La branche `fix/demo-unique` (section 22), partie de
   `fix/diffusion-nom`, puis `fix/fait-observe` (section 23), partie de `fix/demo-unique`, puis `fix/textes-fr` (section 24), partie de
-  `fix/fait-observe`, puis `fix/diag-lora-attendu` (section 25), puis `fix/organigramme-saisie` (section 26), puis `fix/carte-attribution` (section 27), puis `feat/apk-release` (section 28), la dernière, qui contient
+  `fix/fait-observe`, puis `fix/diag-lora-attendu` (section 25), puis `fix/organigramme-saisie` (section 26), puis `fix/carte-attribution` (section 27), puis `feat/apk-release` (section 28), puis `feat/carte-telechargement` (section 29, documentation et sonde seulement), la dernière, qui contient
   tout. Rien n'est fusionné dans `main`,
   qui ne porte que l'identité du fork et le workflow `fork-apk`. Aucune pull request n'est ouverte,
   ni vers `main` ni vers `meshtastic/Meshtastic-Android`.
