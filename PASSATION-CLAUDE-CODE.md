@@ -31,7 +31,7 @@ Les tâches 1 à 27 sont sur les branches `feat/…`, `docs/…` et `fix/…` li
 | `fork-apk` 89 | `feat/apk-release`, `a14a7f3` | vert, empreinte conforme |
 | `fork-apk` 90, 92, 96, 97 | `feat/carte-telechargement` | verts (96 : 78 tests de l'extracteur dans `jvmTest` et `testAndroidHostTest`) |
 | `fork-apk` 91, 93, 94, 95 | idem | annulés par des poussées suivantes (avant la règle du §5) |
-| **`fork-apk` 98** | `4f29b8b` (contrôleur, branchement Android, écran) | **L'écran compile en CI** : « Lint » et « Compile (Kotlin, fdroid debug) » verts (18 h 41 – 18 h 46 UTC). À la rédaction, la suite tournait encore (tests, tests `feature:map` avec le contrôleur et le cadre, APK debug, tests `feature:map-maplibre`, APK release) : **lire son résultat final en premier.** |
+| **`fork-apk` 98** | `4f29b8b` (contrôleur, branchement Android, écran) | **L'écran compile en CI** : « Lint », « Compile (Kotlin, fdroid debug) » et « Tests » verts (18 h 36 – 18 h 52 UTC). À la fin de la session, la suite tournait encore (tests `core:demo`, tests `feature:map` avec le contrôleur et le cadre, APK debug, tests `feature:map-maplibre`, APK release) : **lire son résultat final en premier.** |
 | `fork-carte-sonde` 1, 2 | sonde D1 | verts ; résultats au §15 du plan |
 | `fork-carte-interop` 1 à 3, 5 | extracteur sur la vraie édition | verts : **identique tuile par tuile à `pmtiles extract`** (Cincu, 6 822 tuiles, 14,65 Mo) |
 | `fork-carte-interop` 4 | `4f29b8b` | rouge : le script `build.sh` ne compilait pas `OfflineMapFiles.kt`, dont le contrôleur dépend ; corrigé par `c6ad820` (run 5 vert) |
