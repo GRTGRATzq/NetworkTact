@@ -1,0 +1,19 @@
+# Bibliothèques de l'essai d'interopérabilité (Maven Central), versions de gradle/libs.versions.toml.
+org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.11.0/kotlinx-coroutines-core-jvm-1.11.0.jar
+com/squareup/okio/okio-jvm/3.18.2/okio-jvm-3.18.2.jar
+org/jetbrains/kotlinx/kotlinx-serialization-core-jvm/1.11.0/kotlinx-serialization-core-jvm-1.11.0.jar
+org/jetbrains/kotlinx/kotlinx-serialization-json-jvm/1.11.0/kotlinx-serialization-json-jvm-1.11.0.jar
+org/jetbrains/kotlinx/kotlinx-io-core-jvm/0.9.1/kotlinx-io-core-jvm-0.9.1.jar
+org/jetbrains/kotlinx/kotlinx-io-bytestring-jvm/0.9.1/kotlinx-io-bytestring-jvm-0.9.1.jar
+org/slf4j/slf4j-api/2.0.19/slf4j-api-2.0.19.jar
+io/ktor/ktor-client-core-jvm/3.6.0/ktor-client-core-jvm-3.6.0.jar
+io/ktor/ktor-client-java-jvm/3.6.0/ktor-client-java-jvm-3.6.0.jar
+io/ktor/ktor-http-jvm/3.6.0/ktor-http-jvm-3.6.0.jar
+io/ktor/ktor-http-cio-jvm/3.6.0/ktor-http-cio-jvm-3.6.0.jar
+io/ktor/ktor-utils-jvm/3.6.0/ktor-utils-jvm-3.6.0.jar
+io/ktor/ktor-io-jvm/3.6.0/ktor-io-jvm-3.6.0.jar
+io/ktor/ktor-events-jvm/3.6.0/ktor-events-jvm-3.6.0.jar
+io/ktor/ktor-websocket-serialization-jvm/3.6.0/ktor-websocket-serialization-jvm-3.6.0.jar
+io/ktor/ktor-websockets-jvm/3.6.0/ktor-websockets-jvm-3.6.0.jar
+io/ktor/ktor-serialization-jvm/3.6.0/ktor-serialization-jvm-3.6.0.jar
+io/ktor/ktor-sse-jvm/3.6.0/ktor-sse-jvm-3.6.0.jar

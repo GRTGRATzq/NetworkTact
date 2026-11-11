@@ -1,0 +1,79 @@
+name: fork-carte-interop
+
+# Essai de l'extracteur de carte de NetworkTact (tâche 7, docs/PLAN-CARTE-TELECHARGEMENT.md, D10) sur la vraie édition
+# Protomaps, hors de l'application : le code de feature/map/.../offline/extract, compilé seul avec kotlinc, extrait le
+# rectangle de Cincu (30 km, zoom 15) ; `pmtiles verify` (go-pmtiles) valide le fichier ; `pmtiles extract` produit la
+# même zone depuis la même édition, et compare.py compare les deux tuile par tuile. Les deux fichiers sont dans
+# l'artefact `cartes-cincu` (le nôtre peut être importé sur un téléphone). Environ 2 x 15 Mo lus chez Protomaps.
+# Aucun secret.
+on:
+  workflow_dispatch:
+  push:
+    branches: ["feat/carte-telechargement"]
+    paths:
+      - ".github/workflows/fork-carte-interop.yml"
+      - "scripts/carte-interop/**"
+      - "feature/map/src/commonMain/kotlin/org/meshtastic/feature/map/offline/**"
+
+concurrency:
+  group: fork-carte-interop-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  # Rectangle circonscrit à 30 km autour de Cincu (45,917 N, 24,800 E), comme la sonde : 6 822 tuiles des zooms 0 à 15.
+  BBOX: "24.4126,45.6475,25.1874,46.1865"
+  MAX_ZOOM: "15"
+
+jobs:
+  interop:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+      - name: Compiler l'extracteur (kotlinc, sans Gradle)
+        run: scripts/carte-interop/build.sh "$RUNNER_TEMP/interop"
+      - name: Extraire Cincu avec l'extracteur de NetworkTact
+        working-directory: ${{ runner.temp }}
+        run: |
+          mkdir -p cartes && cd cartes
+          java -Dstdout.encoding=UTF-8 -cp "$(cat "$RUNNER_TEMP/interop/classpath.txt")" \
+            org.meshtastic.feature.map.offline.extract.ExtractCliKt \
+            --bbox "$BBOX" --max-zoom "$MAX_ZOOM" --out networktact-cincu.pmtiles
+      - name: Installer go-pmtiles (dernière version publiée)
+        working-directory: ${{ runner.temp }}
+        run: |
+          tag=$(curl -sSfI https://github.com/protomaps/go-pmtiles/releases/latest | sed -n 's#^location: .*/tag/\(v[^[:space:]]*\).*#\1#ip')
+          echo "go-pmtiles $tag"
+          curl -sSfL --retry 3 -o pmtiles.tar.gz \
+            "https://github.com/protomaps/go-pmtiles/releases/download/$tag/go-pmtiles_${tag#v}_Linux_x86_64.tar.gz"
+          tar -xzf pmtiles.tar.gz pmtiles
+          ./pmtiles version
+      - name: pmtiles verify et show sur notre fichier
+        working-directory: ${{ runner.temp }}/cartes
+        run: |
+          ../pmtiles verify networktact-cincu.pmtiles
+          ../pmtiles show networktact-cincu.pmtiles
+      - name: Référence pmtiles extract (même édition, même zone)
+        working-directory: ${{ runner.temp }}/cartes
+        run: |
+          ../pmtiles extract "$(cat edition.txt)" reference-cincu.pmtiles --bbox="$BBOX" --maxzoom="$MAX_ZOOM"
+          ../pmtiles show reference-cincu.pmtiles
+      - name: Comparer tuile par tuile
+        working-directory: ${{ runner.temp }}/cartes
+        run: python3 -I "$GITHUB_WORKSPACE/scripts/carte-interop/compare.py" networktact-cincu.pmtiles reference-cincu.pmtiles
+      - uses: actions/upload-artifact@v6
+        if: always()
+        with:
+          name: cartes-cincu
+          path: |
+            ${{ runner.temp }}/cartes/*.pmtiles
+            ${{ runner.temp }}/cartes/*.txt
+            ${{ runner.temp }}/cartes/*.json
+          if-no-files-found: ignore
