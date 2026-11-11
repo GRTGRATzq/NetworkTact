@@ -55,6 +55,8 @@ import org.meshtastic.core.resources.offline_map_delete_message
 import org.meshtastic.core.resources.offline_map_delete_title
 import org.meshtastic.core.resources.offline_map_detail
 import org.meshtastic.core.resources.offline_map_download
+import org.meshtastic.core.resources.offline_map_download_pending
+import org.meshtastic.core.resources.offline_map_download_resume
 import org.meshtastic.core.resources.offline_map_downloaded_edition
 import org.meshtastic.core.resources.offline_map_downloaded_file
 import org.meshtastic.core.resources.offline_map_error_copy
@@ -77,6 +79,8 @@ import org.meshtastic.core.ui.icon.Delete
 import org.meshtastic.core.ui.icon.MeshtasticIcons
 import org.meshtastic.feature.map.offline.extract.DownloadArea
 import org.meshtastic.feature.map.offline.extract.DownloadedMapInfo
+import org.meshtastic.feature.map.offline.extract.MapDownloadController
+import org.meshtastic.feature.map.offline.extract.PendingDownload
 
 /**
  * An offline map file stored on the device.
@@ -135,7 +139,8 @@ interface OfflineMapFiles {
  * The basemap menu's entry for the maps stored on the device, and the sheet it opens.
  *
  * @param onImport Opens the platform's file picker; the host starts the copy when a file comes back.
- * @param onDownload Opens the download frame over the map; null (no "Download a map" button) where the host has none.
+ * @param downloads The host's map downloads: a "Download a map" button that opens their frame over the map, and a
+ *   download interrupted by a cut, with "Resume". Null (neither) where the host has none.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -143,7 +148,7 @@ fun OfflineMapFilesMenuItem(
     files: OfflineMapFiles,
     onImport: () -> Unit,
     modifier: Modifier = Modifier,
-    onDownload: (() -> Unit)? = null,
+    downloads: MapDownloadController? = null,
 ) {
     var sheetVisible by remember { mutableStateOf(false) }
 
@@ -157,17 +162,26 @@ fun OfflineMapFilesMenuItem(
         ModalBottomSheet(onDismissRequest = { sheetVisible = false }) {
             val maps by files.maps.collectAsStateWithLifecycle()
             val status by files.importStatus.collectAsStateWithLifecycle()
+            val pending = downloads?.pending?.collectAsStateWithLifecycle()?.value
             OfflineMapFilesSheet(
                 maps = maps,
                 status = status,
                 onImport = onImport,
-                // The frame goes over the map: the sheet closes first.
-                onDownload =
-                onDownload?.let { open ->
-                    {
-                        sheetVisible = false
-                        open()
-                    }
+                // The frame goes over the map, and shows the progress: the sheet closes first.
+                download =
+                downloads?.let { controller ->
+                    DownloadActions(
+                        pending = pending,
+                        onOpen = {
+                            sheetVisible = false
+                            controller.openFrame()
+                        },
+                        onResume = {
+                            sheetVisible = false
+                            controller.openFrame()
+                            controller.resume()
+                        },
+                    )
                 },
                 onCancelImport = files::cancelImport,
                 onClearOutcome = files::clearImportOutcome,
@@ -182,7 +196,7 @@ private fun OfflineMapFilesSheet(
     maps: List<OfflineMapFile>,
     status: OfflineMapImport,
     onImport: () -> Unit,
-    onDownload: (() -> Unit)?,
+    download: DownloadActions?,
     onCancelImport: () -> Unit,
     onClearOutcome: () -> Unit,
     onDelete: (OfflineMapFile) -> Unit,
@@ -230,6 +244,13 @@ private fun OfflineMapFilesSheet(
             }
         }
 
+        download?.pending?.let { pending ->
+            item {
+                PendingRow(pending = pending, onResume = download.onResume)
+                HorizontalDivider()
+            }
+        }
+
         item {
             Button(
                 onClick = onImport,
@@ -240,10 +261,10 @@ private fun OfflineMapFilesSheet(
             }
         }
 
-        if (onDownload != null) {
+        if (download != null) {
             item {
                 OutlinedButton(
-                    onClick = onDownload,
+                    onClick = download.onOpen,
                     enabled = status !is OfflineMapImport.Copying,
                     modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, bottom = 16.dp),
                 ) {
@@ -252,6 +273,23 @@ private fun OfflineMapFilesSheet(
             }
         }
     }
+}
+
+/** What the sheet offers of the host's downloads: open the frame, and resume [pending] if a cut stopped one. */
+private class DownloadActions(val pending: PendingDownload?, val onOpen: () -> Unit, val onResume: () -> Unit)
+
+/** A download stopped by a cut, possibly in an earlier run: "Resume" opens the frame, where it goes on. */
+@Composable
+private fun PendingRow(pending: PendingDownload, onResume: () -> Unit) {
+    val percent = if (pending.rangesTotal > 0) pending.rangesDone * PERCENT / pending.rangesTotal else 0
+    ListItem(
+        headlineContent = {
+            Text(text = stringResource(Res.string.offline_map_download_pending, pending.name, "$percent %"))
+        },
+        trailingContent = {
+            Button(onClick = onResume) { Text(stringResource(Res.string.offline_map_download_resume)) }
+        },
+    )
 }
 
 @Composable
@@ -375,3 +413,4 @@ private fun failureText(failure: OfflineMapImport.Failed): String = when (failur
 private fun megabytesLabel(bytes: Long): String = stringResource(Res.string.offline_map_size_mb, bytes.megabytes())
 
 private const val METERS_PER_KM = 1_000.0
+private const val PERCENT = 100

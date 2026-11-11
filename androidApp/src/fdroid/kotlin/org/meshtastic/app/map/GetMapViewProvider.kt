@@ -45,7 +45,7 @@ fun getMapViewProvider(): MapViewProvider = MapLibreMapViewProvider(
         OfflineMapFilesMenuItem(
             files = offlineMaps,
             onImport = rememberPmTilesImport(offlineMaps),
-            onDownload = offlineMaps.downloads::openFrame,
+            downloads = offlineMaps.downloads,
         )
     },
     // waypointEditor is not passed: EditWaypointDialog is multiplatform now and the provider defaults to it.
