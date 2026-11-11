@@ -351,9 +351,12 @@ donc la règle de la tâche 27 impose déjà « © contributeurs OpenStreetMap �
 
 ## 14. Découpage en commits (un sujet chacun, messages en français)
 
-Déjà faits sur cette branche : 3d4bc76 (`fork-apk` ignore les poussées qui ne changent que des `.md`, lancement manuel intact),
-le plan, sa mise à jour, puis la sonde D1 (script, essai local, workflow) et ses résultats. **Rien d'autre avant la validation
-des résultats de la sonde.** Ensuite :
+Déjà faits sur cette branche : 3d4bc76 (`fork-apk` ignore les poussées qui ne changent que des `.md`), le plan et ses mises à
+jour, la sonde D1, puis, le 11 novembre 2026 : commit 1 (licence, `6366b40`) ; extracteur en logique pure et testée
+(`7a10756` identifiants et couverture, `7eee4df` répertoires et en-tête, `befebaf` plan et fusion des plages, `04dae02` source
+HTTP, `9e53bd5` écriture, journal et contrôle, `776a072` orchestration, `49c6596` édition et schéma) ; essai sur la vraie
+édition (`842bd12`, `6b691d2`). **Ordre changé par rapport à la liste ci-dessous** : l'orchestration et l'essai
+d'interopérabilité (prévu en 13) sont venus avant l'édition, pour vérifier tôt l'extracteur contre le vrai serveur.
 
 1. Commentaires « MIT » de `pmtiles-reader` corrigés en « BSD-3-Clause » (3 fichiers de commentaires, aucun code).
 2. Identifiants de Hilbert et couverture d'un rectangle (tuiles par zoom) + tests.
@@ -419,6 +422,26 @@ Ce que cela change dans le plan : estimation exacte constante à environ 1,1 Mo 
 coefficients (§7) ; durée de vie des éditions d'une semaine, sonde réduite à 8 jours, reprise limitée par l'édition (§8, §10) ;
 `If-Match` plutôt que `If-Range` (§8) ; écrivain de répertoires à prévoir avec **découpage en répertoires feuilles** si le
 répertoire racine dépasse 16 257 octets (cas probable pour 20 000 tuiles ou plus) : dans le commit 3 (§14).
+
+### Essai de l'extracteur sur la vraie édition (workflow `fork-carte-interop`, run 1, 11 novembre 2026, 17:16 UTC)
+
+Le code de `feature/map/.../offline/extract` (celui du téléphone), compilé seul avec `kotlinc` et un moteur HTTP de la JVM, a
+extrait le rectangle de Cincu (30 km, zooms 0 à 15) de l'édition du jour, trouvée par `EditionFinder` (J, `20261111`) :
+
+| | NetworkTact | `pmtiles extract` (go-pmtiles 1.31.2) |
+|---|---|---|
+| Lecture de l'en-tête et des répertoires | 12 requêtes, 1 111 983 octets, 1,3 s | 9 répertoires, 8 requêtes |
+| Requêtes de tuiles | 60 (15 330 196 octets, 4,7 % d'excédent), 4,1 s | 61 (15 Mo), 5,0 s |
+| Tuiles adressées / entrées / contenus | 6 822 / 6 813 / 6 787 | 6 822 / 6 813 / 6 787 |
+| Données des tuiles | 14 636 351 octets | 14 636 351 octets |
+| Taille du fichier | **14 650 172 octets** | 14 650 085 octets |
+| `pmtiles verify` | réussi | — |
+| Schéma (`BasemapSchema`) | Compatible (4.15.2) | — |
+
+**Comparaison tuile par tuile (`scripts/carte-interop/compare.py`) : mêmes 6 822 tuiles, même contenu pour chacune.** Les
+87 octets d'écart viennent seulement de la compression gzip du répertoire racine. La taille (14,65 Mo) est celle du fichier de
+15 Mo fait sur le Mac le 8 novembre. Les deux fichiers sont dans l'artefact `cartes-cincu` du run : celui de NetworkTact peut
+déjà être importé sur un téléphone par l'import existant (`TESTS-A-FAIRE.md` §17). **Aucune surprise par rapport à la sonde.**
 
 ## 16. Essais sur téléphone (futur `TESTS-A-FAIRE.md` §17)
 

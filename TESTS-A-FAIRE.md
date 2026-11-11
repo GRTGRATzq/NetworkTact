@@ -203,6 +203,11 @@ R8 n'a été vérifié que par la compilation, jamais à l'exécution.
 
 À faire **quand la fonction existera** (`docs/PLAN-CARTE-TELECHARGEMENT.md`, branche `feat/carte-telechargement`). Variante fdroid.
 
+- [ ] **Possible dès maintenant** : télécharger l'artefact `cartes-cincu` du dernier run vert de `fork-carte-interop`, copier
+      `networktact-cincu.pmtiles` (écrit par l'extracteur de NetworkTact, 14,65 Mo) sur le téléphone, l'importer par « Importer
+      un fichier .pmtiles » : il est accepté, s'affiche comme le fichier du Mac (mêmes tuiles), mode avion compris, avec la
+      mention « © contributeurs OpenStreetMap · Protomaps ». Cela vérifie sur téléphone le fichier qu'écrira le téléchargement.
+
 - [ ] Rectangle de Cincu (zone visible puis coins tirés au doigt, environ 60 × 45 km), zoom 15 : la taille annoncée avant, la taille
       réelle après, la durée ; la carte s'affiche, mode avion compris ; mention ⓘ « © contributeurs OpenStreetMap · Protomaps ».
 - [ ] Le cadre : poignées faciles à saisir, dimensions en km justes, zone téléchargée = zone du cadre.

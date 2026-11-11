@@ -959,7 +959,7 @@ du Réseau, ou bouton « Diagnostic » sous un envoi en échec. Le diagnostic n'
 
 ### 29. Téléchargement d'une carte hors ligne : plan et sonde (`feat/carte-telechargement`)
 
-- **État** : **plan validé, aucun code d'application**. `docs/PLAN-CARTE-TELECHARGEMENT.md` décrit l'extracteur (lecture par
+- **État** : **plan validé ; extracteur écrit et testé, sans écran**. `docs/PLAN-CARTE-TELECHARGEMENT.md` décrit l'extracteur (lecture par
   requêtes `Range` d'une édition Protomaps, écriture d'un `.pmtiles` v3), le rectangle à poignées, la source réglable et les
   décisions D1 à D11. Rien n'est codé avant la validation des résultats de la sonde.
 - **Sonde** (`scripts/carte-sonde/`, workflow `fork-carte-sonde`, lancé à la main ou par poussée de ses fichiers sur cette branche) :
@@ -967,8 +967,15 @@ du Réseau, ou bouton « Diagnostic » sous un envoi en échec. Le diagnostic n'
   Résultats du 11 novembre 2026 (détail au §15 du plan) : édition de 139,4 Go, `Range` accepté (206, ETag, `If-Match` 412),
   plages multiples refusées (400), sept éditions conservées seulement, schéma 4.15.2 aux couches identiques au style embarqué,
   zone de Cincu (30 km, zoom 15) : 12,7 Mo de tuiles, 1,1 Mo de répertoires à lire.
-- **CI** : `fork-apk` ne se lance plus pour une poussée qui ne change que des fichiers `.md`, ni pour les fichiers de la sonde ;
-  le lancement manuel est inchangé.
+- **Extracteur** (`feature/map/src/commonMain/.../offline/extract/`, logique commune sans Android, 78 tests en `commonTest`) :
+  identifiants de tuile et couverture d'un rectangle, répertoires et en-tête PMTiles v3, plan d'extraction et fusion des
+  plages, source HTTP par plages (Ktor, `If-Match`, essais 1/3/9 s, `User-Agent` fixe « NetworkTact »), écriture à sa place
+  avec journal de reprise et contrôle final, orchestration parallèle, édition la plus récente sans date codée en dur,
+  contrôle du schéma, estimation grossière. **Pas encore d'écran** : l'intégration au téléphone vient ensuite.
+- **Essai sur la vraie édition** (workflow `fork-carte-interop`) : le même code, compilé seul, extrait Cincu (30 km, zoom 15) ;
+  `pmtiles verify` réussi ; **identique tuile par tuile à `pmtiles extract`** (6 822 tuiles, 14,65 Mo) ; détail au §15 du plan.
+- **CI** : `fork-apk` ne se lance plus pour une poussée qui ne change que des fichiers `.md`, ni pour les fichiers de la sonde et
+  de l'essai d'interopérabilité ; le lancement manuel est inchangé.
 - **Licence** : `pmtiles-reader` (déjà dans l'APK) est BSD 3-Clause d'après son POM, « MIT » seulement dans des commentaires du
   dépôt ; les deux sont compatibles avec la GPL-3.0.
 
