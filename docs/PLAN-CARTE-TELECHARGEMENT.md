@@ -360,8 +360,9 @@ jour, la sonde D1, puis, le 11 novembre 2026 : commit 1 (licence, `6366b40`) ; e
 HTTP, `9e53bd5` écriture, journal et contrôle, `776a072` orchestration, `49c6596` édition et schéma) ; essai sur la vraie
 édition (`842bd12`, `6b691d2`) ; estimation grossière (`f0bcbf6`), `User-Agent` neutre (`71edb88`), contrôleur commun
 (`32a9af7`, commit 9), branchement Android (`0acec5a`), logique du cadre (`15a7930`, commit 10), textes (`c9afd93`) et écran
-(`4f29b8b`, commit 11). Restent les commits 12 (liste), 14 (documentation finale) et 15 (export) ; le 13 (interopérabilité)
-est fait. État détaillé et reprise : `PASSATION-CLAUDE-CODE.md`. **Ordre changé par rapport à la liste ci-dessous** : l'orchestration et l'essai
+(`4f29b8b`, commit 11), puis le soir même : commit 12 (`6930d88`, `3fa9397`), commit 15 (`cced8d3`), test Compose du
+panneau (`62b54e6`), plafond de 500 Mo de D4 (`dc5b8b1`, oublié jusque-là), commit 14 (`2207bec`, `9ee7d3e`). Le 13
+(interopérabilité) est fait. **Tous les commits du plan sont faits ; restent les essais sur téléphone (§16).** État détaillé et reprise : `PASSATION-CLAUDE-CODE.md`. **Ordre changé par rapport à la liste ci-dessous** : l'orchestration et l'essai
 d'interopérabilité (prévu en 13) sont venus avant l'édition, pour vérifier tôt l'extracteur contre le vrai serveur.
 
 1. Commentaires « MIT » de `pmtiles-reader` corrigés en « BSD-3-Clause » (3 fichiers de commentaires, aucun code).

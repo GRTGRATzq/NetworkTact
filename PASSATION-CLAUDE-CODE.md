@@ -1,6 +1,6 @@
 # Passation Claude Code : où en est NetworkTact
 
-État au **11 novembre 2026, 18 h 52 UTC**, pour reprendre dans une conversation neuve. À lire avec `FORK.md` (section de
+État au **11 novembre 2026, vers 20 h 30 UTC**, pour reprendre dans une conversation neuve. À lire avec `FORK.md` (section de
 chaque tâche, état d'avancement), `TESTS-A-FAIRE.md` et, pour la tâche 7, `docs/PLAN-CARTE-TELECHARGEMENT.md`.
 
 ## 1. Règles du projet (rappel)
@@ -19,7 +19,7 @@ chaque tâche, état d'avancement), `TESTS-A-FAIRE.md` et, pour la tâche 7, `do
 | Branche | Contenu | État |
 |---|---|---|
 | `feat/apk-release` | Tâche 28 : APK de release signé | **Close.** Run 89 vert, empreinte du certificat vérifiée par l'utilisateur (`f4ad3e41…79205818`). |
-| `feat/carte-telechargement` | Tâche 7 (FORK.md §29) : téléchargement de carte hors ligne. Partie de `feat/apk-release`, contient tout. | En cours. Dernier commit de code `4f29b8b` (écran du rectangle), puis `c6ad820` (script de l'essai d'interopérabilité) et ce fichier. |
+| `feat/carte-telechargement` | Tâche 7 (FORK.md §29) : téléchargement de carte hors ligne. Partie de `feat/apk-release`, contient tout. | Code de la v1 complet ; restent les essais sur téléphone. Derniers commits de code : `6930d88` et `3fa9397` (liste, commit 12), `cced8d3` (export, commit 15), `62b54e6` (test Compose), `dc5b8b1` (plafond de 500 Mo) ; puis documentation (`2207bec`, `9ee7d3e`) et ce fichier. |
 | `wip/carte-telechargement` | Branche d'attente (voir §5), au même commit que `feat/carte-telechargement`. | **À supprimer à la fin de la tâche 7.** |
 
 Les tâches 1 à 27 sont sur les branches `feat/…`, `docs/…` et `fix/…` listées dans `FORK.md` (état d'avancement).
@@ -31,7 +31,9 @@ Les tâches 1 à 27 sont sur les branches `feat/…`, `docs/…` et `fix/…` li
 | `fork-apk` 89 | `feat/apk-release`, `a14a7f3` | vert, empreinte conforme |
 | `fork-apk` 90, 92, 96, 97 | `feat/carte-telechargement` | verts (96 : 78 tests de l'extracteur dans `jvmTest` et `testAndroidHostTest`) |
 | `fork-apk` 91, 93, 94, 95 | idem | annulés par des poussées suivantes (avant la règle du §5) |
-| **`fork-apk` 98** | `4f29b8b` (contrôleur, branchement Android, écran) | **L'écran compile en CI** : « Lint », « Compile (Kotlin, fdroid debug) » et « Tests » verts (18 h 36 – 18 h 52 UTC). À la fin de la session, la suite tournait encore (tests `core:demo`, tests `feature:map` avec le contrôleur et le cadre, APK debug, tests `feature:map-maplibre`, APK release) : **lire son résultat final en premier.** |
+| `fork-apk` 98 | `4f29b8b` (contrôleur, branchement Android, écran) | **vert** en entier (lint, compilation, tests, `feature:map`, APK debug, `feature:map-maplibre`, APK release et son contrôle) |
+| `fork-apk` 99 | `3fa9397` (liste enrichie, « Reprendre », commit 12) | **vert** |
+| **`fork-apk` 100** | `9ee7d3e` (export, test Compose, plafond de 500 Mo, documentation) | lancé vers 20 h 15 UTC ; **lire son résultat en premier** s'il n'est pas noté ici (ainsi que le `fork-carte-interop` du même commit, déclenché par le changement du contrôleur). |
 | `fork-carte-sonde` 1, 2 | sonde D1 | verts ; résultats au §15 du plan |
 | `fork-carte-interop` 1 à 3, 5 | extracteur sur la vraie édition | verts : **identique tuile par tuile à `pmtiles extract`** (Cincu, 6 822 tuiles, 14,65 Mo) |
 | `fork-carte-interop` 4 | `4f29b8b` | rouge : le script `build.sh` ne compilait pas `OfflineMapFiles.kt`, dont le contrôleur dépend ; corrigé par `c6ad820` (run 5 vert) |
@@ -60,6 +62,14 @@ Android (variante fdroid) :
   téléphone » ; cadre à poignées sur la carte (remise au nord et à plat), « Utiliser la vue », zoom 12 à 15 (15 par défaut),
   taille grossière puis exacte, mention de confidentialité toujours affichée, source modifiable, confirmation au-delà de
   50 Mo, progression, annulation, reprise d'un téléchargement interrompu, messages d'erreur. Textes EN/FR (39 clés).
+- Liste « Cartes sur le téléphone » (`OfflineMapFiles.kt`, morceaux dans `OfflineMapFileParts.kt`) : ligne « Édition du …,
+  hôte · L × H km » lue dans `<id>.json` (`DownloadedMapInfo.decode`, testé) ; téléchargement interrompu avec « Reprendre »
+  (ouvre le cadre et reprend) ; **« Exporter »** (`rememberPmTilesExport`, `ACTION_CREATE_DOCUMENT`, nom par
+  `exportFileName`, testé ; `OfflineMapLibrary.startExport` copie sous le mutex et supprime le document en cas d'échec).
+  `OfflineMapFilesMenuItem` reçoit `downloads = <contrôleur>` et `onExport`.
+- Plafond de **500 Mo** par carte (D4) appliqué au calcul de la taille (`MapDownloadController.maxFileBytes`, testé).
+- Test Compose du panneau : `feature/map-maplibre/src/jvmTest/.../MapDownloadPanelTest.kt` (7 cas ; `Dispatchers.setMain`
+  obligatoire, faute de dispatcher principal sur la JVM). Les poignées du cadre ne sont pas testées (il faut une carte MapLibre).
 
 Outils : `scripts/carte-sonde/` (sonde, workflow `fork-carte-sonde`), `scripts/carte-interop/` (extracteur compilé seul,
 `pmtiles verify`, comparaison avec `pmtiles extract`, workflow `fork-carte-interop`, artefact `cartes-cincu`).
@@ -74,32 +84,30 @@ Outils : `scripts/carte-sonde/` (sonde, workflow `fork-carte-sonde`), `scripts/c
   d'interopérabilité).
 - Vérifications locales avant poussée : `./gradlew :<module>:spotlessApply :<module>:spotlessCheck :<module>:detekt` ;
   **`./gradlew :feature:map-maplibre:compileKotlinJvm` compile l'écran en local** (cible bureau, sans SDK Android) ;
-  tests du code commun avec `kotlinc` seul (compilateur 2.4.20 et bibliothèques de Maven Central dans le dossier temporaire
-  de la session, à recréer : voir `scripts/carte-interop/build.sh`, même méthode).
+  **les tests JVM tournent aussi en local, sans SDK** : `./gradlew :feature:map:jvmTest --tests '*Nom*'` et
+  `./gradlew :feature:map-maplibre:jvmTest --tests '*Nom*'` (vérifié le 11 novembre au soir). Seul `androidApp` (fdroid)
+  n'est compilé que par la CI.
 - Prévenir l'utilisateur à chaque run `fork-apk` vert ou rouge.
 - **Consignes de l'utilisateur (11 novembre 2026)** : plus aucun remplacement automatique sur des fichiers entiers (script
   Python ou `sed`) pour l'écran : seulement des modifications ciblées (outil d'édition) ; `detekt` et `spotless` en local
   **avant chaque commit**. Raison : un remplacement par script a abîmé `MapDownloadPanel.kt` le 11 novembre (fichier non
   commité, réécrit à la main avant le commit `4f29b8b`).
-- Une tâche planifiée de vérification (`trig_01PztYWhuaGwvNDpHmsGy9zo`, 19 h 10 UTC le 11 novembre) a été créée pour relire
-  le run 98 ; dans une nouvelle conversation elle ne sert plus : la supprimer si elle existe encore.
+- La tâche planifiée qui relisait le run 98 (`trig_01PztYWhuaGwvNDpHmsGy9zo`) a été supprimée le 11 novembre au soir.
+- Le crochet `pre-push` de l'environnement lance detekt : s'il échoue sur « Gradle build daemon disappeared », relancer la
+  poussée (ce n'est pas une erreur de lint).
 
 ## 6. Reste à faire (tâche 7)
 
-1. **Lire le résultat final du run 98** : la compilation fdroid de l'écran est verte ; restent à confirmer les tests, l'APK
-   debug, les tests `feature:map-maplibre` et l'APK release. Si rouge, corriger par un nouveau commit.
-   Fichiers de l'écran : `feature/map-maplibre/.../component/MapDownloadOverlay.kt` (cadre, poignées, emplacement
-   `MapDownloadSlot`), `MapDownloadPanel.kt` (panneau), `MapDownloadParts.kt` (textes d'erreur, source, formats) ;
-   ouverture par `MapDownloadController.openFrame()` depuis `OfflineMapFilesMenuItem(onDownload = …)`
-   (`androidApp/src/fdroid/.../map/GetMapViewProvider.kt`).
-2. Commit 12 du plan : liste « Cartes sur le téléphone » enrichie (édition, zone et taille lues dans `<id>.json`).
-3. Commit 15 : « Exporter une carte » par le sélecteur de fichiers Android (D12).
-4. Test Compose de l'écran (poignées, boutons selon l'état), dans `feature:map-maplibre` (`jvmTest`).
-5. Documentation : `FORK.md` §29 (état final), `CARTE-HORS-LIGNE.md` (nouvelle procédure, celle du Mac en secours),
-   `TESTS-A-FAIRE.md` §17 (compléter).
-6. **Essais sur téléphone** (`TESTS-A-FAIRE.md` §17), dont la comparaison sur Mac avec `cincu-30km.pmtiles` ; l'artefact
-   `cartes-cincu` du run `fork-carte-interop` peut déjà être importé pour vérifier le fichier.
-7. Fin de tâche : supprimer `wip/carte-telechargement`.
+Faits le 11 novembre au soir : run 98 vert, commit 12 (liste), commit 15 (export), test Compose, plafond de 500 Mo,
+documentation (`FORK.md` §29, `CARTE-HORS-LIGNE.md`, `TESTS-A-FAIRE.md` §17).
+
+1. **Lire le résultat du run `fork-apk` 100** (et du `fork-carte-interop` de `9ee7d3e`) ; si rouge, corriger par un
+   nouveau commit. C'est le premier run qui compile l'export et la nouvelle signature de `OfflineMapFilesMenuItem` pour
+   Android (`androidApp` ne compile pas en local).
+2. **Essais sur téléphone** (`TESTS-A-FAIRE.md` §17), par l'utilisateur, dont la comparaison sur Mac avec
+   `cincu-30km.pmtiles` (le fichier se récupère maintenant par « Exporter ») ; l'artefact `cartes-cincu` du run
+   `fork-carte-interop` peut aussi être importé pour vérifier le fichier. Corriger selon les retours.
+3. Fin de tâche (après les essais) : supprimer `wip/carte-telechargement`.
 
 Plus tard (décidé) : cartes raster (tâche distincte, plan §17) ; WorkManager seulement si l'essai le justifie (D6) ;
 saisie des dimensions au clavier.
