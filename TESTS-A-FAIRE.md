@@ -208,7 +208,7 @@ R8 n'a été vérifié que par la compilation, jamais à l'exécution.
       un fichier .pmtiles » : il est accepté, s'affiche comme le fichier du Mac (mêmes tuiles), mode avion compris, avec la
       mention « © contributeurs OpenStreetMap · Protomaps ». Cela vérifie sur téléphone le fichier qu'écrira le téléchargement.
 
-- [ ] Rectangle de Cincu (zone visible puis coins tirés au doigt, environ 60 × 45 km), zoom 15 : la taille annoncée avant, la taille
+- [ ] Rectangle de Cincu (zone visible puis coins tirés au doigt, environ 60 × 60 km), zoom 15 : la taille annoncée avant, la taille
       réelle après, la durée ; la carte s'affiche, mode avion compris ; mention ⓘ « © contributeurs OpenStreetMap · Protomaps ».
 - [ ] Le cadre : poignées faciles à saisir, dimensions en km justes, zone téléchargée = zone du cadre.
 - [ ] Au-delà de 50 Mo : confirmation, la même sur Wi-Fi et sur données mobiles ; en dessous : pas de confirmation.

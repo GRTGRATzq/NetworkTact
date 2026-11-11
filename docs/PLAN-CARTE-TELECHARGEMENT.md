@@ -123,7 +123,7 @@ passe par les mêmes fonctions que l'import.
   `BoxAuthoringBar`) et champs de dimensions à saisir si le temps le permet (lot ultérieur).
 - **Zoom maximal** : **15 par défaut**, réglable de 12 à 15 (Protomaps s'arrête au zoom 15, la carte agrandit au-delà :
   `CARTE-HORS-LIGNE.md`) ; chaque valeur affiche sa taille.
-- **Nom** : proposé (« Carte 45,917 N 24,800 E · 60 × 45 km · z15 »), modifiable. **Source** : une ligne toujours visible,
+- **Nom** : proposé (« Carte 45,917 N 24,800 E · 60 × 60 km · z15 »), modifiable. **Source** : une ligne toujours visible,
   « Source : build.protomaps.com · Modifier » (§9). **Bouton « Télécharger »** : désactivé en mode démo, sans réseau, si
   l'espace manque ou si le cadre est invalide.
 - **Progression** : octets reçus / total (même présentation que l'import), vitesse, bouton « Annuler » ; la carte en cours
