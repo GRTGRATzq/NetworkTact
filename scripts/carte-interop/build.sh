@@ -21,5 +21,5 @@ src="$repo/feature/map/src/commonMain/kotlin/org/meshtastic/feature/map/offline"
 "$work/kotlinc/bin/kotlinc" -nowarn \
   -Xplugin="$work/kotlinc/lib/kotlinx-serialization-compiler-plugin.jar" \
   -cp "$classpath" -d "$work/extract-cli.jar" \
-  "$src"/extract/*.kt "$src/PmTilesHeader.kt" "$here/ExtractCli.kt"
+  "$src"/extract/*.kt "$src/PmTilesHeader.kt" "$src/OfflineMapFiles.kt" "$here/ExtractCli.kt"
 echo "$classpath$work/extract-cli.jar:$work/kotlinc/lib/kotlin-stdlib.jar" > "$work/classpath.txt"
