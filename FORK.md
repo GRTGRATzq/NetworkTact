@@ -959,7 +959,8 @@ du Réseau, ou bouton « Diagnostic » sous un envoi en échec. Le diagnostic n'
 
 ### 29. Téléchargement d'une carte hors ligne : plan et sonde (`feat/carte-telechargement`)
 
-- **État** : **plan validé ; extracteur écrit et testé, sans écran**. `docs/PLAN-CARTE-TELECHARGEMENT.md` décrit l'extracteur (lecture par
+- **État** : **extracteur, contrôleur, branchement Android et écran du rectangle écrits** ; liste enrichie, export et essais
+  sur téléphone restent à faire. Reprise : `PASSATION-CLAUDE-CODE.md`. `docs/PLAN-CARTE-TELECHARGEMENT.md` décrit l'extracteur (lecture par
   requêtes `Range` d'une édition Protomaps, écriture d'un `.pmtiles` v3), le rectangle à poignées, la source réglable et les
   décisions D1 à D11. Rien n'est codé avant la validation des résultats de la sonde.
 - **Sonde** (`scripts/carte-sonde/`, workflow `fork-carte-sonde`, lancé à la main ou par poussée de ses fichiers sur cette branche) :
@@ -971,7 +972,14 @@ du Réseau, ou bouton « Diagnostic » sous un envoi en échec. Le diagnostic n'
   identifiants de tuile et couverture d'un rectangle, répertoires et en-tête PMTiles v3, plan d'extraction et fusion des
   plages, source HTTP par plages (Ktor, `If-Match`, essais 1/3/9 s, `User-Agent` neutre `pmtiles-client/1.0` : le serveur source n'apprend pas quelle application demande, en plus de l'adresse et de la zone qu'il voit déjà), écriture à sa place
   avec journal de reprise et contrôle final, orchestration parallèle, édition la plus récente sans date codée en dur,
-  contrôle du schéma, estimation grossière. **Pas encore d'écran** : l'intégration au téléphone vient ensuite.
+  contrôle du schéma, estimation grossière, contrôleur du téléchargement (pause, reprise, annulation, installation, mode
+  démo), logique du cadre. 95 tests.
+- **Téléphone (fdroid)** : `OfflineMapLibrary.downloads` avec un **client HTTP dédié** (le client partagé de l'application
+  nomme celle-ci dans son `User-Agent`, garde un cache disque et journalise en debug) ; dossier `pmtiles-download/`.
+  Écran « Télécharger une carte » ouvert depuis « Cartes sur le téléphone » : cadre à poignées sur la carte (remise au nord),
+  « Utiliser la vue », zoom 12 à 15, taille grossière puis exacte, mention de confidentialité toujours affichée, source
+  modifiable (https), confirmation au-delà de 50 Mo, progression, annulation, reprise. Textes EN/FR. **Jamais essayé sur un
+  téléphone.**
 - **Essai sur la vraie édition** (workflow `fork-carte-interop`) : le même code, compilé seul, extrait Cincu (30 km, zoom 15) ;
   `pmtiles verify` réussi ; **identique tuile par tuile à `pmtiles extract`** (6 822 tuiles, 14,65 Mo) ; détail au §15 du plan.
 - **CI** : `fork-apk` ne se lance plus pour une poussée qui ne change que des fichiers `.md`, ni pour les fichiers de la sonde et

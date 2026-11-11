@@ -358,7 +358,10 @@ Déjà faits sur cette branche : 3d4bc76 (`fork-apk` ignore les poussées qui ne
 jour, la sonde D1, puis, le 11 novembre 2026 : commit 1 (licence, `6366b40`) ; extracteur en logique pure et testée
 (`7a10756` identifiants et couverture, `7eee4df` répertoires et en-tête, `befebaf` plan et fusion des plages, `04dae02` source
 HTTP, `9e53bd5` écriture, journal et contrôle, `776a072` orchestration, `49c6596` édition et schéma) ; essai sur la vraie
-édition (`842bd12`, `6b691d2`). **Ordre changé par rapport à la liste ci-dessous** : l'orchestration et l'essai
+édition (`842bd12`, `6b691d2`) ; estimation grossière (`f0bcbf6`), `User-Agent` neutre (`71edb88`), contrôleur commun
+(`32a9af7`, commit 9), branchement Android (`0acec5a`), logique du cadre (`15a7930`, commit 10), textes (`c9afd93`) et écran
+(`4f29b8b`, commit 11). Restent les commits 12 (liste), 14 (documentation finale) et 15 (export) ; le 13 (interopérabilité)
+est fait. État détaillé et reprise : `PASSATION-CLAUDE-CODE.md`. **Ordre changé par rapport à la liste ci-dessous** : l'orchestration et l'essai
 d'interopérabilité (prévu en 13) sont venus avant l'édition, pour vérifier tôt l'extracteur contre le vrai serveur.
 
 1. Commentaires « MIT » de `pmtiles-reader` corrigés en « BSD-3-Clause » (3 fichiers de commentaires, aucun code).
