@@ -969,7 +969,7 @@ du Réseau, ou bouton « Diagnostic » sous un envoi en échec. Le diagnostic n'
   zone de Cincu (30 km, zoom 15) : 12,7 Mo de tuiles, 1,1 Mo de répertoires à lire.
 - **Extracteur** (`feature/map/src/commonMain/.../offline/extract/`, logique commune sans Android, 78 tests en `commonTest`) :
   identifiants de tuile et couverture d'un rectangle, répertoires et en-tête PMTiles v3, plan d'extraction et fusion des
-  plages, source HTTP par plages (Ktor, `If-Match`, essais 1/3/9 s, `User-Agent` fixe « NetworkTact »), écriture à sa place
+  plages, source HTTP par plages (Ktor, `If-Match`, essais 1/3/9 s, `User-Agent` neutre `pmtiles-client/1.0` : le serveur source n'apprend pas quelle application demande, en plus de l'adresse et de la zone qu'il voit déjà), écriture à sa place
   avec journal de reprise et contrôle final, orchestration parallèle, édition la plus récente sans date codée en dur,
   contrôle du schéma, estimation grossière. **Pas encore d'écran** : l'intégration au téléphone vient ensuite.
 - **Essai sur la vraie édition** (workflow `fork-carte-interop`) : le même code, compilé seul, extrait Cincu (30 km, zoom 15) ;

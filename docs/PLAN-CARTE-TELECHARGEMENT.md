@@ -226,8 +226,11 @@ autour de Cincu donne 43,7 Mo (45,8 Mo transférés), sous le seuil ; un départ
   plages d'octets demandées, qui révèlent la **zone** téléchargée. Pour un usage militaire c'est un sujet de confidentialité, et
   l'écran le dit **en clair, sans replier ni abréger**, avant le premier téléchargement et chaque fois qu'on change de source :
   « Le serveur source voit la zone demandée et l'adresse du téléphone. » (texte complet au §12). L'application ne journalise ni
-  adresse ni zone, n'envoie rien d'autre (pas de cookie, pas de compte) et utilise un en-tête `User-Agent` fixe et générique
-  (« NetworkTact »), sans version d'application ni modèle de téléphone.
+  adresse ni zone, n'envoie rien d'autre (pas de cookie, pas de compte) et utilise un en-tête `User-Agent` fixe et **neutre**
+  (`pmtiles-client/1.0`), identique sur tous les téléphones : **il ne nomme pas NetworkTact** (décidé le 11 novembre 2026, même
+  sujet que D8 : le serveur voit déjà l'adresse et la zone, il n'apprend pas en plus quelle application les demande), ni sa
+  version, ni le modèle du téléphone. La sonde de la CI (`scripts/carte-sonde`) s'est présentée sous son propre nom depuis un
+  exécuteur GitHub, pas depuis un téléphone.
 - **Autre adresse de source, dès la v1** : champ « Adresse de la source » (réglage avancé, mais **la source en cours est
   toujours affichée sur l'écran de téléchargement**). Deux formes acceptées : un modèle d'éditions
   (`https://hôte/chemin/AAAAMMJJ.pmtiles`, sondé comme aujourd'hui) ou l'URL directe d'un seul `.pmtiles`. Par défaut
@@ -362,7 +365,7 @@ d'interopérabilité (prévu en 13) sont venus avant l'édition, pour vérifier 
 2. Identifiants de Hilbert et couverture d'un rectangle (tuiles par zoom) + tests.
 3. Codec de répertoires PMTiles v3, écrivain d'en-tête et découpage en répertoires feuilles (racine ≤ 16 257 octets) + tests.
 4. Fusion de plages et plan d'extraction (entrées pertinentes, réencodage, taille finale) + tests sur archive synthétique.
-5. Source HTTP par plages (Ktor, ETag/`If-Match`, essais, délais, `User-Agent` fixe) + tests `MockEngine`.
+5. Source HTTP par plages (Ktor, ETag/`If-Match`, essais, délais, `User-Agent` fixe et neutre `pmtiles-client/1.0`) + tests `MockEngine`.
 6. Écriture du fichier, journal de reprise, contrôle final + tests.
 7. Sondage de l'édition, mémorisation, **source réglable** (validation https, modèle ou URL directe) + tests.
 8. Estimation de taille (fourchette et exacte) + règle des 50 Mo + tests.
