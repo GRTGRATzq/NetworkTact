@@ -147,20 +147,11 @@ jobs:
             # --ignore-garbage: a secret pasted with line breaks, spaces or a carriage return still decodes.
             printf '%s' "$NT_KEYSTORE_BASE64" | base64 --decode --ignore-garbage > "$keystore"
             chmod 600 "$keystore"
-            # keytool writes its errors on the standard output, so both streams are kept. On failure only, the lines
-            # below help find the cause; none prints a secret (sizes, lengths, yes/no answers and a hash of the file).
+            # keytool writes its errors on the standard output, so both streams are kept. Only its own message is
+            # shown (wrong password, unknown alias, unreadable file): nothing about the secrets themselves.
             if ! listing=$(keytool -list -keystore "$keystore" -storetype PKCS12 -storepass:env NT_KEYSTORE_PASSWORD \
               -alias "$NT_KEY_ALIAS" 2>&1); then
               echo "::error::keytool cannot read the signing key: $(printf '%s' "$listing" | grep -v '^Picked up' | head -n 3 | tr '\n' ' ')"
-              echo "Decoded key file: $(stat -c %s "$keystore") bytes, SHA-256 $(sha256sum "$keystore" | cut -d' ' -f1)"
-              for name in NT_KEYSTORE_PASSWORD NT_KEY_PASSWORD NT_KEY_ALIAS; do
-                value="${!name}"
-                lead=no; trail=no
-                [[ "$value" == [[:space:]]* ]] && lead=yes
-                [[ "$value" == *[[:space:]] ]] && trail=yes
-                echo "$name: length ${#value}, space or line break at the start: $lead, at the end: $trail"
-              done
-              echo "Java: $(keytool -J-version 2>&1 | grep 'version "' | head -n 1)"
               exit 1
             fi
             # .properties syntax: a backslash in a value has to be doubled.
@@ -191,8 +182,10 @@ jobs:
           unzip -l "$apk" | grep -E 'assets/dexopt/baseline\.prof' || echo "::warning::no baseline profile in the release APK"
           if [ "$SIGNED" = "true" ]; then
             apksigner=$(ls "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -n 1)
-            # Public information (the certificate), useful to compare with the key of the project's holder.
-            "$apksigner" verify --print-certs "$apk"
+            # The signature check (a failure stops the run) and the SHA-256 fingerprint of the certificate, which is
+            # public: compare it with the one of the project's key.
+            report=$("$apksigner" verify -v --print-certs "$apk")
+            printf '%s\n' "$report" | grep -E '^Verifies|^Verified using v[0-9.]+ scheme|certificate SHA-256 digest'
           else
             echo "Unsigned APK: not installable until it is signed."
           fi
