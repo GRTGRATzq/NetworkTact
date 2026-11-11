@@ -22,15 +22,21 @@ Ouvrir, ou `xattr -d com.apple.quarantine pmtiles`).
 
 ## 2. Choisir l'édition du fond Protomaps
 
-Protomaps publie chaque jour le monde entier dans un seul fichier (plus de 100 Go) ; `pmtiles
-extract` n'en télécharge que la zone demandée. Les éditions disponibles sont listées sur
-https://maps.protomaps.com/builds/ : prendre une date récente, par exemple :
+Protomaps publie chaque jour le monde entier dans un seul fichier (environ 140 Go) ; `pmtiles
+extract` n'en télécharge que la zone demandée. **Chaque édition n'est conservée qu'environ 7 jours**
+(mesuré le 11 novembre 2026 : les éditions du 5 au 11 novembre répondaient, celle du 4 et les plus
+anciennes non). Il faut donc **prendre une date de la semaine en cours** : celle du jour (publiée en
+cours de matinée, heure UTC) ou celle de la veille. Les éditions disponibles sont listées sur
+https://maps.protomaps.com/builds/ ; on peut aussi composer la date soi-même, par exemple pour hier :
 
 ```sh
-SOURCE=https://build.protomaps.com/20261007.pmtiles
+SOURCE=https://build.protomaps.com/$(date -u -v-1d +%Y%m%d).pmtiles   # macOS
+echo $SOURCE
 ```
 
-Si l'adresse répond « 404 », l'édition a été retirée : prendre une date plus récente de la liste.
+(sous Linux : `date -u -d yesterday +%Y%m%d`). Si l'adresse répond « 404 », l'édition a été
+retirée ou pas encore publiée : prendre la date de la veille. Une adresse copiée d'une ancienne
+procédure (par exemple `20261007`) ne fonctionne plus.
 
 ## 3. Petit fichier de test : une ville (avec `--bbox`)
 
