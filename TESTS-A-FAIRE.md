@@ -199,6 +199,30 @@ R8 n'a été vérifié que par la compilation, jamais à l'exécution.
 - [ ] Un plantage au lancement ou dans une fonction qui marchait en debug : noter l'écran et l'heure, récupérer le
       journal (`adb logcat`), c'est probablement une règle R8 manquante.
 
+## 17. Téléchargement d'une carte (tâche 7) : pas encore disponible
+
+À faire **quand la fonction existera** (`docs/PLAN-CARTE-TELECHARGEMENT.md`, branche `feat/carte-telechargement`). Variante fdroid.
+
+- [ ] Rectangle de Cincu (zone visible puis coins tirés au doigt, environ 60 × 45 km), zoom 15 : la taille annoncée avant, la taille
+      réelle après, la durée ; la carte s'affiche, mode avion compris ; mention ⓘ « © contributeurs OpenStreetMap · Protomaps ».
+- [ ] Le cadre : poignées faciles à saisir, dimensions en km justes, zone téléchargée = zone du cadre.
+- [ ] Au-delà de 50 Mo : confirmation, la même sur Wi-Fi et sur données mobiles ; en dessous : pas de confirmation.
+- [ ] Écran de la source : le texte « Le serveur source voit la zone demandée et l'adresse du téléphone » est lisible en entier ;
+      une adresse `http://` est refusée ; une adresse `https://` valide est gardée.
+- [ ] Annulation en cours : aucun fichier résiduel, espace libre inchangé. Coupure (mode avion) puis reprise : fichier complet.
+      Fermeture de l'application pendant le téléchargement, réouverture : « Reprendre ».
+- [ ] Mode démo : bouton désactivé, rien téléchargé. Espace presque plein : refus avec les tailles.
+- [ ] Un ancien fichier importé du Mac (`cincu-30km.pmtiles`) fonctionne toujours à côté.
+- [ ] **Comparaison sur Mac** : récupérer le fichier du téléphone (APK de debug : `adb exec-out run-as
+      com.geeksville.mesh.fdroid.debug cat files/pmtiles/<identifiant>.pmtiles > telephone.pmtiles` ; l'APK de release n'est pas
+      débogable, d'où l'export prévu à la décision D12 du plan). Puis `pmtiles verify telephone.pmtiles` et
+      `pmtiles show telephone.pmtiles`, à comparer à `pmtiles show cincu-30km.pmtiles` (produit le 8 novembre) : type de
+      tuile, zooms, nombres de tuiles adressées, d'entrées et de contenus, taille des tuiles. Les bornes et nombres diffèrent
+      si les zones diffèrent. **Pour une comparaison à zone égale**, refaire sur le Mac, avec **l'édition affichée par le
+      téléphone**, `pmtiles extract <source>/<édition>.pmtiles essai.pmtiles --bbox=<ouest,sud,est,nord du cadre>
+      --maxzoom=15` et comparer `pmtiles show essai.pmtiles` : mêmes nombres de tuiles et de contenus attendus.
+- [ ] Écran des licences : `pmtiles-reader` apparaît avec la licence BSD-3-Clause.
+
 ## Avant fusion dans `main`
 - [ ] Les runs 70 et 71 ont été annulés par une poussée plus récente (rien à corriger).
 - [ ] Compiler la variante google et lancer `core:ui` / `core:navigation` à la main si nécessaire.
