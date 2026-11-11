@@ -257,7 +257,7 @@ kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serializa
 kotlinx-serialization-json-okio = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json-okio", version.ref = "kotlinx-serialization" }
 kotlinx-serialization-protobuf = { module = "org.jetbrains.kotlinx:kotlinx-serialization-protobuf", version.ref = "kotlinx-serialization" }
 # Reads the PMTiles v3 container format (header + directory tree) for the offline terrain extractor and the Google
-# flavor's offline basemap extractor. MIT-licensed; see https://github.com/simonpoole/pmtiles-reader.
+# flavor's offline basemap extractor. BSD-3-Clause (its POM); see https://github.com/simonpoole/pmtiles-reader.
 pmtiles-reader = { module = "ch.poole.geo.pmtiles-reader:Reader", version = "0.3.7" }
 
 # Networking

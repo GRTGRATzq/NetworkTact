@@ -27,7 +27,7 @@ markers with no compositing seam.
 - **MVT parsing**: hand-written `@Serializable` classes decoded with `kotlinx-serialization-protobuf`, not a
   vendored parser — the natural Java vector-tile libraries on GitHub (e.g. `ElectronicChartCentre/java-vector-tile`)
   were never published to Maven Central, and JitPack is a supply-chain trade this ~60-line schema doesn't need to
-  make. `ch.poole.geo.pmtiles:Reader` (MIT-licensed) *is* on Maven Central and handles the PMTiles container format,
+  make. `ch.poole.geo.pmtiles:Reader` (BSD-3-Clause) *is* on Maven Central and handles the PMTiles container format,
   so that piece isn't hand-rolled.
 - **Local storage**: a plain `.mbtiles` SQLite archive, not iOS's own PMTiles-shaped local file. PMTiles' cleverness
   (a single HTTP-rangeable remote file) doesn't buy anything once the tiles are already extracted locally; SQLite is
@@ -56,7 +56,7 @@ markers with no compositing seam.
 
 ## Legal
 
-- `ch.poole.geo.pmtiles:Reader` — MIT license.
+- `ch.poole.geo.pmtiles:Reader` — BSD 3-Clause license (as its POM declares).
 - Rendered data is OpenStreetMap-derived via Protomaps; the archive's `metadata` table and the in-app attribution
   both credit "© OpenStreetMap contributors, © Protomaps" (`OfflineRegionExtractor.ATTRIBUTION`).
 - `build.protomaps.com`'s daily-build endpoint has no documented rate limit or terms distinct from the general

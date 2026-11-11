@@ -18,7 +18,7 @@ package org.meshtastic.feature.map.terrain
 
 /**
  * Fetches individual tiles from a remote PMTiles archive by range request — never the whole archive, just the bytes of
- * the tile asked for. Backed by `ch.poole.geo.pmtiles:Reader` (MIT-licensed), the same library the base offline layer
+ * the tile asked for. Backed by `ch.poole.geo.pmtiles:Reader` (BSD-3-Clause), the same library the base offline layer
  * uses for Protomaps; here it's pointed at Mapterhorn's Terrarium elevation archives instead.
  *
  * A plain Java library, so its wrapper is duplicated between `androidMain` and `jvmMain` rather than living once in
