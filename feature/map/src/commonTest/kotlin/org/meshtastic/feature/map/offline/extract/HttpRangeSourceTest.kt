@@ -84,7 +84,7 @@ class HttpRangeSourceTest {
         assertContentEquals(file.copyOfRange(16, 116), source.read(16, 100))
         val request = requests.single()
         assertEquals("bytes=16-115", request.headers[HttpHeaders.Range])
-        assertEquals("NetworkTact", request.headers[HttpHeaders.UserAgent])
+        assertEquals("pmtiles-client/1.0", request.headers[HttpHeaders.UserAgent])
         assertNull(request.headers[HttpHeaders.IfMatch], "no ETag known yet")
         assertEquals("\"e1\"", source.etag)
     }

@@ -56,7 +56,7 @@ class RetryPolicy(val delaysMillis: List<Long> = DEFAULT_DELAYS_MILLIS) {
  * Every request carries `If-Match` with the ETag of the first answer, so a file replaced on the server stops the
  * download (412) instead of mixing two editions; a 200 (the whole file, 139 GB for a Protomaps build) is refused
  * without reading its body. Network errors, 429 and 5xx are retried as [retry] says; 404, 412 and the other refusals
- * are not. The `User-Agent` is the same fixed word on every phone: no app version, no device model.
+ * are not. The `User-Agent` is the same neutral word on every phone: not the app's name, no version, no device model.
  *
  * Timeouts are the client's: install `HttpTimeout` on it.
  */
@@ -186,8 +186,11 @@ class HttpRangeSource(
     }
 
     companion object {
-        /** The same on every phone: it says what asks, not who. */
-        const val USER_AGENT = "NetworkTact"
+        /**
+         * The same on every phone and neutral: it names neither the app nor its version nor the device, so the source
+         * server learns no more than the address and the area it already sees (plan §9, D8).
+         */
+        const val USER_AGENT = "pmtiles-client/1.0"
         private val SERVER_ERRORS = 500..599
     }
 }
