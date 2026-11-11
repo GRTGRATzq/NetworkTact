@@ -42,4 +42,7 @@ sealed class MapDownloadException(message: String, cause: Throwable? = null) : E
     /** The source is a PMTiles archive this app cannot extract from (version, compression, not clustered, raster). */
     class UnsupportedSource(detail: String, cause: Throwable? = null) :
         MapDownloadException("unsupported source: $detail", cause)
+
+    /** The finished file fails its check (length, header, directories or a sample tile): nothing is kept. */
+    class Incomplete(detail: String, cause: Throwable? = null) : MapDownloadException("incomplete map: $detail", cause)
 }

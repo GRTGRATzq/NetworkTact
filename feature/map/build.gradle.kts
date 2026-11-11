@@ -50,8 +50,11 @@ kotlin {
             implementation(libs.ktor.client.core)
         }
 
-        // The map download's HTTP range source is tested against Ktor's mock engine.
-        commonTest.dependencies { implementation(libs.ktor.client.mock) }
+        // The map download is tested against Ktor's mock engine and Okio's in-memory file system.
+        commonTest.dependencies {
+            implementation(libs.ktor.client.mock)
+            implementation(libs.okio.fakefilesystem)
+        }
 
         // Compose UI tests live in jvmTest, not commonTest: this module enables Android host tests, and
         // `runComposeUiTest` has no Robolectric host there — the same tests NPE the moment they run under it.
