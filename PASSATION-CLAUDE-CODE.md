@@ -1,6 +1,6 @@
 # Passation Claude Code : où en est NetworkTact
 
-État au **11 novembre 2026, vers 20 h 30 UTC**, pour reprendre dans une conversation neuve. À lire avec `FORK.md` (section de
+État au **11 novembre 2026, vers 20 h 45 UTC**, pour reprendre dans une conversation neuve. À lire avec `FORK.md` (section de
 chaque tâche, état d'avancement), `TESTS-A-FAIRE.md` et, pour la tâche 7, `docs/PLAN-CARTE-TELECHARGEMENT.md`.
 
 ## 1. Règles du projet (rappel)
@@ -20,7 +20,7 @@ chaque tâche, état d'avancement), `TESTS-A-FAIRE.md` et, pour la tâche 7, `do
 |---|---|---|
 | `feat/apk-release` | Tâche 28 : APK de release signé | **Close.** Run 89 vert, empreinte du certificat vérifiée par l'utilisateur (`f4ad3e41…79205818`). |
 | `feat/carte-telechargement` | Tâche 7 (FORK.md §29) : téléchargement de carte hors ligne. Partie de `feat/apk-release`, contient tout. | Code de la v1 complet ; restent les essais sur téléphone. Derniers commits de code : `6930d88` et `3fa9397` (liste, commit 12), `cced8d3` (export, commit 15), `62b54e6` (test Compose), `dc5b8b1` (plafond de 500 Mo) ; puis documentation (`2207bec`, `9ee7d3e`) et ce fichier. |
-| `wip/carte-telechargement` | Branche d'attente (voir §5), au même commit que `feat/carte-telechargement`. | **À supprimer à la fin de la tâche 7.** |
+| `wip/carte-telechargement` | Branche d'attente (voir §5), au même commit que `feat/carte-telechargement` (`749ad65`). | **À supprimer par l'utilisateur sur GitHub** (onglet Branches) : la suppression par `git push --delete` est coupée par le proxy de l'environnement Claude Code (11 novembre au soir). Rien n'y est perdu. Pour une prochaine attente pendant un run, la recréer depuis `feat/`. |
 
 Les tâches 1 à 27 sont sur les branches `feat/…`, `docs/…` et `fix/…` listées dans `FORK.md` (état d'avancement).
 
@@ -33,7 +33,7 @@ Les tâches 1 à 27 sont sur les branches `feat/…`, `docs/…` et `fix/…` li
 | `fork-apk` 91, 93, 94, 95 | idem | annulés par des poussées suivantes (avant la règle du §5) |
 | `fork-apk` 98 | `4f29b8b` (contrôleur, branchement Android, écran) | **vert** en entier (lint, compilation, tests, `feature:map`, APK debug, `feature:map-maplibre`, APK release et son contrôle) |
 | `fork-apk` 99 | `3fa9397` (liste enrichie, « Reprendre », commit 12) | **vert** |
-| **`fork-apk` 100** | `9ee7d3e` (export, test Compose, plafond de 500 Mo, documentation) | lancé vers 20 h 15 UTC ; **lire son résultat en premier** s'il n'est pas noté ici (ainsi que le `fork-carte-interop` du même commit, déclenché par le changement du contrôleur). |
+| **`fork-apk` 100** | `9ee7d3e` (export, test Compose, plafond de 500 Mo, documentation) | **vert** en entier (19 h 42 – 20 h 09 UTC) : lint, compilation, tests, `core:demo`, `feature:map`, APK debug, `feature:map-maplibre`, APK release et son contrôle. Artefact **`apk-fdroid-release`** à installer pour les essais. `fork-carte-interop` 7, même commit : vert. |
 | `fork-carte-sonde` 1, 2 | sonde D1 | verts ; résultats au §15 du plan |
 | `fork-carte-interop` 1 à 3, 5 | extracteur sur la vraie édition | verts : **identique tuile par tuile à `pmtiles extract`** (Cincu, 6 822 tuiles, 14,65 Mo) |
 | `fork-carte-interop` 4 | `4f29b8b` | rouge : le script `build.sh` ne compilait pas `OfflineMapFiles.kt`, dont le contrôleur dépend ; corrigé par `c6ad820` (run 5 vert) |
@@ -101,13 +101,15 @@ Outils : `scripts/carte-sonde/` (sonde, workflow `fork-carte-sonde`), `scripts/c
 Faits le 11 novembre au soir : run 98 vert, commit 12 (liste), commit 15 (export), test Compose, plafond de 500 Mo,
 documentation (`FORK.md` §29, `CARTE-HORS-LIGNE.md`, `TESTS-A-FAIRE.md` §17).
 
-1. **Lire le résultat du run `fork-apk` 100** (et du `fork-carte-interop` de `9ee7d3e`) ; si rouge, corriger par un
-   nouveau commit. C'est le premier run qui compile l'export et la nouvelle signature de `OfflineMapFilesMenuItem` pour
-   Android (`androidApp` ne compile pas en local).
-2. **Essais sur téléphone** (`TESTS-A-FAIRE.md` §17), par l'utilisateur, dont la comparaison sur Mac avec
-   `cincu-30km.pmtiles` (le fichier se récupère maintenant par « Exporter ») ; l'artefact `cartes-cincu` du run
-   `fork-carte-interop` peut aussi être importé pour vérifier le fichier. Corriger selon les retours.
-3. Fin de tâche (après les essais) : supprimer `wip/carte-telechargement`.
+Run `fork-apk` 100 vert (`fork-carte-interop` 7 aussi) : l'export et la liste enrichie compilent pour Android.
+
+1. **Essais sur téléphone** (`TESTS-A-FAIRE.md` §17), par l'utilisateur, avec l'artefact **`apk-fdroid-release` du run
+   `fork-apk` 100** (empreinte du certificat à vérifier : `f4ad3e41…79205818`). Ordre conseillé : (1) Cincu environ
+   60 × 60 km, zoom 15 (tailles annoncée et réelle, durée, mode avion, mention ⓘ) ; (2) le cadre au doigt ; (3) mention de
+   confidentialité et refus de `http://` ; (4) coupure puis « Reprendre », fermeture de l'application puis « Reprendre »
+   depuis la liste, « Annuler » sans fichier résiduel ; (5) « Exporter » puis comparaison sur Mac avec
+   `cincu-30km.pmtiles`. Le reste de la §17 ensuite. Corriger selon les retours, en commits ciblés.
+2. Fin de tâche : vérifier que `wip/carte-telechargement` a bien été supprimée (voir §2).
 
 Plus tard (décidé) : cartes raster (tâche distincte, plan §17) ; WorkManager seulement si l'essai le justifie (D6) ;
 saisie des dimensions au clavier.
