@@ -959,8 +959,9 @@ du Réseau, ou bouton « Diagnostic » sous un envoi en échec. Le diagnostic n'
 
 ### 29. Téléchargement d'une carte hors ligne : plan et sonde (`feat/carte-telechargement`)
 
-- **État** : **extracteur, contrôleur, branchement Android et écran du rectangle écrits** ; liste enrichie, export et essais
-  sur téléphone restent à faire. Reprise : `PASSATION-CLAUDE-CODE.md`. `docs/PLAN-CARTE-TELECHARGEMENT.md` décrit l'extracteur (lecture par
+- **État** : **code complet pour la première version** (extracteur, contrôleur, branchement Android, écran du rectangle,
+  liste enrichie, reprise depuis la liste, export, plafond de 500 Mo, test Compose du panneau) ; restent les **essais sur
+  téléphone** (`TESTS-A-FAIRE.md` §17). Procédure d'usage : `CARTE-HORS-LIGNE.md`. Reprise : `PASSATION-CLAUDE-CODE.md`. `docs/PLAN-CARTE-TELECHARGEMENT.md` décrit l'extracteur (lecture par
   requêtes `Range` d'une édition Protomaps, écriture d'un `.pmtiles` v3), le rectangle à poignées, la source réglable et les
   décisions D1 à D11. Rien n'est codé avant la validation des résultats de la sonde.
 - **Sonde** (`scripts/carte-sonde/`, workflow `fork-carte-sonde`, lancé à la main ou par poussée de ses fichiers sur cette branche) :
@@ -978,8 +979,10 @@ du Réseau, ou bouton « Diagnostic » sous un envoi en échec. Le diagnostic n'
   nomme celle-ci dans son `User-Agent`, garde un cache disque et journalise en debug) ; dossier `pmtiles-download/`.
   Écran « Télécharger une carte » ouvert depuis « Cartes sur le téléphone » : cadre à poignées sur la carte (remise au nord),
   « Utiliser la vue », zoom 12 à 15, taille grossière puis exacte, mention de confidentialité toujours affichée, source
-  modifiable (https), confirmation au-delà de 50 Mo, progression, annulation, reprise. Textes EN/FR. **Jamais essayé sur un
-  téléphone.**
+  modifiable (https), confirmation au-delà de 50 Mo, progression, annulation, reprise. Textes EN/FR. « Cartes sur le
+  téléphone » : édition, source et dimensions d'une carte téléchargée (lues dans `<id>.json`), téléchargement interrompu avec
+  « Reprendre », **« Exporter »** par le sélecteur de fichiers Android (D12 : la copie ne va qu'à l'emplacement choisi, aucune
+  permission). Test Compose du panneau (`MapDownloadPanelTest`, 7 cas, `jvmTest`). **Jamais essayé sur un téléphone.**
 - **Essai sur la vraie édition** (workflow `fork-carte-interop`) : le même code, compilé seul, extrait Cincu (30 km, zoom 15) ;
   `pmtiles verify` réussi ; **identique tuile par tuile à `pmtiles extract`** (6 822 tuiles, 14,65 Mo) ; détail au §15 du plan.
 - **CI** : `fork-apk` ne se lance plus pour une poussée qui ne change que des fichiers `.md`, ni pour les fichiers de la sonde et
@@ -996,7 +999,7 @@ du Réseau, ou bouton « Diagnostic » sous un envoi en échec. Le diagnostic n'
   `PREPARER-LES-RADIOS.md` et ce fichier. La branche `fix/diffusion-nom` (section 21), partie de
   `docs/essais-2026-11-08`, contient tout jusqu'à la section 21. La branche `fix/demo-unique` (section 22), partie de
   `fix/diffusion-nom`, puis `fix/fait-observe` (section 23), partie de `fix/demo-unique`, puis `fix/textes-fr` (section 24), partie de
-  `fix/fait-observe`, puis `fix/diag-lora-attendu` (section 25), puis `fix/organigramme-saisie` (section 26), puis `fix/carte-attribution` (section 27), puis `feat/apk-release` (section 28), puis `feat/carte-telechargement` (section 29, documentation et sonde seulement), la dernière, qui contient
+  `fix/fait-observe`, puis `fix/diag-lora-attendu` (section 25), puis `fix/organigramme-saisie` (section 26), puis `fix/carte-attribution` (section 27), puis `feat/apk-release` (section 28), puis `feat/carte-telechargement` (section 29, téléchargement de carte hors ligne), la dernière, qui contient
   tout. Rien n'est fusionné dans `main`,
   qui ne porte que l'identité du fork et le workflow `fork-apk`. Aucune pull request n'est ouverte,
   ni vers `main` ni vers `meshtastic/Meshtastic-Android`.
