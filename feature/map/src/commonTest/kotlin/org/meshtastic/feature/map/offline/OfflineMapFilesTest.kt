@@ -61,6 +61,17 @@ class OfflineMapFilesTest {
     }
 
     @Test
+    fun anExportedMapIsProposedUnderItsNameWithTheCharactersStorageRefusesReplaced() {
+        assertEquals(
+            "45.917 N 24.800 E · 60 × 60 km · z15.pmtiles",
+            exportFileName("45.917 N 24.800 E · 60 × 60 km · z15", fallback = "Carte"),
+        )
+        assertEquals("Camp-Canjuers - 2026-11.pmtiles", exportFileName("Camp/Canjuers : 2026?11", fallback = "Carte"))
+        assertEquals("Carte.pmtiles", exportFileName(" .. ", fallback = "Carte"))
+        assertEquals(100 + ".pmtiles".length, exportFileName("x".repeat(300), fallback = "Carte").length)
+    }
+
+    @Test
     fun archiveAttributionFallsBackToOpenStreetMapCredit() {
         val credit = "© contributeurs OpenStreetMap"
         assertEquals(credit, archiveAttribution(null, credit))

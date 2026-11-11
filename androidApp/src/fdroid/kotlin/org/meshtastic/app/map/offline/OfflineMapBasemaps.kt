@@ -23,7 +23,10 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.jetbrains.compose.resources.stringResource
@@ -33,7 +36,9 @@ import org.meshtastic.core.resources.map_attribution_osm_protomaps
 import org.meshtastic.core.resources.offline_map_default_name
 import org.meshtastic.core.ui.theme.TactColors
 import org.meshtastic.feature.map.layers.getFileName
+import org.meshtastic.feature.map.maplibre.component.OfflineMapFile
 import org.meshtastic.feature.map.maplibre.style.Basemap
+import org.meshtastic.feature.map.offline.exportFileName
 import org.meshtastic.feature.map.offline.importedCredit
 import org.meshtastic.feature.map.offline.offlineMapName
 import org.meshtastic.feature.map.offline.offlineMapStyle
@@ -102,6 +107,36 @@ fun rememberPmTilesImport(library: OfflineMapLibrary): () -> Unit {
                 addCategory(Intent.CATEGORY_OPENABLE)
                 type = "*/*"
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
+            },
+        )
+    }
+}
+
+/**
+ * Opens the system "save as" picker for a map (D12, docs/PLAN-CARTE-TELECHARGEMENT.md) and hands the document the user
+ * created to [library], which copies the map into it. The user picks the place; the app writes nowhere else.
+ */
+@Composable
+fun rememberPmTilesExport(library: OfflineMapLibrary): (OfflineMapFile) -> Unit {
+    val fallbackName = stringResource(Res.string.offline_map_default_name)
+    // The map being exported, kept across a configuration change while the picker is open.
+    var exporting by rememberSaveable { mutableStateOf<Pair<String, String>?>(null) }
+    val picker =
+        rememberLauncherForActivityResult(contract = ActivityResultContracts.StartActivityForResult()) { result ->
+            val uri = result.data?.data
+            val map = exporting
+            if (result.resultCode == Activity.RESULT_OK && uri != null && map != null) {
+                library.startExport(map.first, map.second, uri)
+            }
+            exporting = null
+        }
+    return { map ->
+        exporting = map.id to map.name
+        picker.launch(
+            Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
+                addCategory(Intent.CATEGORY_OPENABLE)
+                type = "application/octet-stream"
+                putExtra(Intent.EXTRA_TITLE, exportFileName(map.name, fallbackName))
             },
         )
     }

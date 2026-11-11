@@ -57,6 +57,21 @@ fun offlineMapName(fileName: String?, fallback: String): String {
     return base.ifBlank { fallback }
 }
 
+/** Characters a file name cannot hold on common storage (FAT, Windows, a Mac share): replaced by `-`. */
+private val UNSAFE_FILE_NAME_CHARACTERS = Regex("[\\\\/:*?\"<>|\\p{Cntrl}]")
+
+/** At most this many characters before the extension: storage providers refuse names over 255 bytes. */
+private const val MAX_FILE_NAME_LENGTH = 100
+
+/**
+ * The file name proposed when map [name] is exported (`<name>.pmtiles`), with the characters storage refuses replaced;
+ * [fallback] when nothing is left of the name.
+ */
+fun exportFileName(name: String, fallback: String): String {
+    val base = name.replace(UNSAFE_FILE_NAME_CHARACTERS, "-").trim().trim('.').take(MAX_FILE_NAME_LENGTH).trim()
+    return "${base.ifBlank { fallback }}.$PMTILES_EXTENSION"
+}
+
 /**
  * The attribution shown for an imported tile archive: the one its own metadata declares, or [fallback] — the
  * OpenStreetMap credit, since every archive this app documents how to make is OpenStreetMap data — when it declares

@@ -19,11 +19,11 @@ package org.meshtastic.feature.map.maplibre.component
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -45,20 +45,12 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.flow.StateFlow
 import org.jetbrains.compose.resources.stringResource
-import org.meshtastic.core.common.util.NumberFormatter
 import org.meshtastic.core.resources.Res
 import org.meshtastic.core.resources.cancel
 import org.meshtastic.core.resources.delete
 import org.meshtastic.core.resources.offline_map_cancelled
 import org.meshtastic.core.resources.offline_map_copying
-import org.meshtastic.core.resources.offline_map_delete_message
-import org.meshtastic.core.resources.offline_map_delete_title
 import org.meshtastic.core.resources.offline_map_detail
-import org.meshtastic.core.resources.offline_map_download
-import org.meshtastic.core.resources.offline_map_download_pending
-import org.meshtastic.core.resources.offline_map_download_resume
-import org.meshtastic.core.resources.offline_map_downloaded_edition
-import org.meshtastic.core.resources.offline_map_downloaded_file
 import org.meshtastic.core.resources.offline_map_error_copy
 import org.meshtastic.core.resources.offline_map_error_incomplete
 import org.meshtastic.core.resources.offline_map_error_not_pmtiles
@@ -66,18 +58,17 @@ import org.meshtastic.core.resources.offline_map_error_raster
 import org.meshtastic.core.resources.offline_map_error_read
 import org.meshtastic.core.resources.offline_map_error_space
 import org.meshtastic.core.resources.offline_map_error_version
+import org.meshtastic.core.resources.offline_map_export
 import org.meshtastic.core.resources.offline_map_files
 import org.meshtastic.core.resources.offline_map_files_empty
 import org.meshtastic.core.resources.offline_map_files_hint
-import org.meshtastic.core.resources.offline_map_import
 import org.meshtastic.core.resources.offline_map_imported
 import org.meshtastic.core.resources.offline_map_progress
 import org.meshtastic.core.resources.offline_map_size_mb
 import org.meshtastic.core.resources.okay
-import org.meshtastic.core.ui.component.MeshtasticDialog
 import org.meshtastic.core.ui.icon.Delete
 import org.meshtastic.core.ui.icon.MeshtasticIcons
-import org.meshtastic.feature.map.offline.extract.DownloadArea
+import org.meshtastic.core.ui.icon.Upload
 import org.meshtastic.feature.map.offline.extract.DownloadedMapInfo
 import org.meshtastic.feature.map.offline.extract.MapDownloadController
 import org.meshtastic.feature.map.offline.extract.PendingDownload
@@ -122,15 +113,32 @@ enum class OfflineMapImportFailure {
     CopyFailed,
 }
 
+/** Where the copy of a map to a place the user picked stands. A failed export leaves nothing at that place. */
+sealed interface OfflineMapExport {
+    data object Idle : OfflineMapExport
+
+    data class Copying(val name: String) : OfflineMapExport
+
+    data class Done(val name: String) : OfflineMapExport
+
+    data object Failed : OfflineMapExport
+}
+
 /** The host's store of offline map files: what is installed, how an import is going, and how to change either. */
 interface OfflineMapFiles {
     val maps: StateFlow<List<OfflineMapFile>>
     val importStatus: StateFlow<OfflineMapImport>
 
+    /** Where an export stands; always [OfflineMapExport.Idle] on a host that does not export. */
+    val exportStatus: StateFlow<OfflineMapExport>
+
     fun cancelImport()
 
     /** Clears a finished import's outcome once the user has read it. */
     fun clearImportOutcome()
+
+    /** Clears a finished export's outcome once the user has read it. */
+    fun clearExportOutcome()
 
     fun delete(id: String)
 }
@@ -141,6 +149,8 @@ interface OfflineMapFiles {
  * @param onImport Opens the platform's file picker; the host starts the copy when a file comes back.
  * @param downloads The host's map downloads: a "Download a map" button that opens their frame over the map, and a
  *   download interrupted by a cut, with "Resume". Null (neither) where the host has none.
+ * @param onExport Opens the platform's "save as" picker for a map; the host copies it to the place picked. Null (no
+ *   export button) where the host has none.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -149,6 +159,7 @@ fun OfflineMapFilesMenuItem(
     onImport: () -> Unit,
     modifier: Modifier = Modifier,
     downloads: MapDownloadController? = null,
+    onExport: ((OfflineMapFile) -> Unit)? = null,
 ) {
     var sheetVisible by remember { mutableStateOf(false) }
 
@@ -163,10 +174,14 @@ fun OfflineMapFilesMenuItem(
             val maps by files.maps.collectAsStateWithLifecycle()
             val status by files.importStatus.collectAsStateWithLifecycle()
             val pending = downloads?.pending?.collectAsStateWithLifecycle()?.value
+            val export by files.exportStatus.collectAsStateWithLifecycle()
             OfflineMapFilesSheet(
                 maps = maps,
                 status = status,
+                export = export,
                 onImport = onImport,
+                onExport = onExport,
+                onClearExport = files::clearExportOutcome,
                 // The frame goes over the map, and shows the progress: the sheet closes first.
                 download =
                 downloads?.let { controller ->
@@ -195,7 +210,10 @@ fun OfflineMapFilesMenuItem(
 private fun OfflineMapFilesSheet(
     maps: List<OfflineMapFile>,
     status: OfflineMapImport,
+    export: OfflineMapExport,
     onImport: () -> Unit,
+    onExport: ((OfflineMapFile) -> Unit)?,
+    onClearExport: () -> Unit,
     download: DownloadActions?,
     onCancelImport: () -> Unit,
     onClearOutcome: () -> Unit,
@@ -203,15 +221,12 @@ private fun OfflineMapFilesSheet(
 ) {
     var pendingDelete by remember { mutableStateOf<OfflineMapFile?>(null) }
     pendingDelete?.let { map ->
-        MeshtasticDialog(
-            title = stringResource(Res.string.offline_map_delete_title),
-            message = stringResource(Res.string.offline_map_delete_message, map.name),
-            confirmText = stringResource(Res.string.delete),
+        DeleteDialog(
+            map = map,
             onConfirm = {
                 onDelete(map)
                 pendingDelete = null
             },
-            dismissText = stringResource(Res.string.cancel),
             onDismiss = { pendingDelete = null },
         )
     }
@@ -229,6 +244,13 @@ private fun OfflineMapFilesSheet(
             }
         }
 
+        if (export != OfflineMapExport.Idle) {
+            item {
+                ExportStatus(status = export, onClear = onClearExport)
+                HorizontalDivider()
+            }
+        }
+
         if (maps.isEmpty()) {
             item {
                 Text(
@@ -239,7 +261,12 @@ private fun OfflineMapFilesSheet(
             }
         } else {
             items(maps, key = { it.id }) { map ->
-                OfflineMapRow(map = map, onDelete = { pendingDelete = map })
+                OfflineMapRow(
+                    map = map,
+                    onDelete = { pendingDelete = map },
+                    // One copy at a time: the button waits for the current one.
+                    onExport = onExport?.takeIf { export !is OfflineMapExport.Copying }?.let { { it(map) } },
+                )
                 HorizontalDivider()
             }
         }
@@ -252,45 +279,17 @@ private fun OfflineMapFilesSheet(
         }
 
         item {
-            Button(
-                onClick = onImport,
+            SheetButtons(
                 enabled = status !is OfflineMapImport.Copying,
-                modifier = Modifier.fillMaxWidth().padding(16.dp),
-            ) {
-                Text(stringResource(Res.string.offline_map_import))
-            }
-        }
-
-        if (download != null) {
-            item {
-                OutlinedButton(
-                    onClick = download.onOpen,
-                    enabled = status !is OfflineMapImport.Copying,
-                    modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, bottom = 16.dp),
-                ) {
-                    Text(stringResource(Res.string.offline_map_download))
-                }
-            }
+                onImport = onImport,
+                onDownload = download?.onOpen,
+            )
         }
     }
 }
 
 /** What the sheet offers of the host's downloads: open the frame, and resume [pending] if a cut stopped one. */
 private class DownloadActions(val pending: PendingDownload?, val onOpen: () -> Unit, val onResume: () -> Unit)
-
-/** A download stopped by a cut, possibly in an earlier run: "Resume" opens the frame, where it goes on. */
-@Composable
-private fun PendingRow(pending: PendingDownload, onResume: () -> Unit) {
-    val percent = if (pending.rangesTotal > 0) pending.rangesDone * PERCENT / pending.rangesTotal else 0
-    ListItem(
-        headlineContent = {
-            Text(text = stringResource(Res.string.offline_map_download_pending, pending.name, "$percent %"))
-        },
-        trailingContent = {
-            Button(onClick = onResume) { Text(stringResource(Res.string.offline_map_download_resume)) }
-        },
-    )
-}
 
 @Composable
 private fun SheetHeader() {
@@ -301,7 +300,7 @@ private fun SheetHeader() {
 }
 
 @Composable
-private fun OfflineMapRow(map: OfflineMapFile, onDelete: () -> Unit) {
+private fun OfflineMapRow(map: OfflineMapFile, onDelete: () -> Unit, onExport: (() -> Unit)?) {
     ListItem(
         headlineContent = { Text(map.name) },
         supportingContent = {
@@ -320,27 +319,17 @@ private fun OfflineMapRow(map: OfflineMapFile, onDelete: () -> Unit) {
             }
         },
         trailingContent = {
-            IconButton(onClick = onDelete) {
-                Icon(MeshtasticIcons.Delete, contentDescription = stringResource(Res.string.delete))
+            Row {
+                if (onExport != null) {
+                    IconButton(onClick = onExport) {
+                        Icon(MeshtasticIcons.Upload, contentDescription = stringResource(Res.string.offline_map_export))
+                    }
+                }
+                IconButton(onClick = onDelete) {
+                    Icon(MeshtasticIcons.Delete, contentDescription = stringResource(Res.string.delete))
+                }
             }
         },
-    )
-}
-
-/** Where a downloaded map comes from and what it covers: "Edition of 2026-11-11, build.protomaps.com · 60 × 60 km". */
-@Composable
-private fun DownloadedLine(info: DownloadedMapInfo) {
-    val width = NumberFormatter.format(DownloadArea.widthMeters(info.bounds) / METERS_PER_KM, 0)
-    val height = NumberFormatter.format(DownloadArea.heightMeters(info.bounds) / METERS_PER_KM, 0)
-    val date = info.editionDate
-    Text(
-        text =
-        if (date == null) {
-            stringResource(Res.string.offline_map_downloaded_file, info.sourceHost, width, height)
-        } else {
-            stringResource(Res.string.offline_map_downloaded_edition, isoDate(date), info.sourceHost, width, height)
-        },
-        style = MaterialTheme.typography.bodySmall,
     )
 }
 
@@ -411,6 +400,3 @@ private fun failureText(failure: OfflineMapImport.Failed): String = when (failur
 
 @Composable
 private fun megabytesLabel(bytes: Long): String = stringResource(Res.string.offline_map_size_mb, bytes.megabytes())
-
-private const val METERS_PER_KM = 1_000.0
-private const val PERCENT = 100

@@ -20,6 +20,7 @@ import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.koin.compose.koinInject
 import org.meshtastic.app.map.offline.OfflineMapLibrary
+import org.meshtastic.app.map.offline.rememberPmTilesExport
 import org.meshtastic.app.map.offline.rememberPmTilesImport
 import org.meshtastic.core.ui.util.MapViewProvider
 import org.meshtastic.feature.map.layers.MapLayersManager
@@ -46,6 +47,7 @@ fun getMapViewProvider(): MapViewProvider = MapLibreMapViewProvider(
             files = offlineMaps,
             onImport = rememberPmTilesImport(offlineMaps),
             downloads = offlineMaps.downloads,
+            onExport = rememberPmTilesExport(offlineMaps),
         )
     },
     // waypointEditor is not passed: EditWaypointDialog is multiplatform now and the provider defaults to it.

@@ -18,6 +18,7 @@ package org.meshtastic.app.map.offline
 
 import android.content.Context
 import android.net.Uri
+import android.provider.DocumentsContract
 import co.touchlab.kermit.Logger
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
@@ -36,6 +37,7 @@ import org.meshtastic.core.common.di.ApplicationCoroutineScope
 import org.meshtastic.core.common.util.safeCatching
 import org.meshtastic.core.repository.DemoMode
 import org.meshtastic.core.repository.MapTileProviderPrefs
+import org.meshtastic.feature.map.maplibre.component.OfflineMapExport
 import org.meshtastic.feature.map.maplibre.component.OfflineMapFile
 import org.meshtastic.feature.map.maplibre.component.OfflineMapFiles
 import org.meshtastic.feature.map.maplibre.component.OfflineMapImport
@@ -79,6 +81,8 @@ data class InstalledOfflineMap(val file: OfflineMapFile, val path: String, val m
  * download in progress stays in `pmtiles-download/` and joins `pmtiles/` only once checked (see
  * docs/PLAN-CARTE-TELECHARGEMENT.md §10).
  */
+// Import, export, delete and listing share one mutex over `pmtiles/`: kept in one class rather than split for detekt.
+@Suppress("TooManyFunctions")
 @Single
 class OfflineMapLibrary(
     private val context: Context,
@@ -97,6 +101,7 @@ class OfflineMapLibrary(
     private val listed = MutableStateFlow(false)
     private val _maps = MutableStateFlow<List<OfflineMapFile>>(emptyList())
     private val _importStatus = MutableStateFlow<OfflineMapImport>(OfflineMapImport.Idle)
+    private val _exportStatus = MutableStateFlow<OfflineMapExport>(OfflineMapExport.Idle)
 
     /** The installed maps, with their paths. */
     val installedMaps: StateFlow<List<InstalledOfflineMap>> = installed.asStateFlow()
@@ -109,6 +114,7 @@ class OfflineMapLibrary(
 
     override val maps: StateFlow<List<OfflineMapFile>> = _maps.asStateFlow()
     override val importStatus: StateFlow<OfflineMapImport> = _importStatus.asStateFlow()
+    override val exportStatus: StateFlow<OfflineMapExport> = _exportStatus.asStateFlow()
 
     /** Map downloads from a Protomaps edition or another source (fdroid only, like the whole library). */
     val downloads: MapDownloadController =
@@ -172,6 +178,39 @@ class OfflineMapLibrary(
 
     override fun clearImportOutcome() {
         if (_importStatus.value !is OfflineMapImport.Copying) _importStatus.value = OfflineMapImport.Idle
+    }
+
+    override fun clearExportOutcome() {
+        if (_exportStatus.value !is OfflineMapExport.Copying) _exportStatus.value = OfflineMapExport.Idle
+    }
+
+    /**
+     * Copies map [id] to [target], the document the user just created with the system's "save as" picker (D12): nothing
+     * goes anywhere else, and no permission is needed. On failure the half-written document is deleted.
+     */
+    fun startExport(id: String, name: String, target: Uri) {
+        if (_exportStatus.value is OfflineMapExport.Copying) return
+        _exportStatus.value = OfflineMapExport.Copying(name)
+        scope.launch {
+            // Under the mutex: a map deleted meanwhile is not half copied.
+            val copied = mutex.withLock { copyOut(File(mapsDir, "$id.$PMTILES_EXTENSION"), target) }
+            _exportStatus.value = if (copied) OfflineMapExport.Done(name) else OfflineMapExport.Failed
+        }
+    }
+
+    private fun copyOut(source: File, target: Uri): Boolean {
+        val copied =
+            safeCatching {
+                val output =
+                    context.contentResolver.openOutputStream(target, "wt") ?: throw IOException("no output stream")
+                output.use { out -> source.inputStream().use { it.copyTo(out) } }
+            }
+                .onFailure { Logger.withTag(TAG).w(it) { "Offline map export failed" } }
+                .isSuccess
+        if (!copied) {
+            safeCatching { DocumentsContract.deleteDocument(context.contentResolver, target) }
+        }
+        return copied
     }
 
     override fun delete(id: String) {

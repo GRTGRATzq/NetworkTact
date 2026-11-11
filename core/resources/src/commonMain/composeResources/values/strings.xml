@@ -1532,6 +1532,10 @@
     <string name="offline_map_error_read">The file could not be read. Nothing was kept.</string>
     <string name="offline_map_error_space">Not enough free space: %1$s needed, %2$s free. Nothing was copied.</string>
     <string name="offline_map_error_version">This .pmtiles file uses an unsupported version (version 3 expected). Nothing was kept.</string>
+    <string name="offline_map_export">Export</string>
+    <string name="offline_map_export_failed">The export failed. Nothing was written.</string>
+    <string name="offline_map_exported">“%1$s” exported.</string>
+    <string name="offline_map_exporting">Exporting “%1$s”…</string>
     <string name="offline_map_files">Maps on this phone</string>
     <string name="offline_map_files_empty">No map on this phone yet.</string>
     <string name="offline_map_files_hint">A map imported from a .pmtiles file works without Internet.</string>

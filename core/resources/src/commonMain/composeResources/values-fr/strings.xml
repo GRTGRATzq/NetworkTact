@@ -1814,4 +1814,8 @@
     <string name="offline_map_download_error_unexpected">Le téléchargement a échoué. Rien n'a été conservé.</string>
     <string name="offline_map_downloaded_edition">Édition du %1$s, %2$s · %3$s × %4$s km</string>
     <string name="offline_map_downloaded_file">Depuis %1$s · %2$s × %3$s km</string>
+    <string name="offline_map_export">Exporter</string>
+    <string name="offline_map_export_failed">L'export a échoué. Rien n'a été écrit.</string>
+    <string name="offline_map_exported">« %1$s » exportée.</string>
+    <string name="offline_map_exporting">Export de « %1$s »…</string>
 </resources>
