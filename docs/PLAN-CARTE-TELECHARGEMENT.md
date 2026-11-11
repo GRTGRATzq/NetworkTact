@@ -381,6 +381,14 @@ d'interopérabilité (prévu en 13) sont venus avant l'édition, pour vérifier 
 16. (lot ultérieur) saisie des dimensions au clavier ; raster (§17).
 
 Chaque commit est vérifié avant la poussée (lint local, tests du module) ; la CI `fork-apk` fait foi pour la compilation fdroid.
+
+**Branche d'attente `wip/carte-telechargement`** (décidée le 11 novembre 2026) : pendant qu'un run de `fork-apk` tourne sur
+`feat/carte-telechargement`, les commits suivants sont poussés sur `wip/carte-telechargement` (le crochet d'arrêt de
+l'environnement Claude Code refuse de finir une réponse avec des commits présents sur aucune branche distante) ; une fois le run
+terminé, les mêmes commits sont poussés sur `feat/carte-telechargement`, sans réécriture. Vérifié : aucun workflow ne se
+déclenche sur `wip/**` (`fork-apk` : `feat/**`, `fix/**`, `docs/**` ; `fork-carte-sonde` et `fork-carte-interop` :
+`feat/carte-telechargement` ; `docs-deploy`, `main-check`, `verify-flatpak` : `main` ; `docs-release` : étiquettes `v*.*.*`).
+**La branche `wip/carte-telechargement` est supprimée à la fin de la tâche 7.**
 Branche `feat/carte-telechargement`, partie de `feat/apk-release`, aucune pull request.
 
 ## 15. Sonde de l'édition (D1) : ce qui est vérifié et ce qui ne l'est pas encore
