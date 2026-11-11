@@ -188,8 +188,9 @@ Variante fdroid. Le crédit imposé ne dépend que des métadonnées du fichier.
 APK : artefact `apk-fdroid-release` du dernier run vert de `fork-apk`. Il remplace l'APK de debug pour l'usage courant ;
 R8 n'a été vérifié que par la compilation, jamais à l'exécution.
 
-- [ ] Installation : l'APK est signé (sinon Android refuse de l'installer) et s'installe **à côté** de la version de
-      debug (identifiant différent). Premier lancement sans plantage, écran de bienvenue.
+- [ ] Installation : l'APK est signé (sinon Android refuse de l'installer). Désinstaller d'abord la version de debug
+      (`com.geeksville.mesh.fdroid.debug`) : la release (`io.github.grtgratzq.networktact`) repart sans données,
+      refaire la liste d'équipes et l'organigramme (§28). Premier lancement sans plantage, écran de bienvenue.
 - [ ] Parcours de fumée, en cherchant ce que R8 casserait : Réglages, Mode démo, vue PC, Conversations ; carte (fond en
       ligne, import d'un `.pmtiles`, crédit ⓘ, appui long) ; QR de l'organigramme (affichage et lecture à la caméra) ;
       Bluetooth (recherche et connexion d'une radio) ; Réglages de la radio.

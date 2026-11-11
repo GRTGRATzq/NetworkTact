@@ -854,8 +854,9 @@ du Réseau, ou bouton « Diagnostic » sous un envoi en échec. Le diagnostic n'
 - **Ce qui change** : `fork-apk` construit aussi `fdroidRelease` (R8, non débogable, profil de démarrage), en dernière
   étape pour qu'un échec ne coûte ni l'APK de debug ni les résultats de tests, et publie l'artefact
   `apk-fdroid-release`. L'APK de debug (`apk-fdroid-debug`, identifiant `….fdroid.debug`) reste construit comme avant ;
-  la release porte l'identifiant `APPLICATION_ID` de `config.properties`, sans suffixe : les deux s'installent côte à
-  côte.
+  la release porte l'identifiant `APPLICATION_ID` de `config.properties` (`io.github.grtgratzq.networktact`), sans
+  suffixe, alors que le debug garde `com.geeksville.mesh.fdroid.debug` : Android les voit comme deux applications
+  (voir « Installation et passage depuis la version debug » plus bas).
 - **Durée** : un run vert dure environ 27 minutes avant cette tâche ; la construction de la release s'y ajoute, et la
   limite du job passe de 40 à 60 minutes (celle de l'étape : 30 minutes).
 - **Signature** : si les quatre secrets existent, l'étape décode la clé dans un fichier temporaire hors du dépôt
@@ -863,12 +864,13 @@ du Réseau, ou bouton « Diagnostic » sous un envoi en échec. Le diagnostic n'
   cause : « keystore password was incorrect », « Alias <…> does not exist », fichier illisible ; `keytool` écrit ses erreurs
   sur la sortie standard, qu'une première version du script jetait : run 85 rouge sans message), écrit
   `keystore.properties` (ignoré par Git, relu par `androidApp/build.gradle.kts`), construit, puis supprime les deux
-  fichiers à la fin du run. Aucun secret n'est affiché ; **en cas d'échec de `keytool` seulement**, l'étape ajoute les
-  lignes utiles au diagnostic : taille et empreinte SHA-256 du fichier décodé, longueur de chacun des trois secrets
-  (mots de passe et alias) avec la présence d'un espace ou d'un retour à la ligne au début ou à la fin, et version de
-  Java ; jamais une valeur. Une étape de contrôle affiche la taille de l'APK, vérifie que le
-  profil de démarrage est dedans et lance `apksigner verify --print-certs` (le certificat est public : à comparer avec
-  la clé du porteur). **Si un des secrets est vide** (un fork, par exemple), l'APK est construit **non signé** avec une
+  fichiers à la fin du run. Aucun secret n'est affiché, et rien n'en révèle non plus d'information (ni longueur, ni empreinte du
+  fichier décodé) : en cas d'échec, seul le message de `keytool` apparaît. Une version intermédiaire du workflow
+  (commit `7b34a16`, runs 85 à 87) affichait ces longueurs pour trouver la cause de l'échec ; elle a été retirée une
+  fois la cause connue (voir « Signature et passation »). L'étape « Check the release APK » affiche la taille de
+  l'APK, vérifie que le profil de démarrage est dedans, puis, si l'APK est signé, lance `apksigner verify` et n'en
+  garde que la vérification (`Verifies`, `Verified using v2 scheme … true`) et l'empreinte SHA-256 du certificat
+  (public : à comparer avec celle de la clé du porteur). **Si un des secrets est vide** (un fork, par exemple), l'APK est construit **non signé** avec une
   note dans le journal, sans faire échouer le run ; un APK non signé ne s'installe pas.
 - **R8** : les règles de la variante fdroid sont celles de toutes les variantes (`androidApp/proguard-rules.pro`,
   `config/proguard/shared-rules.pro`, déjà éprouvées en `googleRelease`) plus les règles que chaque bibliothèque livre
@@ -889,11 +891,25 @@ du Réseau, ou bouton « Diagnostic » sous un envoi en échec. Le diagnostic n'
   `:baselineprofile` et le générer sur un appareil ou un émulateur (Gradle Managed Device, avec accélération matérielle,
   possible sur un exécuteur GitHub ; sinon sur un téléphone branché), puis committer le fichier produit. À décider
   plus tard.
-- **`DEBUG_KEYSTORE_BASE64`** (secret d'une tâche abandonnée en octobre) : introuvable dans les fichiers du dépôt, dans
+- **`DEBUG_KEYSTORE_BASE64`** (secret d'une tâche abandonnée en octobre) : **n'est utilisé nulle part** : introuvable dans les fichiers du dépôt, dans
   l'historique et dans les 19 branches locales et distantes ; aucun workflow ne le lit (les secrets de signature de
   `release.yml` hérité de Meshtastic sont `KEYSTORE`, `KEYSTORE_FILENAME` et `KEYSTORE_PROPERTIES`). Les secrets du
   dépôt ne peuvent pas être listés d'ici : c'est à confirmer dans Settings → Secrets, où il peut être supprimé sans
   conséquence pour le code. Rien n'a été supprimé.
+
+#### Installation et passage depuis la version debug
+
+- La release s'installe sous l'identifiant **`io.github.grtgratzq.networktact`** ; la version debug, sous
+  `com.geeksville.mesh.fdroid.debug`. Android les traite comme deux applications distinctes, chacune avec ses propres
+  données : rien n'est repris de l'une à l'autre.
+- **Il faut donc désinstaller la version debug** (`com.geeksville.mesh.fdroid.debug`) avant de passer à la release :
+  techniquement les deux peuvent coexister, mais deux applications cherchant la même radio en Bluetooth se gênent, et
+  la debug garderait des données qui ne servent plus.
+- **Après l'installation, tout est à refaire** dans la release : la liste d'équipes, l'organigramme (réimport du
+  QR ou ressaisie) et les réglages ; les cartes `.pmtiles` importées sont aussi à réimporter. Les radios, elles, ne
+  changent pas.
+- Une mise à jour de la release par-dessus une release n'est possible que si elle est signée avec la **même clé** :
+  d'où la garde de la clé (voir plus bas). Un APK non signé ne s'installe pas.
 
 #### Signature et passation
 
@@ -907,10 +923,10 @@ du Réseau, ou bouton « Diagnostic » sous un envoi en échec. Le diagnostic n'
   | `NT_KEY_ALIAS` | l'alias de la clé : `networktact` |
 
 - **Les recréer dans un autre dépôt** :
-  1. Créer la clé, une seule fois, en saisissant le mot de passe quand `keytool` le demande. **Lettres et chiffres
-     seulement** : un accent fait échouer PKCS12, et une saisie dans le navigateur peut altérer les guillemets, les
+  1. Créer la clé, une seule fois, en saisissant le mot de passe quand `keytool` le demande (format PKCS12, alias
+     `networktact`). **Lettres et chiffres seulement** : un accent fait échouer PKCS12, et une saisie dans le navigateur peut altérer les guillemets, les
      apostrophes et les tirets (le secret ne vaut alors plus le mot de passe du fichier : « keystore password was
-     incorrect »). Le fichier de référence est `networktact-release-v2.p12` :
+     incorrect » : incident des runs 85 à 87, résolu au run 87 avec un mot de passe en lettres et chiffres). Le fichier de référence est `networktact-release-v2.p12` :
      ```bash
      keytool -genkeypair -v -storetype PKCS12 -keystore networktact-release-v2.p12 -alias networktact \
        -keyalg RSA -keysize 4096 -validity 10000
@@ -920,7 +936,9 @@ du Réseau, ou bouton « Diagnostic » sous un envoi en échec. Le diagnostic n'
   3. Dans le dépôt, créer les quatre secrets du tableau (interface web, ou
      `gh secret set NT_KEYSTORE_PASSWORD` qui demande la valeur sans l'écrire dans l'historique du terminal).
   4. Lancer `fork-apk` (poussée vers `fix/**`, `feat/**` ou `docs/**`, ou lancement manuel) : l'étape « Check the
-     release APK » doit afficher `Verified using v2 scheme … true` et le certificat. Empreinte SHA-256 du certificat
+     release APK » doit afficher `Verified using v2 scheme … true` et une ligne `certificate SHA-256 digest` : elle
+     doit être **égale, aux deux-points près, à** l'empreinte attendue ci-dessous (c'est la même, sans les deux-points,
+     en minuscules). Empreinte SHA-256 du certificat
      de la clé de référence (public) :
      `F4:AD:3E:41:C3:54:6D:59:6D:A1:47:62:AB:58:47:4F:E8:06:00:10:E5:3B:24:FB:B4:D4:01:89:79:20:58:18`.
 - **Construction locale signée** : créer, à la racine du dépôt, `keystore.properties` (déjà dans `.gitignore`, ne jamais
@@ -939,7 +957,7 @@ du Réseau, ou bouton « Diagnostic » sous un envoi en échec. Le diagnostic n'
   la clé interdit toute mise à jour des applications déjà installées (Android refuse une mise à jour signée par une
   autre clé) : il faut en garder au moins deux copies, hors du dépôt.
 
-## État d'avancement au 9 novembre 2026
+## État d'avancement au 11 novembre 2026
 
 - **Branches** : les sections 1 à 20 sont chacune sur une branche `feat/…`, empilées les unes
   sur les autres ; la dernière, `feat/accueil-insignes` (commit `9196e76`), contient tout leur code.
@@ -959,7 +977,7 @@ du Réseau, ou bouton « Diagnostic » sous un envoi en échec. Le diagnostic n'
   `docs/essais-2026-11-08` (lancé à la main, même code que le run 72) ; runs 74 à 76 rouges sur
   `fix/diffusion-nom`, tous au lint (formatage ktfmt d'un `when` et d'un commentaire, puis detekt
   `ViewModelForwarding`), chacun corrigé par un commit ; run 77 vert (lint, compilation, tests dont
-  `NameBroadcastTest` et `NameBroadcasterTest`, APK), 18 min. Run 79 vert sur `fix/demo-unique` (section 22), run 80 vert sur `fix/fait-observe` (section 23). Run 87 vert sur `feat/apk-release` (section 28) : les échecs des runs 85 à 87 venaient d'un caractère du mot de passe modifié à la saisie dans GitHub, pas de la version de Java.
+  `NameBroadcastTest` et `NameBroadcasterTest`, APK), 18 min. Run 79 vert sur `fix/demo-unique` (section 22), run 80 vert sur `fix/fait-observe` (section 23). Runs suivants (tous sur la branche indiquée) : 78 vert (`fix/diffusion-nom`, documentation) ; 79 vert (`fix/demo-unique`) ; 80 vert (`fix/fait-observe`, section 23) ; 81 vert (`fix/textes-fr`, section 24) ; 82 vert (`fix/diag-lora-attendu`, section 25) ; 83 vert (`fix/organigramme-saisie`, section 26) ; 84 vert (`fix/carte-attribution`, section 27) ; sur `feat/apk-release` (section 28) : 85 rouge, 86 rouge, 87 vert (relancé trois fois), 88 vert (documentation). Les échecs des runs 85 et 86 venaient d'un caractère du mot de passe modifié à la saisie dans GitHub (« keystore password was incorrect »), pas de la version de Java ; le run 87 a construit l'APK de debug et l'APK de release signé. Le diagnostic de la clé (longueurs, empreinte du fichier, version de Java) a ensuite été retiré du workflow : plus aucune information sur les secrets n'est affichée, et le contrôle de l'APK n'affiche que la signature et l'empreinte du certificat.
   Le lint (spotless, detekt) tourne en local depuis le 9 novembre : accès réseau ouvert et miroir Maven Central
   en script d'initialisation Gradle hors du dépôt. Aucune compilation locale n'a été
   possible pour la section 21 (pas d'accès aux dépôts Maven) : seule la CI l'a vérifiée.
