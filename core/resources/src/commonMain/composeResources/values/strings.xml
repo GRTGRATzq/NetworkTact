@@ -1523,6 +1523,8 @@
     <string name="offline_map_download_source_https">Only https:// addresses are accepted.</string>
     <string name="offline_map_download_start">Download</string>
     <string name="offline_map_download_use_view">Use the view</string>
+    <string name="offline_map_downloaded_edition">Edition of %1$s, %2$s · %3$s × %4$s km</string>
+    <string name="offline_map_downloaded_file">From %1$s · %2$s × %3$s km</string>
     <string name="offline_map_error_copy">The copy failed (storage full or file removed). Nothing was kept.</string>
     <string name="offline_map_error_incomplete">The file is incomplete (interrupted transfer?). Nothing was kept.</string>
     <string name="offline_map_error_not_pmtiles">This file is not a .pmtiles map. Nothing was kept.</string>

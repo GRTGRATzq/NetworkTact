@@ -17,6 +17,7 @@
 package org.meshtastic.feature.map.offline.extract
 
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 
 /** Why a map download did not end with a map. Each one has its own message (docs/PLAN-CARTE-TELECHARGEMENT.md §12). */
 enum class MapDownloadFailure {
@@ -121,4 +122,15 @@ data class DownloadedMapInfo(
     val minZoom: Int,
     val maxZoom: Int,
     val downloadedAtEpochSeconds: Long,
-)
+) {
+    val bounds: GeoBounds
+        get() = GeoBounds(west, south, east, north)
+
+    companion object {
+        private val json = Json { ignoreUnknownKeys = true }
+
+        /** The description in [text], or null when it is not one: the map is then listed like an imported one. */
+        fun decode(text: String): DownloadedMapInfo? =
+            runCatching { json.decodeFromString(serializer(), text) }.getOrNull()
+    }
+}

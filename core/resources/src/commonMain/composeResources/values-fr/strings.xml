@@ -1812,4 +1812,6 @@
     <string name="offline_map_download_error_demo">Les téléchargements sont désactivés en mode démo.</string>
     <string name="offline_map_download_error_tiny">La zone est trop petite ou inversée.</string>
     <string name="offline_map_download_error_unexpected">Le téléchargement a échoué. Rien n'a été conservé.</string>
+    <string name="offline_map_downloaded_edition">Édition du %1$s, %2$s · %3$s × %4$s km</string>
+    <string name="offline_map_downloaded_file">Depuis %1$s · %2$s × %3$s km</string>
 </resources>

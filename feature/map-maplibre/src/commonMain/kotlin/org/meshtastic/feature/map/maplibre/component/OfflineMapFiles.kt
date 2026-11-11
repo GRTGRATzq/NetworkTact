@@ -45,6 +45,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.flow.StateFlow
 import org.jetbrains.compose.resources.stringResource
+import org.meshtastic.core.common.util.NumberFormatter
 import org.meshtastic.core.resources.Res
 import org.meshtastic.core.resources.cancel
 import org.meshtastic.core.resources.delete
@@ -54,6 +55,8 @@ import org.meshtastic.core.resources.offline_map_delete_message
 import org.meshtastic.core.resources.offline_map_delete_title
 import org.meshtastic.core.resources.offline_map_detail
 import org.meshtastic.core.resources.offline_map_download
+import org.meshtastic.core.resources.offline_map_downloaded_edition
+import org.meshtastic.core.resources.offline_map_downloaded_file
 import org.meshtastic.core.resources.offline_map_error_copy
 import org.meshtastic.core.resources.offline_map_error_incomplete
 import org.meshtastic.core.resources.offline_map_error_not_pmtiles
@@ -72,9 +75,22 @@ import org.meshtastic.core.resources.okay
 import org.meshtastic.core.ui.component.MeshtasticDialog
 import org.meshtastic.core.ui.icon.Delete
 import org.meshtastic.core.ui.icon.MeshtasticIcons
+import org.meshtastic.feature.map.offline.extract.DownloadArea
+import org.meshtastic.feature.map.offline.extract.DownloadedMapInfo
 
-/** An offline map file stored on the device. */
-data class OfflineMapFile(val id: String, val name: String, val sizeBytes: Long, val minZoom: Int, val maxZoom: Int)
+/**
+ * An offline map file stored on the device.
+ *
+ * @param download What was written beside a downloaded map (source, edition, area); null for an imported one.
+ */
+data class OfflineMapFile(
+    val id: String,
+    val name: String,
+    val sizeBytes: Long,
+    val minZoom: Int,
+    val maxZoom: Int,
+    val download: DownloadedMapInfo? = null,
+)
 
 /** Where an import stands. Every outcome but [Done] leaves nothing behind. */
 sealed interface OfflineMapImport {
@@ -251,22 +267,42 @@ private fun OfflineMapRow(map: OfflineMapFile, onDelete: () -> Unit) {
     ListItem(
         headlineContent = { Text(map.name) },
         supportingContent = {
-            Text(
-                text =
-                stringResource(
-                    Res.string.offline_map_detail,
-                    megabytesLabel(map.sizeBytes),
-                    map.minZoom,
-                    map.maxZoom,
-                ),
-                style = MaterialTheme.typography.bodySmall,
-            )
+            Column {
+                Text(
+                    text =
+                    stringResource(
+                        Res.string.offline_map_detail,
+                        megabytesLabel(map.sizeBytes),
+                        map.minZoom,
+                        map.maxZoom,
+                    ),
+                    style = MaterialTheme.typography.bodySmall,
+                )
+                map.download?.let { DownloadedLine(it) }
+            }
         },
         trailingContent = {
             IconButton(onClick = onDelete) {
                 Icon(MeshtasticIcons.Delete, contentDescription = stringResource(Res.string.delete))
             }
         },
+    )
+}
+
+/** Where a downloaded map comes from and what it covers: "Edition of 2026-11-11, build.protomaps.com · 60 × 60 km". */
+@Composable
+private fun DownloadedLine(info: DownloadedMapInfo) {
+    val width = NumberFormatter.format(DownloadArea.widthMeters(info.bounds) / METERS_PER_KM, 0)
+    val height = NumberFormatter.format(DownloadArea.heightMeters(info.bounds) / METERS_PER_KM, 0)
+    val date = info.editionDate
+    Text(
+        text =
+        if (date == null) {
+            stringResource(Res.string.offline_map_downloaded_file, info.sourceHost, width, height)
+        } else {
+            stringResource(Res.string.offline_map_downloaded_edition, isoDate(date), info.sourceHost, width, height)
+        },
+        style = MaterialTheme.typography.bodySmall,
     )
 }
 
@@ -337,3 +373,5 @@ private fun failureText(failure: OfflineMapImport.Failed): String = when (failur
 
 @Composable
 private fun megabytesLabel(bytes: Long): String = stringResource(Res.string.offline_map_size_mb, bytes.megabytes())
+
+private const val METERS_PER_KM = 1_000.0

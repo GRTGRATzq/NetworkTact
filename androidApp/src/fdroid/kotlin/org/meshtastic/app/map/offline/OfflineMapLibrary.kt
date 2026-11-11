@@ -44,6 +44,7 @@ import org.meshtastic.feature.map.offline.PMTILES_EXTENSION
 import org.meshtastic.feature.map.offline.PmTilesCheck
 import org.meshtastic.feature.map.offline.PmTilesHeader
 import org.meshtastic.feature.map.offline.PmTilesMetadata
+import org.meshtastic.feature.map.offline.extract.DownloadedMapInfo
 import org.meshtastic.feature.map.offline.extract.KtorMapSourceClient
 import org.meshtastic.feature.map.offline.extract.MapDownloadController
 import java.io.File
@@ -239,7 +240,7 @@ class OfflineMapLibrary(
                     val id = file.nameWithoutExtension
                     val name = File(mapsDir, "$id$NAME_SUFFIX").takeIf { it.exists() }?.readText() ?: id
                     InstalledOfflineMap(
-                        OfflineMapFile(id, name, file.length(), header.minZoom, header.maxZoom),
+                        OfflineMapFile(id, name, file.length(), header.minZoom, header.maxZoom, readInfo(id)),
                         file.absolutePath,
                         readMetadata(file, header),
                     )
@@ -284,6 +285,12 @@ class OfflineMapLibrary(
         } else {
             null
         }
+    }
+        .getOrNull()
+
+    /** What a download wrote beside map [id] (`<id>.json`), or null for an imported map or an unreadable file. */
+    private fun readInfo(id: String): DownloadedMapInfo? = safeCatching {
+        File(mapsDir, "$id$INFO_SUFFIX").takeIf { it.exists() }?.readText()?.let(DownloadedMapInfo::decode)
     }
         .getOrNull()
 
