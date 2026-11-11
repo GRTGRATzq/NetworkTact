@@ -142,7 +142,8 @@ carte : **Cartes sur le téléphone**, icône corbeille, confirmer.
   locale ; les caractères hors alphabets latin, grec et cyrillique ne s'affichent pas.
 - La carte montre l'état d'OpenStreetMap à la date de l'édition (choisie à l'étape 2, ou
   affichée dans la liste pour une carte téléchargée).
-- Le téléchargement dans l'application prend un rectangle seulement.
+- Le téléchargement dans l'application prend un rectangle seulement, de 500 Mo au plus par carte
+  (au-delà : « La zone est trop grande », réduire la zone ou le zoom).
 - Au-delà du zoom 15, la carte est agrandie, sans nouveaux détails.
 - Diffuser le fichier à d'autres équipes est permis par l'ODbL, à condition de garder la
   mention « © contributeurs OpenStreetMap ».

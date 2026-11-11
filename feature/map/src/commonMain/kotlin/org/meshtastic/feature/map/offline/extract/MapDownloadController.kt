@@ -56,6 +56,8 @@ class MapDownloadController(
     private val nowEpochMillis: () -> Long,
     private val newId: () -> String,
     private val onInstalled: suspend (id: String, name: String) -> Unit,
+    /** D4: a larger map is refused at the estimate, before anything is downloaded. */
+    private val maxFileBytes: Long = MAX_FILE_BYTES,
 ) {
     private val _state = MutableStateFlow<MapDownloadState>(MapDownloadState.Idle)
     private val _pending = MutableStateFlow<PendingDownload?>(null)
@@ -116,6 +118,7 @@ class MapDownloadController(
             reporting {
                 val current = session()
                 val plan = current.extractor.plan(current.archive, bounds, 0, maxZoom)
+                if (plan.fileSize > maxFileBytes) throw MapTooLarge()
                 val estimate =
                     MapDownloadEstimate(
                         bounds = bounds,
@@ -329,16 +332,29 @@ class MapDownloadController(
 
     private fun failureOf(e: Exception): MapDownloadFailure = when (e) {
         is MapDownloadException.Unreachable -> MapDownloadFailure.Unreachable
+
         is NoEditionFound -> MapDownloadFailure.NoEdition
+
         is MapDownloadException.NotFound -> notFound()
+
         is MapDownloadException.EditionChanged -> MapDownloadFailure.EditionGone
+
         is MapDownloadException.RangesUnsupported -> MapDownloadFailure.RangesUnsupported
+
         is MapDownloadException.ServerBusy -> MapDownloadFailure.ServerBusy
+
         is MapDownloadException.UnsupportedSource -> MapDownloadFailure.UnsupportedSource
+
         is IncompatibleSchema -> MapDownloadFailure.IncompatibleSchema
-        is MapExtractor.TooManyTiles -> MapDownloadFailure.TooManyTiles
+
+        is MapExtractor.TooManyTiles,
+        is MapTooLarge,
+        -> MapDownloadFailure.TooManyTiles
+
         is MapExtractor.NoTiles -> MapDownloadFailure.NoTiles
+
         is MapDownloadException.Incomplete -> MapDownloadFailure.Incomplete
+
         else -> MapDownloadFailure.Unexpected
     }
 
@@ -406,6 +422,8 @@ class MapDownloadController(
 
     private class IncompatibleSchema : Exception("incompatible schema")
 
+    private class MapTooLarge : Exception("map too large")
+
     companion object {
         const val NAME_SUFFIX = ".name"
         const val INFO_SUFFIX = ".json"
@@ -418,6 +436,9 @@ class MapDownloadController(
 
         /** D7: a download stopped by the network is kept a week at most (its edition lasts about that long). */
         const val PENDING_MAX_AGE_SECONDS = 7L * 24 * 3600
+
+        /** D4: 500 MB per map in the first version (the tile cap, 3 000 000, is the extractor's). */
+        const val MAX_FILE_BYTES = 500_000_000L
 
         /** A found edition is looked for again after an hour: a new one may have come out. */
         private const val SESSION_MAX_AGE_MILLIS = 3_600_000L

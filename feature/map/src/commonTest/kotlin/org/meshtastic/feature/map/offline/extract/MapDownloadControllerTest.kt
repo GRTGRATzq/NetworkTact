@@ -78,6 +78,7 @@ class MapDownloadControllerTest {
         demo: Boolean = false,
         free: Long = Long.MAX_VALUE,
         clock: () -> Long = { now },
+        maxFileBytes: Long = MapDownloadController.MAX_FILE_BYTES,
     ) = MapDownloadController(
         scope = this,
         fileSystem = fileSystem,
@@ -89,6 +90,7 @@ class MapDownloadControllerTest {
         nowEpochMillis = clock,
         newId = { "map1" },
         onInstalled = { id, name -> installed += id to name },
+        maxFileBytes = maxFileBytes,
     )
 
     private fun files(dir: okio.Path) =
@@ -226,6 +228,18 @@ class MapDownloadControllerTest {
         advanceUntilIdle()
         assertEquals(MapDownloadState.Failed(MapDownloadFailure.DemoMode), controller.state.value)
         assertEquals(0, server.reads)
+    }
+
+    @Test
+    fun aMapOverTheSizeCapIsRefusedAtTheEstimate() = runTest {
+        val controller = controller(FakeServer(), maxFileBytes = 1_000)
+        controller.estimate(cincu, 12)
+        advanceUntilIdle()
+        assertEquals(MapDownloadState.Failed(MapDownloadFailure.TooManyTiles), controller.state.value)
+        controller.start("Cincu")
+        advanceUntilIdle()
+        assertEquals(emptyList(), files(downloadDir))
+        assertEquals(emptyList(), files(mapsDir))
     }
 
     @Test
