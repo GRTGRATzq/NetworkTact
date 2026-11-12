@@ -11,6 +11,40 @@ validée, § 10 = décisions), `docs/PLAN-DEMANDE-DE-TIR.md` (plan, tableau D26 
 en commits au § 7, décisions au § 12), `docs/maquette-demande-de-tir.pdf` (maquette, 4 écrans). `FORK.md` § 30 et
 `TESTS-A-FAIRE.md` § 18 restent à écrire (commit 23 du plan).
 
+### 0.1 Mise à jour du 12 novembre, 16 h 30 UTC (à lire en premier)
+
+- **Décisions du 12/11** (spécification, § 3 et § 10) : n° de tir **obligatoire** (seule case obligatoire, envoi grisé
+  sinon) ; 9 parties au plus ; pas d'espace dans Rep, les heures et les morceaux L R U (l'opérateur est prévenu sous le
+  champ) ; direction Rep obligatoire dès qu'un décalage est saisi. **Outil d'édition uniquement**, plus aucun script de
+  remplacement (une insertion d'import par `sed` a encore eu lieu dans `ContactsNavigation.kt` avant `c0f9c38` : signalée).
+- **Runs** : `fork-apk` **102 vert** en entier (`26568e3`, code commun). `fork-apk` **103** lancé sur `c0f9c38`
+  (formulaire, aperçu, envoi) : résultat à lire (`gh api repos/GRTGRATzq/NetworkTact/actions/runs?branch=feat/demande-de-tir`).
+- **Commits depuis la passation précédente** : `1f080b4` (spécification), `41dbf02` (route `ContactsRoute.FireRequest`,
+  `DemoRoutes`, tests de navigation), `b4c0d24` (formulaire : `feature/messaging/.../firerequest/` —
+  `FireRequestForm.kt` logique pure testée, `FireRequestViewModel`, `FireRequestScreen`, `FireRequestFields`,
+  `FireRequestBoxesTop/Location/Bottom.kt` ; textes `firereq_*` EN/FR), `c0f9c38` (aperçu `FireRequestPreviewScreen`,
+  `FireRequestRoute`, envoi = un `SendMessageUseCase` par partie vers `directContactKey`, puce `FireRequestShortcut` sous
+  la rangée de `FieldShortcuts`, entrée de navigation qui ouvre ensuite la conversation directe), `dec637d`
+  (`FireRequestDisplay` dans `core:model` : cases en clair, testé contre la maquette). `dec637d` est sur `wip/` seulement
+  pendant le run 103 : à pousser sur `feat/` ensuite.
+- **Écarts au plan** : commits 12 et 13 fusionnés (`b4c0d24`), 14 et 15 fusionnés (`c0f9c38`). « Coller une coordonnée » est
+  un **champ** où l'opérateur colle le texte (appui long, Coller) et non une lecture du presse-papiers : le projet n'a pas
+  de lecture commune du presse-papiers (seulement `createClipEntry` pour écrire). Dans la case 7, un champ par ligne G et H.
+- **Pas encore vérifié** : aucun test du ViewModel (envoi de N parties) ni test Compose ; le formulaire n'a tourné ni sur
+  téléphone ni sur bureau.
+
+**Suite immédiate (commits 16 à 18)** : dans `MessageViewModel`, un `StateFlow` de `FireRequestAssembly` construit depuis
+`packetRepository.getMessagesFrom(contactKey, getNode = ::getNode)` (messages dont le texte commence par `[DT`, convertis en
+`FireRequestMessage(uuid, fromLocal, node.user.id, displayTime, text)`) ; dans `filteredPagedMessages`, retirer
+`assembly.hiddenIds` par `pagingData.filter` ; dans `MessageListPaged`, quand `assembly.threadAt(message.uuid)` existe,
+afficher la carte de la demande au lieu de `MessageItem` (état passé par `MessageListPagedState`). Carte émetteur :
+« DT AB1234 · 3 messages », une ligne par partie avec `sentStatusText(sentStatusOf(...), recipientName)`, « Renvoyer la
+partie k » (même chemin que « Renvoyer » : `onDeleteMessages` puis `onSendMessage`), GDH reçus. Fiche reconstituée :
+`FireRequestDisplay.lines` / `location`, « non rempli » en gris, « non reçu » pour une partie manquante, « k / N reçus »,
+« Voir sur la carte » par `LruCoordinate.point` (G et H), « Voir les messages bruts », boutons GDH attribution / GDH fin
+(`FireRequestReply.text()`, GDH à l'heure du téléphone dans le fuseau choisi, envoyés par `onSendMessage`). Puis 19
+(Renouveler, déjà dans le ViewModel : reste à vérifier), 20 (démo), 21 (notification), 22 (tests), 23 (documentation).
+
 **Fait (commits 1 à 10 du plan)**, tout en Kotlin commun, testé en local (`core:model` 731 tests, `core:prefs`,
 `core:demo` 45 tests, verts) :
 
