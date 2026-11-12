@@ -34,6 +34,9 @@ import org.meshtastic.core.model.Node
 import org.meshtastic.core.model.NodeAddress
 import org.meshtastic.core.model.Reaction
 import org.meshtastic.core.model.destination
+import org.meshtastic.core.model.firerequest.FireRequestNotification
+import org.meshtastic.core.model.firerequest.FireRequestPart
+import org.meshtastic.core.model.firerequest.toFireRequestMessage
 import org.meshtastic.core.model.geofence.activeWaypointPackets
 import org.meshtastic.core.model.isBroadcast
 import org.meshtastic.core.model.isFromLocal
@@ -572,10 +575,38 @@ class MeshDataHandlerImpl(
             else ->
                 when (activeConversationTracker.announcementFor(contactKey)) {
                     MessageAnnouncement.Suppress -> Unit
+
                     MessageAnnouncement.Silent -> updateNotification(contactKey, dataPacket, isSilent = true)
-                    MessageAnnouncement.Alert -> updateNotification(contactKey, dataPacket, isSilent = false)
+
+                    MessageAnnouncement.Alert ->
+                        updateNotification(
+                            contactKey,
+                            dataPacket,
+                            isSilent = isFireRequestFollowUp(contactKey, dataPacket),
+                        )
                 }
         }
+    }
+
+    /**
+     * One alert per fire request: a part whose request already came in part only updates the conversation's
+     * notification, in silence (`docs/PLAN-DEMANDE-DE-TIR.md` § 3.10). Other messages are not looked at.
+     */
+    private suspend fun isFireRequestFollowUp(contactKey: String, dataPacket: DataPacket): Boolean {
+        val isPart =
+            dataPacket.dataType == PortNum.TEXT_MESSAGE_APP.value &&
+                dataPacket.text?.let { FireRequestPart.parse(it) } != null
+        if (!isPart) return false
+        val messages =
+            packetRepository.value
+                .getMessagesFrom(contactKey, includeFiltered = false) { id ->
+                    nodeManager.getNodeById(id.orEmpty())
+                        ?: Node(num = 0, user = User.Builder().also { it.id = id.orEmpty() }.build())
+                }
+                .first()
+        val received = messages.lastOrNull { !it.fromLocal && it.packetId == dataPacket.id }
+        return received != null &&
+            FireRequestNotification.isFollowUp(messages.map { it.toFireRequestMessage() }, received.uuid)
     }
 
     private suspend fun getSenderName(packet: DataPacket): String {

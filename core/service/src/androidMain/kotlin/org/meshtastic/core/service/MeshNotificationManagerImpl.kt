@@ -52,6 +52,9 @@ import org.meshtastic.core.model.ConnectionState
 import org.meshtastic.core.model.Message
 import org.meshtastic.core.model.Node
 import org.meshtastic.core.model.NodeAddress
+import org.meshtastic.core.model.firerequest.FireRequestNotification
+import org.meshtastic.core.model.firerequest.FireRequestNotificationLine
+import org.meshtastic.core.model.firerequest.toFireRequestMessage
 import org.meshtastic.core.model.noiseFloorOrNull
 import org.meshtastic.core.model.util.formatUptime
 import org.meshtastic.core.navigation.DEEP_LINK_BASE_URI
@@ -70,6 +73,9 @@ import org.meshtastic.core.resources.connecting
 import org.meshtastic.core.resources.device_sleeping
 import org.meshtastic.core.resources.disconnected
 import org.meshtastic.core.resources.discovery_scan_in_progress
+import org.meshtastic.core.resources.firereq_card_sent
+import org.meshtastic.core.resources.firereq_card_title
+import org.meshtastic.core.resources.firereq_received_count
 import org.meshtastic.core.resources.firmware_update_in_progress
 import org.meshtastic.core.resources.getString
 import org.meshtastic.core.resources.getStringSuspend
@@ -553,7 +559,7 @@ class MeshNotificationManagerImpl(
         )
 
         val ourNode = nodeRepository.value.ourNodeInfo.value
-        val history =
+        val conversation =
             packetRepository.value
                 .getMessagesFrom(contactKey, includeFiltered = false) { nodeId ->
                     if (nodeId == NodeAddress.ID_LOCAL) {
@@ -563,6 +569,7 @@ class MeshNotificationManagerImpl(
                     }
                 }
                 .first()
+        val history = withFireRequestsMerged(conversation)
 
         val unread = history.filter { !it.read }
         val displayHistory =
@@ -584,6 +591,31 @@ class MeshNotificationManagerImpl(
             )
         notificationManager.notify(TAG_MESSAGE, contactKey.hashCode(), notification)
         showGroupSummary()
+    }
+
+    /**
+     * [conversation] with the parts of each fire request merged into one line, « Demande de tir AB1234 · 2 / 3 reçus »,
+     * at its latest part, and each date-time group sent back in one line (`docs/PLAN-DEMANDE-DE-TIR.md` § 3.10).
+     */
+    private suspend fun withFireRequestsMerged(conversation: List<Message>): List<Message> {
+        val fireRequests = FireRequestNotification.of(conversation.map { it.toFireRequestMessage() })
+        if (fireRequests.lines.isEmpty()) return conversation
+        return conversation
+            .filterNot { it.uuid in fireRequests.hidden }
+            .map { message -> fireRequests.lines[message.uuid]?.let { message.copy(text = lineText(it)) } ?: message }
+    }
+
+    private suspend fun lineText(line: FireRequestNotificationLine): String = when (line) {
+        is FireRequestNotificationLine.Reply -> line.text
+
+        is FireRequestNotificationLine.Request ->
+            if (line.fromLocal) {
+                getStringSuspend(Res.string.firereq_card_sent, line.number, line.count)
+            } else {
+                getStringSuspend(Res.string.firereq_card_title, line.number) +
+                    " · " +
+                    getStringSuspend(Res.string.firereq_received_count, line.received, line.count)
+            }
     }
 
     private suspend fun showGroupSummary(justCancelledId: Int? = null) {
