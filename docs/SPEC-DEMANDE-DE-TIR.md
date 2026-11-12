@@ -24,7 +24,9 @@ Décisions complémentaires du 11/11/2026 : § 10.
 - GDH attribution, GDH fin : vides à l'envoi ; renvoyés par le destinataire (§ 6).
 
 ## 3. Les 11 cases
-Aucune case obligatoire en v1. Case vide = « <n> non rempli ». Les gisements sont en millièmes
+Seule case obligatoire en v1 : le n° de tir (case 1), qui forme l'étiquette [DT <n°> k/N] et rattache
+la réponse GDH ; « Envoyer la demande » reste grisé tant qu'il est vide (décision du 12/11/2026).
+Case vide = « <n> non rempli ». Les gisements sont en millièmes
 (m barré sur la fiche) ; tout le reste (distances, site S, X, Y, Z, front, profondeur, rayon) en mètres.
 1. N° de tir : lettres et chiffres, de 1 à 10 caractères.
 2. Type de tir : sélection multiple. Lettres A B C D E F G H (cohérentes avec les lignes de la case 7) ;
@@ -141,3 +143,11 @@ Aucune case obligatoire en v1. Case vide = « <n> non rempli ». Les gisements s
   communes comprises). Case 6 : « en mouvement / à l'arrêt » vaut pour Chars, Blindés légers et Pick-up
   (l'accolade de la fiche couvre les trois lignes). Case 8 : LG et LD sans unité, comme sur la fiche.
   Case 11 : sélection multiple en v1. Heures [..H..] écrites telles que saisies, sans fuseau (14H30).
+
+Décisions du 12/11/2026 :
+- N° de tir obligatoire (seule case obligatoire en v1) : envoi grisé tant qu'il est vide.
+- Une demande de plus de 9 parties n'est pas envoyée (taille et nombre de parties affichés).
+- Pas d'espace dans les deux cases de Rep, dans les heures [..H..] ni dans les morceaux de la
+  coordonnée L R U (le message les sépare par des espaces) : l'opérateur est prévenu sous le champ.
+- Rep : la direction (est/ouest, nord/sud, Dte/Gche, près/loin, haut/bas) est obligatoire dès qu'un
+  décalage est saisi.
