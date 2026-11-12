@@ -11,7 +11,59 @@ validée, § 10 = décisions), `docs/PLAN-DEMANDE-DE-TIR.md` (plan, tableau D26 
 en commits au § 7, décisions au § 12), `docs/maquette-demande-de-tir.pdf` (maquette, 4 écrans). `FORK.md` § 30 et
 `TESTS-A-FAIRE.md` § 18 restent à écrire (commit 23 du plan).
 
-### 0.1 Mise à jour du 12 novembre, 16 h 30 UTC (à lire en premier)
+### 0.2 État au 12 novembre, vers 17 h UTC : À LIRE EN PREMIER (remplace le § 0.1 là où ils diffèrent)
+
+**Où on en est** : commits 1 à 18 du plan faits (12+13, 14+15 et 16+17+18 fusionnés). Dernier commit de code
+`26596b6` sur `feat/demande-de-tir` (et `wip/demande-de-tir`).
+
+**Runs `fork-apk`** (tous sur `feat/demande-de-tir`) : 101 vert (maquette PDF), **102 vert** (`26568e3`, code commun),
+**103 vert** (`c0f9c38`, formulaire, aperçu, envoi), **104 vert** (`54beb96`, affichage en clair + passation), **105**
+lancé sur `26596b6` (cartes dans la conversation) : résultat à lire en reprenant
+(`gh api 'repos/GRTGRATzq/NetworkTact/actions/runs?branch=feat/demande-de-tir&per_page=1'`). S'il est rouge, corriger
+d'abord.
+
+**Fait au commit `26596b6`** (`feature/messaging`, 221 tests JVM verts en local, spotless et detekt propres) :
+
+- `MessageViewModel.fireRequests` : `StateFlow<FireRequestView>` construit depuis `packetRepository.getMessagesFrom` de la
+  conversation (messages commençant par `[DT `) ; `filteredPagedMessages` retire `hiddenIds` (parties et GDH montrés dans
+  la carte). Le constructeur de `MessageViewModel` n'a pas changé.
+- `MessageListPaged.RenderPagedChatMessageRow` : si `state.fireRequests.assembly.threadAt(uuid)` existe, affiche
+  `FireRequestCard` au lieu de `MessageItem` (état `MessageListPagedState.fireRequests`, rempli dans `Message.kt`).
+- `FireRequestCards.kt` / `FireRequestCardParts.kt` : carte émetteur (« DT n° · N messages », une ligne par partie avec
+  `sentStatusText`, « Renvoyer la partie k » = supprimer puis renvoyer le même texte, GDH attribution / fin reçus ou « en
+  attente ») ; fiche reconstituée (badge DT, « k / N reçus », en-tête, cases 1 à 11 par `FireRequestDisplay`, « non
+  rempli » et « non reçu » en gris, éléments illisibles affichés tels quels, parties manquantes avec leurs cases, « Voir
+  sur la carte » sous chaque ligne L R U acceptée par `LruCoordinate`) ; boutons « GDH attribution » / « GDH fin »
+  (dialogue au GDH de l'heure du téléphone dans le fuseau de `FireRequestPrefs`, lu par `koinInject(named(SCREEN_DATA))`,
+  modifiable, envoyé par `FireRequestReply.text()` ; une fois envoyé, le bouton devient « Renvoyer le GDH … ») ;
+  « Voir les N messages bruts » (dialogue).
+- Couleurs : `surfaceContainerHigh` pour la carte, `tertiary` pour le badge DT et les titres de case (jamais le rouge de
+  `[URG]`). À comparer à la maquette (bandeau rose, badge bordeaux) lors des essais.
+
+**Reste à faire (plan § 7)** :
+
+- **19 Brouillon et « Renouveler »** : déjà dans `FireRequestViewModel` (`edit` sauvegarde le brouillon à chaque
+  changement, `renew`, confirmation si le formulaire n'est pas vide). Reste : test du ViewModel (voir 22).
+- **20 Démo** : demande fictive reçue (les 3 parties de `FireRequestExamples.specificationParts`, une dans le désordre)
+  dans `DemoDataSet.history`, conversation directe d'ALPHA-1 ou BRAVO-2 ; réponse GDH simulée après l'envoi d'une demande
+  en démo (petit simulateur dans `core:demo`, à la manière de `DemoSendMessageUseCase`, arrêté par `store.session`) ;
+  tests `DemoDataSetTest`.
+- **21 Une seule notification par demande** (plan § 3.10) : règle pure dans `core:model` (lignes fondues
+  « Demande de tir AB1234 · k / N reçus », parties suivantes en silence), appelée par `core:data`
+  `MeshDataHandlerImpl.updateNotification` (décision silencieuse) et `core:service`
+  `MeshNotificationManagerImpl.showConversationNotification` (historique).
+- **22 Tests** : `FireRequestViewModel` (envoi = N appels à `SendMessageUseCase` vers `directContactKey`, brouillon effacé,
+  Renouveler), `FireRequestView.of` (masquage), tests Compose du formulaire et des cartes (`jvmTest`, voir
+  `MapDownloadPanelTest` pour le modèle : `Dispatchers.setMain`).
+- **23 Documentation** : `FORK.md` § 30 (et état d'avancement), `TESTS-A-FAIRE.md` § 18 (liste du plan § 10, à compléter :
+  cartes dans la conversation, GDH, « Coller une coordonnée »), passation.
+
+**Points ouverts à signaler à l'utilisateur** : la liste paginée masque des lignes (sauts de défilement et compteur de
+non-lus à vérifier sur téléphone) ; `getMessagesFrom` charge toute la conversation pour le regroupement (acceptable pour
+une conversation directe, à surveiller) ; l'aperçu de la liste des conversations montre encore le texte brut de la
+dernière partie ; rien n'a tourné sur téléphone ni sur bureau.
+
+### 0.1 Mise à jour du 12 novembre, 16 h 30 UTC
 
 - **Décisions du 12/11** (spécification, § 3 et § 10) : n° de tir **obligatoire** (seule case obligatoire, envoi grisé
   sinon) ; 9 parties au plus ; pas d'espace dans Rep, les heures et les morceaux L R U (l'opérateur est prévenu sous le
