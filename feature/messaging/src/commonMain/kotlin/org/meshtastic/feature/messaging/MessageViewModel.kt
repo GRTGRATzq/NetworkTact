@@ -38,6 +38,7 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -83,6 +84,7 @@ import org.meshtastic.core.ui.viewmodel.stateInWhileSubscribed
 import org.meshtastic.feature.messaging.coordinates.SharePointOffer
 import org.meshtastic.feature.messaging.coordinates.sharePointOffer
 import org.meshtastic.feature.messaging.filter.ThreadFilter
+import org.meshtastic.feature.messaging.firerequest.FireRequestView
 import org.meshtastic.feature.messaging.status.sentStatusOf
 import org.meshtastic.feature.messaging.translation.DownloadResult
 import org.meshtastic.feature.messaging.translation.MessageTranslationService
@@ -247,14 +249,35 @@ class MessageViewModel(
         _threadFilter.value = filter
     }
 
-    /** [pagedMessagesForContactKey] with [threadFilter] applied on top of the cached pages; storage is untouched. */
+    /**
+     * The fire requests of the conversation on screen, gathered from their parts (`[DT …]` messages). Their parts and
+     * date-time groups are shown in one card, at the latest of them; the stored messages stay as they came.
+     */
+    val fireRequests: StateFlow<FireRequestView> =
+        contactKeyForPagedMessages
+            .filterNotNull()
+            .flatMapLatest { key -> flow { emitAll(packetRepository.getMessagesFrom(key, getNode = ::getNode)) } }
+            .map { FireRequestView.of(it) }
+            .stateInWhileSubscribed(FireRequestView.EMPTY)
+
+    /**
+     * [pagedMessagesForContactKey] with [threadFilter] applied on top of the cached pages, and without the messages a
+     * fire request card shows; storage is untouched.
+     */
     private val filteredPagedMessages: Flow<PagingData<Message>> =
-        combine(pagedMessagesForContactKey, _threadFilter, contactKeyForPagedMessages) { pagingData, filter, key ->
+        combine(pagedMessagesForContactKey, _threadFilter, contactKeyForPagedMessages, fireRequests) {
+                pagingData,
+                filter,
+                key,
+                requests,
+            ->
+            val hidden = requests.hiddenIds
+            val shown = if (hidden.isEmpty()) pagingData else pagingData.filter { it.uuid !in hidden }
             if (!filter.isActive || key == null) {
-                pagingData
+                shown
             } else {
                 val isDirect = ContactKey(key).addressString != NodeAddress.ID_BROADCAST
-                pagingData.filter { message ->
+                shown.filter { message ->
                     val sentStatus =
                         sentStatusOf(message.status, message.routingError, message.ackProofStatus, isDirect)
                     filter.matches(message.text, message.fromLocal, sentStatus, isDirect, message.node.user.long_name)

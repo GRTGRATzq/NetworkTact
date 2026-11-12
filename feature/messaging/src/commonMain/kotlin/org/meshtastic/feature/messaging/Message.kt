@@ -193,6 +193,7 @@ fun MessageScreen(
         }
     }
     val ourNode by viewModel.ourNodeInfo.collectAsStateWithLifecycle()
+    val fireRequests by viewModel.fireRequests.collectAsStateWithLifecycle()
     val connectionState by viewModel.connectionState.collectAsStateWithLifecycle()
     val channels by viewModel.channels.collectAsStateWithLifecycle()
     val quickChatActions by viewModel.quickChatActions.collectAsStateWithLifecycle(initialValue = emptyList())
@@ -594,6 +595,7 @@ fun MessageScreen(
                         canReact = !isRetiredChannel,
                         canSend = !isRetiredChannel,
                         channelName = channelName,
+                        fireRequests = fireRequests,
                     ),
                     handlers =
                     MessageListHandlers(

@@ -72,6 +72,9 @@ import org.meshtastic.feature.messaging.component.MessageStatusDialog
 import org.meshtastic.feature.messaging.component.ReactionDialog
 import org.meshtastic.feature.messaging.component.UnreadMessagesDivider
 import org.meshtastic.feature.messaging.component.rememberCurrentTimeMillis
+import org.meshtastic.feature.messaging.firerequest.FireRequestCard
+import org.meshtastic.feature.messaging.firerequest.FireRequestCardActions
+import org.meshtastic.feature.messaging.firerequest.FireRequestView
 import kotlin.math.abs
 
 private const val HEX_RADIX = 16
@@ -123,6 +126,8 @@ internal data class MessageListPagedState(
     val canSend: Boolean = true,
     /** The channel's display name in a channel conversation, shown on every card; unused in a direct one. */
     val channelName: String = "",
+    /** The fire requests of the conversation: each is shown as one card, at the latest of its messages. */
+    val fireRequests: FireRequestView = FireRequestView.EMPTY,
 )
 
 /** The addressed node's name in a direct conversation (its id when unknown), or null for a channel. */
@@ -409,6 +414,26 @@ private fun RenderPagedChatMessageRow(
     currentTimeMillis: () -> Long,
 ) {
     val ourNode = state.ourNode ?: return
+    state.fireRequests.assembly.threadAt(message.uuid)?.let { thread ->
+        FireRequestCard(
+            thread = thread,
+            view = state.fireRequests,
+            recipientName = directRecipientName(state.contactKey, state.nodes),
+            canSend = state.canSend,
+            actions =
+            FireRequestCardActions(
+                send = { text -> handlers.onSendMessage(text, state.contactKey) },
+                // As « Renvoyer » does for a message: the failed row goes, the same text is sent again.
+                resend = { failed ->
+                    handlers.onDeleteMessages(listOf(failed.uuid))
+                    handlers.onSendMessage(failed.text, state.contactKey)
+                },
+                showOnMap = handlers.onShowOnMap,
+            ),
+            modifier = modifier,
+        )
+        return
+    }
     val selected by
         remember(message.uuid, state.selectedIds.value) {
             derivedStateOf { state.selectedIds.value.contains(message.uuid) }
