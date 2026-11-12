@@ -1,7 +1,61 @@
 # Passation Claude Code : où en est NetworkTact
 
-État au **11 novembre 2026, vers 20 h 45 UTC**, pour reprendre dans une conversation neuve. À lire avec `FORK.md` (section de
+État au **12 novembre 2026** (tâche 8, demande de tir : § 0 ; tâche 7 inchangée depuis le 11 novembre, 20 h 45 UTC),
+pour reprendre dans une conversation neuve. À lire avec `FORK.md` (section de
 chaque tâche, état d'avancement), `TESTS-A-FAIRE.md` et, pour la tâche 7, `docs/PLAN-CARTE-TELECHARGEMENT.md`.
+
+## 0. Tâche 8 en cours : demande de tir (`feat/demande-de-tir`), état au 12 novembre 2026
+
+Branche partie de `feat/carte-telechargement` (`801af88`). Documents : `docs/SPEC-DEMANDE-DE-TIR.md` (spécification
+validée, § 10 = décisions), `docs/PLAN-DEMANDE-DE-TIR.md` (plan, tableau D26 validé case par case au § 3.2, découpage
+en commits au § 7, décisions au § 12), `docs/maquette-demande-de-tir.pdf` (maquette, 4 écrans). `FORK.md` § 30 et
+`TESTS-A-FAIRE.md` § 18 restent à écrire (commit 23 du plan).
+
+**Fait (commits 1 à 10 du plan)**, tout en Kotlin commun, testé en local (`core:model` 731 tests, `core:prefs`,
+`core:demo` 45 tests, verts) :
+
+| Commit | Contenu |
+|---|---|
+| `d03c32b`, `4e4dbb6`, `1e20fba`, `7e817d9`, `7a3874f` | spécification, plan, décisions, maquette, tableau D26 validé |
+| `9639cdd` | `Gdh` : `112250 loc NOV 26`, `112150Z NOV 26`, `112250 fra NOV 26`, mois OTAN, lecture stricte |
+| `8c006d2` | modèle `FireRequest` (11 cases, `@Serializable`) et `FireRequestSheet` (mots de la fiche, seule source) |
+| `9e271fa` | écriture des cases en lignes (`FireRequestText` + `FireRequestElements/Boxes/Location.kt`) |
+| `7787c30` | `FireRequestSplitter` : parties de 200 octets UTF-8, coupure à un « · » avec le numéro de case repris |
+| `433f473` | lecture : `FireRequestPart`, `FireRequestReply`, `FireRequestReader` (+ `FireRequestRead*.kt`), aller-retour testé (200 demandes aléatoires) |
+| `7e1491f` | `FireRequestAssembly` : instances, doublons, désordre, parties manquantes, réponses GDH, `hiddenIds`, `anchor` |
+| `26568e3` | `LruCoordinate` : vérification par `CoordinateParser` (MGRS), point pour « Voir sur la carte », `fromText` pour « Coller une coordonnée » |
+| `f6b34d3` | `FireRequestPrefs` (`core:repository`), `FireRequestPrefsImpl` (`core:prefs`), `DemoFireRequestPrefs`, `ScreenFireRequestPrefs`, module Koin `FireRequestDemoModule` (`core:demo`) |
+
+Code : `core/model/src/commonMain/kotlin/org/meshtastic/core/model/firerequest/`.
+
+**Runs** : `fork-apk` 101 (`7e817d9`, maquette PDF seule) **vert** ; `fork-apk` 102 (`26568e3`, code commun des commits
+3 à 9) **en cours** au moment de cette passation. `f6b34d3` (commit 10) n'est que sur `wip/demande-de-tir` : le pousser
+sur `feat/demande-de-tir` une fois le run 102 fini (il lancera le run 103). `wip/demande-de-tir` est à supprimer par
+l'utilisateur sur GitHub à la fin.
+
+**Reste à faire** (plan § 7) : commit 11 route `ContactsRoute.FireRequest` + `DemoRoutes` ; 12–13 formulaire (textes
+EN/FR, `python3 scripts/sort-strings.py`) ; 14 aperçu et envoi (N appels à `@Named(SCREEN_DATA) SendMessageUseCase`,
+clé directe `8!id` si PKC sinon `canal!id`) ; 15 puce « DT Demande de tir » sous la rangée de `FieldShortcutsRow` ; 16–18
+cartes émetteur / fiche reconstituée / réponse GDH (filtre `pagingData.filter` sur `FireRequestAssembly.hiddenIds`, à côté
+de `MessageViewModel.filteredPagedMessages`) ; 19 brouillon et « Renouveler » ; 20 démo (demande fictive dans
+`DemoDataSet.history`, réponse GDH simulée) ; 21 une seule notification par demande (plan § 3.10 : règle pure dans
+`core:model`, appel dans `core:data` `MeshDataHandlerImpl.updateNotification` et `core:service`
+`MeshNotificationManagerImpl.showConversationNotification`) ; 22 tests Compose ; 23 documentation.
+
+**Constats à signaler à l'utilisateur / à respecter dans le formulaire** :
+
+- La demande la plus longue possible (toutes les cases au maximum) fait **14 parties** : au-delà de 9 (D10), l'envoi est
+  refusé (taille affichée). Les demandes réelles tiennent largement (exemple : 3 parties).
+- Le **n° de tir est nécessaire à l'envoi** (il forme l'étiquette `[DT <n°> k/N]` et rattache la réponse GDH), alors
+  qu'aucune case n'est obligatoire en v1 : à faire valider par l'utilisateur.
+- Saisie sans espace (le message les sépare par des espaces) : les deux cases de « Rep », les heures `..H..`, les
+  morceaux de la coordonnée L R U. Une valeur de décalage « Rep » sans direction choisie n'est pas écrite : le formulaire
+  doit imposer la direction. « Rep » avec seulement la seconde case se relit en première case. Une coordonnée L R U
+  incomplète part telle quelle et s'affiche brute chez le destinataire (signalée sous la ligne dans le formulaire).
+- `ScreenDataModule` est à 11 fonctions (limite detekt) : toute nouvelle façade va dans un module à part, comme
+  `FireRequestDemoModule` et `DiagnosticDemoModule`.
+- Les modifications de cette tâche ont été faites à l'outil d'édition ou par remplacements de chaînes exactes vérifiés
+  (une occurrence) ; sur les fichiers existants du dépôt, rester à l'outil d'édition (consigne du § 5).
 
 ## 1. Règles du projet (rappel)
 
