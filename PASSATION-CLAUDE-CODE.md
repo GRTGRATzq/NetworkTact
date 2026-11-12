@@ -11,7 +11,32 @@ validée, § 10 = décisions), `docs/PLAN-DEMANDE-DE-TIR.md` (plan, tableau D26 
 en commits au § 7, décisions au § 12), `docs/maquette-demande-de-tir.pdf` (maquette, 4 écrans). `FORK.md` § 30 et
 `TESTS-A-FAIRE.md` § 18 restent à écrire (commit 23 du plan).
 
-### 0.2 État au 12 novembre, vers 17 h UTC : À LIRE EN PREMIER (remplace le § 0.1 là où ils diffèrent)
+### 0.3 État au 12 novembre, vers 19 h UTC : À LIRE EN PREMIER (remplace les § 0.1 et 0.2 là où ils diffèrent)
+
+**Commits 19 à 23 du plan faits : le code de la v1 est complet.** Restent les essais sur deux téléphones
+(`TESTS-A-FAIRE.md` §18) et les corrections qui en sortiront.
+
+| Commit | Contenu |
+|---|---|
+| `f8c2ac6` (19) | `FireRequestViewModelTest` : brouillon gardé et repris, fuseau, « Renouveler » (même n°, GDH à l'heure actuelle) ; `FakeFireRequestPrefs` |
+| `c9228fc` (20) | démo : `DemoDataSet.FIRE_REQUEST` (exemple validé), ses 3 parties reçues d'ALPHA-1 dans `ALPHA1_DIRECT_KEY` (1, 3, 2) et `FIRE_REQUEST_ALLOCATION` envoyé par PC-0 ; `DemoFireRequestReplies` (GDH attribution 8 s après l'accusé de la dernière partie, GDH fin 20 s après, pas pour CHARLIE-3 ni un canal, arrêt par `store.session`) appelé par `DemoSendMessageUseCase` ; tests `DemoDataSetTest`, `DemoSendMessageUseCaseTest`, attentes de `DemoRepositoriesTest` et `ScreenFacadesTest` passées à 6 conversations |
+| `3b77304` (21) | `core:model` `FireRequestNotification` (`of` : parties fondues, `isFollowUp` : alerte une seule fois) + `Message.toFireRequestMessage()` + test ; `core:data` `MeshDataHandlerImpl.isFireRequestFollowUp` (Alert → silencieux) ; `core:service` `MeshNotificationManagerImpl.withFireRequestsMerged` (textes `firereq_card_title`, `firereq_received_count`, `firereq_card_sent`) |
+| `f1c84cb` (22) | `FireRequestSendTest` (envoi, clé directe, PKI, refus), `FireRequestCardTest` (Compose : fiche incomplète, carte émetteur, renvoi, barre de taille) et `FireRequestViewTest` (masquage) |
+| (23) | `FORK.md` §30 et état d'avancement, `TESTS-A-FAIRE.md` §18, ce paragraphe |
+
+**Vérifié en local** : spotless et detekt propres sur `feature:messaging`, `core:demo`, `core:model`, `core:data`,
+`core:service` ; `FireRequestViewModelTest` (8), `FireRequestNotificationTest` (9) et toute la suite `core:demo` (53)
+verts ; `feature:messaging` : `FireRequestSendTest` (6), `FireRequestCardTest` (5, Compose), `FireRequestViewTest` (2),
+`FireRequestFormTest` (10) verts. Passage borné à 10 minutes, fini en moins de 2 minutes.
+`core:data` et `core:service` ne sont compilés que par la CI (`core:service` est Android).
+
+**Consigne de l'utilisateur (12 novembre au soir)** : en local, seulement spotless, detekt et les tests JVM des modules
+modifiés, **10 minutes au plus** ; au-delà, abandonner et laisser la CI vérifier. Un passage local de plus de 35 minutes
+(démon Gradle tombé une fois faute de mémoire) a été arrêté à sa demande. Utiliser `--max-workers=2`.
+
+**Run** : voir le tableau des runs (§3) : run `fork-apk` lancé par la poussée de ces commits sur `feat/demande-de-tir`.
+
+### 0.2 État au 12 novembre, vers 17 h UTC (remplacé par le § 0.3 là où ils diffèrent)
 
 **Où on en est** : commits 1 à 18 du plan faits (12+13, 14+15 et 16+17+18 fusionnés). Dernier commit de code
 `26596b6` sur `feat/demande-de-tir` (et `wip/demande-de-tir`).

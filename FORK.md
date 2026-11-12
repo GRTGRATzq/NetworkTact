@@ -990,6 +990,48 @@ du Réseau, ou bouton « Diagnostic » sous un envoi en échec. Le diagnostic n'
 - **Licence** : `pmtiles-reader` (déjà dans l'APK) est BSD 3-Clause d'après son POM, « MIT » seulement dans des commentaires du
   dépôt ; les deux sont compatibles avec la GPL-3.0.
 
+### 30. Demande de tir (`feat/demande-de-tir`)
+
+- **État** : **code complet pour la v1** (commits 1 à 22 du plan) ; restent les **essais sur deux téléphones**
+  (`TESTS-A-FAIRE.md` §18). Spécification validée : `docs/SPEC-DEMANDE-DE-TIR.md` (fiche « Demande de tir » du 68e RAA,
+  EOC, février 2024 ; décisions des 11 et 12 novembre au §10). Plan, tableau D26 validé case par case et décisions D1 à
+  D28 : `docs/PLAN-DEMANDE-DE-TIR.md`. Maquette (4 écrans) : `docs/maquette-demande-de-tir.pdf`. Reprise :
+  `PASSATION-CLAUDE-CODE.md` §0.
+- **Principe** : formulaire qui reproduit la fiche case par case (libellés, abréviations et codes de la fiche, en
+  français sur tous les téléphones ; rien d'ajouté) ; un seul geste « Envoyer la demande » : la demande part en **texte
+  ordinaire**, en message direct avec accusé, découpée en parties `[DT <n°> k/N]` de 200 octets UTF-8 au plus (9 parties au
+  plus). Aucun nouveau type de paquet ni champ protobuf : un client Meshtastic ordinaire lit les parties comme du texte.
+- **Code commun** (`core/model/.../firerequest/`, testé en `commonTest`) : GDH (`112250 loc NOV 26`, `112150Z NOV 26`,
+  `112250 fra NOV 26`, mois OTAN), modèle des 11 cases et mots de la fiche, écriture des lignes, découpage, lecture
+  tolérante, aller-retour, regroupement (doublons, désordre, parties manquantes, nouvelle demande au-delà de 2 h, réponses
+  GDH), coordonnée L R U de la case 7 vérifiée par le convertisseur MGRS, affichage en clair des codes, et **une seule
+  notification par demande** (`FireRequestNotification`).
+- **Écrans** (`feature/messaging/.../firerequest/`) : puce « DT Demande de tir » sous « Ma position · Fait observé ·
+  Convertisseur » ; formulaire en écran plein (n° de tir seul obligatoire, brouillon gardé à chaque changement,
+  « Renouveler », « Coller une coordonnée », envoi grisé radio non connectée ou au-delà de 9 parties) ; aperçu des parties
+  avec leur taille ; dans la conversation, carte de l'émetteur (« DT AB1234 · 3 messages », état de chaque partie,
+  « Renvoyer la partie k », GDH reçus) et fiche reconstituée du destinataire (« k / N reçus », parties manquantes, « non
+  rempli » et « non reçu » en gris, codes en clair, « Voir sur la carte », boutons GDH attribution et GDH fin, messages
+  bruts). Textes d'interface EN/FR (`firereq_*`).
+- **Préférences** : fuseau du GDH, brouillon (un seul pour le téléphone) et dernière demande envoyée (`FireRequestPrefs`,
+  `UiDataStore`) ; en démo, en mémoire seulement.
+- **Notifications** : les parties suivantes d'une demande mettent à jour la notification de la conversation **sans
+  sonner** (`core:data`, `MeshDataHandlerImpl`) ; dans la notification, les parties sont fondues en une ligne « Demande de
+  tir AB1234 · 2 / 3 reçus » (ou « DT AB1234 · 3 messages » côté émetteur) et une réponse GDH en une ligne « DT AB1234 ·
+  GDH attribution … » (`core:service`, Android). Bureau inchangé.
+- **Mode démo** : formulaire et envoi simulés (rien ne part) ; conversation directe d'ALPHA-1 avec la demande de l'exemple
+  validé reçue en 3 parties (la 3e avant la 2e) et le GDH attribution renvoyé par PC-0 ; après l'envoi d'une demande à un
+  nœud qui accuse (pas CHARLIE-3, hors de portée), le GDH attribution revient 8 s après l'accusé de la dernière partie,
+  puis le GDH fin 20 s plus tard, datés à leur arrivée dans le fuseau choisi.
+- **Tests** : `core:model` (dont `FireRequestNotificationTest`), `core:prefs`, `core:demo` (`DemoDataSetTest`,
+  `DemoSendMessageUseCaseTest`), `feature:messaging` (`FireRequestFormTest`, `FireRequestViewModelTest` : brouillon et
+  Renouveler ; `FireRequestSendTest` : N envois dans l'ordre vers la clé directe ; `FireRequestCardTest` : cartes et barre
+  de taille en Compose ; `FireRequestViewTest` : masquage). `core:data` et `core:service` ne sont pas testés par `fork-apk` :
+  leur appel tient en quelques lignes, la règle est dans `core:model`.
+- **Points ouverts** : la liste paginée masque des lignes (sauts de défilement, compteur de non-lus à vérifier sur
+  téléphone) ; le regroupement charge toute la conversation directe ; l'aperçu de la liste des conversations montre le texte
+  brut de la dernière partie. **Jamais essayé sur un téléphone.**
+
 ## État d'avancement au 11 novembre 2026
 
 - **Branches** : les sections 1 à 20 sont chacune sur une branche `feat/…`, empilées les unes
@@ -999,8 +1041,9 @@ du Réseau, ou bouton « Diagnostic » sous un envoi en échec. Le diagnostic n'
   `PREPARER-LES-RADIOS.md` et ce fichier. La branche `fix/diffusion-nom` (section 21), partie de
   `docs/essais-2026-11-08`, contient tout jusqu'à la section 21. La branche `fix/demo-unique` (section 22), partie de
   `fix/diffusion-nom`, puis `fix/fait-observe` (section 23), partie de `fix/demo-unique`, puis `fix/textes-fr` (section 24), partie de
-  `fix/fait-observe`, puis `fix/diag-lora-attendu` (section 25), puis `fix/organigramme-saisie` (section 26), puis `fix/carte-attribution` (section 27), puis `feat/apk-release` (section 28), puis `feat/carte-telechargement` (section 29, téléchargement de carte hors ligne), la dernière, qui contient
-  tout. Rien n'est fusionné dans `main`,
+  `fix/fait-observe`, puis `fix/diag-lora-attendu` (section 25), puis `fix/organigramme-saisie` (section 26), puis `fix/carte-attribution` (section 27), puis `feat/apk-release` (section 28), puis `feat/carte-telechargement` (section 29, téléchargement de carte hors ligne), puis `feat/demande-de-tir` (section 30,
+  demande de tir, runs `fork-apk` 101 à 105 verts puis run du 12 novembre au soir sur les commits 19 à 23), la dernière, qui
+  contient tout. Rien n'est fusionné dans `main`,
   qui ne porte que l'identité du fork et le workflow `fork-apk`. Aucune pull request n'est ouverte,
   ni vers `main` ni vers `meshtastic/Meshtastic-Android`.
 - **CI** : `fork-apk` est vert sur `feat/accueil-insignes` (run 72, 23 min 38 s). Les runs 70 et 71
@@ -1021,7 +1064,7 @@ du Réseau, ou bouton « Diagnostic » sous un envoi en échec. Le diagnostic n'
   avec une vraie radio, le traceroute de « Tester la liaison », les bandeaux de diagnostic,
   l'affichage de l'écran de bienvenue sur de petits écrans, et la diffusion du nom (section 21) entre
   deux radios, la disparition de l'ancien « Mode Démo » de la liste des appareils (section 22), et le
-  formulaire « Fait observé » (taille, veille, clavier, section 23) l'écart LoRa du diagnostic (section 25), la saisie de l'organigramme (section 26), le crédit d'une carte importée (section 27), et l'APK de release signé (section 28).
+  formulaire « Fait observé » (taille, veille, clavier, section 23) l'écart LoRa du diagnostic (section 25), la saisie de l'organigramme (section 26), le crédit d'une carte importée (section 27), l'APK de release signé (section 28), le téléchargement de carte (section 29) et la demande de tir entre deux téléphones (section 30).
   La liste des essais est dans
   `TESTS-A-FAIRE.md`.
 - **Non couvert par la CI** : la variante google, `core:ui` (dont le bandeau de diagnostic),

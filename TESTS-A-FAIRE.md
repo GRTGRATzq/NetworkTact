@@ -241,6 +241,82 @@ produit est identique à `pmtiles extract` (CI) ; tout ce qui suit est à voir �
       source réglée sur une adresse sans édition : « Aucune édition de carte n'a été trouvée … pour les 8 derniers jours ».
 - [ ] Écran des licences : `pmtiles-reader` apparaît avec la licence BSD-3-Clause.
 
+## 18. Demande de tir (tâche 8, FORK.md §30)
+
+Branche `feat/demande-de-tir` (`docs/SPEC-DEMANDE-DE-TIR.md`, `docs/PLAN-DEMANDE-DE-TIR.md`, maquette
+`docs/maquette-demande-de-tir.pdf`). Deux radios, deux téléphones : **A** émetteur (l'OA), **B** destinataire (CDS TIR) ;
+puis la radio du poste Drone. **Rien n'a encore tourné sur un téléphone** : formulaire, cartes et notifications sont testés
+en JVM, à voir à l'œil et au doigt. Fiche papier à côté pour la relecture.
+
+**Formulaire (A)**
+
+- [ ] Puce « DT Demande de tir » (contour rouge, badge DT) sur sa ligne, sous « Ma position · Fait observé · Convertisseur ».
+- [ ] Ouvert depuis la conversation directe avec B : destinataire présélectionné, « Destinataire » prérempli avec le nom
+      de B (sans équipe), modifiable. Ouvert depuis un canal : destinataire à choisir.
+- [ ] Chaque case conforme à la fiche (libellés, ordre, codes, unités : millièmes, m, min, s, ms) ; clavier numérique pour
+      les nombres ; défilement avec le clavier ouvert ; rien qui ne soit sur la fiche.
+- [ ] GDH : prérempli à l'heure du téléphone en loc, Z (`112150Z NOV 26`) et fra ; le choix du fuseau est gardé après
+      redémarrage ; un GDH illisible est signalé sans bloquer l'envoi.
+- [ ] « Envoyer » grisé avec sa raison : n° de tir vide ; décalage Rep sans direction ; plus de 9 parties ; radio
+      déconnectée. Avertissement sous un champ saisi avec une espace (Rep, heures `..H..`, morceaux L R U).
+- [ ] **Coller une coordonnée** : appui long sur la carte → Copier, ou copie depuis le convertisseur ; dans la case 7, coller
+      dans le champ de la ligne G (puis H) : Fuseau, Bande, Carré, X, Y remplis ; texte sans MGRS : message d'erreur ; une
+      ligne incomplète est signalée sous la ligne.
+
+**Envoi et découpage**
+
+- [ ] Exemple de la spécification (§4) saisi : aperçu identique à la spécification, 3 messages, 166 / 154 / 168 octets
+      (488), « Modifier » revient au formulaire intact.
+- [ ] « Envoyer la demande » : la conversation directe avec B s'ouvre ; une seule carte « DT AB1234 · 3 messages », chaque
+      partie passe « en file » → « Accusé par … » ; aucune bulle de partie isolée.
+- [ ] Demande longue (plusieurs cases pleines) : découpage annoncé par l'aperçu = parties reçues par B ; une case coupée
+      reprend son numéro dans la partie suivante.
+- [ ] Un client Meshtastic officiel (troisième téléphone, ou B sans NetworkTact) reçoit les parties en texte lisible.
+
+**Réception (B)**
+
+- [ ] Fiche reconstituée à la place des 3 messages : badge DT, « 3 / 3 reçus », en-tête, cases 1 à 11, codes en clair
+      (« Lanceurs 2 : Mo 120 »), « non rempli » en gris, jamais le rouge de `[URG]`. Comparer à la maquette (bandeau rose,
+      badge bordeaux).
+- [ ] « Voir sur la carte » sous la ligne L R U : la carte centre sur 35T LL 33000 90300 (deux boutons si G et H remplies).
+- [ ] « Voir les 3 messages bruts » : le texte reçu, tel quel.
+- [ ] **Partie manquante** : B hors de portée pendant la partie 2 (radio éteinte ou éloignée) : chez B « 2 / 3 reçus »,
+      « Partie(s) 2 manquante(s) (cases 5 à 8) », ces cases « non reçu », les autres lisibles ; chez A la partie 2 en échec avec
+      « Renvoyer la partie 2 » ; après le renvoi, la fiche de B se complète.
+- [ ] **Partie en double** : A renvoie une partie déjà reçue (accusé perdu) : B la compte une fois ; les deux restent dans
+      les messages bruts.
+- [ ] Défilement de la conversation et compteur de non-lus justes malgré les messages masqués ; l'aperçu de la liste des
+      conversations montre le texte brut de la dernière partie (connu, accepté en v1).
+
+**Réponses GDH**
+
+- [ ] B appuie sur « GDH attribution » : dialogue prérempli à l'heure de B, modifiable, envoi d'un message
+      `[DT AB1234] GDH attribution …` ; le bouton devient « Renvoyer le GDH attribution ». Puis « GDH fin ».
+- [ ] Chez A, la carte affiche « GDH attribution reçu : … » puis le GDH fin, au lieu de « en attente ».
+
+**Brouillon et Renouveler**
+
+- [ ] Formulaire rempli à moitié, application fermée (balayée) puis rouverte : le brouillon est là ; il disparaît après
+      l'envoi.
+- [ ] « Renouveler » : reprend la dernière demande envoyée, même n° de tir, GDH remis à l'heure actuelle ; si un brouillon
+      est en cours, confirmation avant de le remplacer. Envoyée à nouveau, elle forme une nouvelle carte chez B (rang déjà
+      reçu avec un autre texte, ou plus de 2 h après).
+
+**Notifications (B, application en arrière-plan)**
+
+- [ ] 3 parties reçues : **une seule** notification de la conversation, qui sonne une fois et passe de « Demande de tir
+      AB1234 · 1 / 3 reçus » à « 3 / 3 reçus » ; aucune ligne de texte brut `[DT …`.
+- [ ] Un autre message ordinaire, ou une autre demande, sonne normalement.
+- [ ] Chez A, la réponse GDH : une notification d'une ligne « DT AB1234 · GDH attribution … ».
+
+**Mode démo**
+
+- [ ] Conversation directe d'ALPHA-1 : la demande de l'exemple, reçue en 3 parties dans le désordre, s'affiche en fiche
+      complète avec le GDH attribution `112252 loc NOV 26` renvoyé.
+- [ ] Formulaire ouvert en démo, demande envoyée à BRAVO-2 : rien ne part par radio ; parties accusées ; environ 13 s après
+      l'envoi, le GDH attribution arrive, puis le GDH fin 20 s plus tard. Vers CHARLIE-3 : parties en échec, aucune réponse.
+- [ ] Sortie de la démo : brouillon et dernière demande de la démo oubliés, ceux du vrai mode intacts.
+
 ## Avant fusion dans `main`
 - [ ] Les runs 70 et 71 ont été annulés par une poussée plus récente (rien à corriger).
 - [ ] Compiler la variante google et lancer `core:ui` / `core:navigation` à la main si nécessaire.
