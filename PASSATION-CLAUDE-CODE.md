@@ -34,7 +34,12 @@ verts ; `feature:messaging` : `FireRequestSendTest` (6), `FireRequestCardTest` (
 modifiés, **10 minutes au plus** ; au-delà, abandonner et laisser la CI vérifier. Un passage local de plus de 35 minutes
 (démon Gradle tombé une fois faute de mémoire) a été arrêté à sa demande. Utiliser `--max-workers=2`.
 
-**Run** : voir le tableau des runs (§3) : run `fork-apk` lancé par la poussée de ces commits sur `feat/demande-de-tir`.
+**Run `fork-apk` 106** (`120d0f3`, commits 19 à 23, 18 h 55 – 19 h 20 UTC) : **vert** en entier (lint, compilation fdroid
+debug dont `core:data` et `core:service`, tests, `core:demo`, `feature:map`, APK debug, `feature:map-maplibre`, APK release
+et son contrôle ; empreinte du certificat `f4ad3e41…79205818`, conforme). Artefact à installer pour les essais du §18 :
+**`apk-fdroid-release` du run 106**. Aucun run en cours ; `wip/demande-de-tir` n'a pas servi pour ces commits.
+
+**Suite** : essais du `TESTS-A-FAIRE.md` §18 par l'utilisateur, puis corrections en commits ciblés.
 
 ### 0.2 État au 12 novembre, vers 17 h UTC (remplacé par le § 0.3 là où ils diffèrent)
 
