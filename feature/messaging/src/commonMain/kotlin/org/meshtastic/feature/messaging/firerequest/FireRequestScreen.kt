@@ -84,7 +84,7 @@ fun FireRequestScreen(
     onNavigateUp: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: FireRequestViewModel = koinViewModel(),
-    bottomBar: @Composable () -> Unit = { FireRequestSizeBar(viewModel) },
+    bottomBar: @Composable () -> Unit = {},
 ) {
     LaunchedEffect(contactKey) { viewModel.start(contactKey) }
     val request by viewModel.request.collectAsStateWithLifecycle()
@@ -263,12 +263,11 @@ private fun RecipientChooser(
 /** Under the form: the size the request would be sent as, and why it cannot be sent yet. */
 @Composable
 fun FireRequestSizeBar(
-    viewModel: FireRequestViewModel,
+    preview: FireRequestPreview,
+    block: SendBlock?,
     modifier: Modifier = Modifier,
     action: @Composable () -> Unit = {},
 ) {
-    val preview by viewModel.preview.collectAsStateWithLifecycle()
-    val block by viewModel.sendBlock.collectAsStateWithLifecycle()
     Surface(tonalElevation = 3.dp, modifier = modifier) {
         Column {
             HorizontalDivider()

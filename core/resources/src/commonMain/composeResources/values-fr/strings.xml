@@ -1844,5 +1844,14 @@
     <string name="firereq_block_recipient">Choisir le destinataire pour envoyer.</string>
     <string name="firereq_block_reference">Rep : choisir la direction de chaque décalage.</string>
     <string name="firereq_block_too_long">Trop long : %1$d messages, 9 au plus.</string>
+    <string name="firereq_edit">Modifier</string>
+    <string name="firereq_send">Envoyer la demande</string>
+    <string name="firereq_preview_title">Aperçu avant envoi</string>
+    <string name="firereq_preview_subtitle">À %1$s · direct · accusé de réception</string>
+    <string name="firereq_preview_summary">Demande %1$s : %2$d octets, découpée en %3$d messages entre deux cases. Voici exactement ce qui part par radio.</string>
+    <string name="firereq_preview_part">Message %1$d / %2$d</string>
+    <string name="firereq_preview_part_size">%1$d octets sur 200</string>
+    <string name="firereq_preview_note">Les 11 cases partent toujours, une case vide sous la forme « non rempli ». Libellés et codes sont ceux de la fiche ; le destinataire voit les codes en clair.</string>
+    <string name="firereq_shortcut">Demande de tir</string>
     <string name="firereq_block_disconnected">Radio non connectée : envoi impossible.</string>
 </resources>

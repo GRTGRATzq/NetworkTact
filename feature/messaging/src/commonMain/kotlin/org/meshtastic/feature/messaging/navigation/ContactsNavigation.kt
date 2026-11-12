@@ -36,6 +36,7 @@ import org.meshtastic.core.ui.component.ScrollToTopEvent
 import org.meshtastic.feature.messaging.QuickChatScreen
 import org.meshtastic.feature.messaging.QuickChatViewModel
 import org.meshtastic.feature.messaging.coordinates.CoordinateConverterScreen
+import org.meshtastic.feature.messaging.firerequest.FireRequestRoute
 import org.meshtastic.feature.messaging.ui.contact.AdaptiveContactsScreen
 import org.meshtastic.feature.messaging.ui.contact.ContactsViewModel
 import org.meshtastic.feature.messaging.ui.sharing.ShareScreen
@@ -79,6 +80,19 @@ fun EntryProviderScope<NavKey>.contactsGraph(
             navigateToCoordinateConverter = dropUnlessResumed { backStack.add(ContactsRoute.CoordinateConverter()) },
             navigateToMap = dropUnlessResumed { backStack.add(MapRoute.Map()) },
             navigateToDiagnostic = dropUnlessResumed { backStack.add(NodesRoute.Diagnostic) },
+            navigateToFireRequest = dropUnlessResumed { backStack.add(ContactsRoute.FireRequest(contactKey)) },
+        )
+    }
+
+    entry<ContactsRoute.FireRequest>(metadata = { ListDetailSceneStrategy.extraPane() }) { args ->
+        FireRequestRoute(
+            contactKey = args.contactKey,
+            onNavigateUp = dropUnlessResumed { backStack.removeLastOrNull() },
+            // The request went to a direct conversation: show it there, where its parts and their states are.
+            onShowConversation = { sentTo ->
+                backStack.removeLastOrNull()
+                if (sentTo != args.contactKey) backStack.add(ContactsRoute.Messages(sentTo))
+            },
         )
     }
 

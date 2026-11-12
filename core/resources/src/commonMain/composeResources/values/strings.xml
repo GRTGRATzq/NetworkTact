@@ -752,6 +752,7 @@
     <string name="firereq_block_too_long">Too long: %1$d messages, 9 at most.</string>
     <string name="firereq_direct_note">Direct message to the recipient, with acknowledgement. The allocation and end DTGs are sent back by the recipient.</string>
     <string name="firereq_draft_kept">Draft kept on the phone</string>
+    <string name="firereq_edit">Edit</string>
     <string name="firereq_empty_box">Empty box: it is sent anyway, as « %1$d non rempli ».</string>
     <string name="firereq_gdh_invalid">Unreadable DTG: DDHHMM loc MON YY, DDHHMMZ MON YY or DDHHMM fra MON YY.</string>
     <string name="firereq_intro">Each box follows the 68e RAA sheet, in the same order, with its labels and codes. Green background: filled in by the app, editable. « Renouveler » brings back the last request sent.</string>
@@ -763,10 +764,18 @@
     <string name="firereq_paste_into">Paste a coordinate in line %1$s</string>
     <string name="firereq_paste_none">No complete coordinate on the clipboard.</string>
     <string name="firereq_preview">Preview</string>
+    <string name="firereq_preview_note">The 11 boxes are always sent, an empty box as « non rempli ». Labels and codes are those of the sheet; the recipient sees the codes in plain words.</string>
+    <string name="firereq_preview_part">Message %1$d / %2$d</string>
+    <string name="firereq_preview_part_size">%1$d bytes of 200</string>
+    <string name="firereq_preview_subtitle">To %1$s · direct · acknowledged</string>
+    <string name="firereq_preview_summary">Request %1$s: %2$d bytes, split into %3$d messages between two boxes. This is exactly what goes out by radio.</string>
+    <string name="firereq_preview_title">Preview before sending</string>
     <string name="firereq_recipient_choose">Choose the recipient</string>
     <string name="firereq_renew">Renew</string>
     <string name="firereq_renew_replace">Replace what is in the form with the last request sent?</string>
     <string name="firereq_rep_direction">Choose the direction of this shift.</string>
+    <string name="firereq_send">Send the request</string>
+    <string name="firereq_shortcut">Fire request</string>
     <string name="firereq_size">%1$d bytes · %2$d messages</string>
     <string name="firereq_title">Fire request</string>
     <string name="firereq_type_help">Several choices allowed, letters as well as types. The letters refer to the location lines of box 7.</string>

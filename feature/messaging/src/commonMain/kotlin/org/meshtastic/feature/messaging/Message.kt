@@ -162,6 +162,7 @@ private const val COUNTER_VISIBLE_WITHIN_BYTES = 20
  * @param navigateToCoordinateConverter Opens the coordinate converter; null hides the shortcut (conversation bubble).
  * @param navigateToMap Opens the map, after it has been asked to centre on a message's coordinate; null hides "Show on
  *   map".
+ * @param navigateToFireRequest Opens the fire request form; null hides its shortcut.
  */
 @Suppress("LongMethod", "CyclomaticComplexMethod")
 @OptIn(ExperimentalFoundationApi::class)
@@ -177,6 +178,7 @@ fun MessageScreen(
     navigateToCoordinateConverter: (() -> Unit)? = null,
     navigateToMap: (() -> Unit)? = null,
     navigateToDiagnostic: (() -> Unit)? = null,
+    navigateToFireRequest: (() -> Unit)? = null,
 ) {
     val coroutineScope = rememberCoroutineScope()
     val clipboardManager = LocalClipboard.current
@@ -545,6 +547,7 @@ fun MessageScreen(
                         messageInputState = messageInputState,
                         canFill = connectionState is ConnectionState.Connected,
                         onOpenConverter = navigateToCoordinateConverter,
+                        onOpenFireRequest = navigateToFireRequest,
                     )
                     MessageInput(
                         isEnabled = connectionState is ConnectionState.Connected,

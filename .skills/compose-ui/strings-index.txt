@@ -722,6 +722,7 @@ firereq_block_reference
 firereq_block_too_long
 firereq_direct_note
 firereq_draft_kept
+firereq_edit
 firereq_empty_box
 firereq_gdh_invalid
 firereq_intro
@@ -733,10 +734,18 @@ firereq_paste_help
 firereq_paste_into
 firereq_paste_none
 firereq_preview
+firereq_preview_note
+firereq_preview_part
+firereq_preview_part_size
+firereq_preview_subtitle
+firereq_preview_summary
+firereq_preview_title
 firereq_recipient_choose
 firereq_renew
 firereq_renew_replace
 firereq_rep_direction
+firereq_send
+firereq_shortcut
 firereq_size
 firereq_title
 firereq_type_help

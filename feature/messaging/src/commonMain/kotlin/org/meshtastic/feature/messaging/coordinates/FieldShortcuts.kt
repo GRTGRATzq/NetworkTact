@@ -59,6 +59,7 @@ import org.meshtastic.core.ui.icon.MeshtasticIcons
 import org.meshtastic.core.ui.icon.MyLocation
 import org.meshtastic.core.ui.icon.Visibility
 import org.meshtastic.core.ui.util.SnackbarManager
+import org.meshtastic.feature.messaging.firerequest.FireRequestShortcut
 
 /**
  * Field shortcuts above the message input. None of them sends anything: they open a tool or fill the input, and the
@@ -66,6 +67,8 @@ import org.meshtastic.core.ui.util.SnackbarManager
  *
  * @param canFill whether the input accepts text (it is disabled while the radio is not connected).
  * @param onOpenConverter opens the coordinate converter; null hides that shortcut.
+ * @param onOpenFireRequest opens the fire request form, the one shortcut that sends (from its own screen, after a
+ *   preview); null hides it.
  */
 @Composable
 internal fun FieldShortcuts(
@@ -73,6 +76,7 @@ internal fun FieldShortcuts(
     canFill: Boolean,
     onOpenConverter: (() -> Unit)?,
     modifier: Modifier = Modifier,
+    onOpenFireRequest: (() -> Unit)? = null,
     viewModel: FieldShortcutsViewModel = koinViewModel(),
 ) {
     val snackbarManager = koinInject<SnackbarManager>()
@@ -115,6 +119,7 @@ internal fun FieldShortcuts(
         onOpenConverter = onOpenConverter,
         modifier = modifier,
     )
+    if (onOpenFireRequest != null) FireRequestShortcut(onOpenFireRequest)
 
     if (showObservedFact) {
         ObservedFactDialog(
