@@ -27,6 +27,7 @@ import kotlinx.datetime.TimeZone
 import org.meshtastic.core.demo.DemoModeController
 import org.meshtastic.core.demo.data.DemoDataSet
 import org.meshtastic.core.demo.repository.DemoExpectedLoraPrefs
+import org.meshtastic.core.demo.repository.DemoFireRequestPrefs
 import org.meshtastic.core.demo.repository.DemoNodeRepository
 import org.meshtastic.core.demo.repository.DemoOrgChartPrefs
 import org.meshtastic.core.demo.repository.DemoPacketRepository
@@ -42,6 +43,8 @@ import org.meshtastic.core.model.DataPacket
 import org.meshtastic.core.model.Node
 import org.meshtastic.core.model.NodeAddress
 import org.meshtastic.core.model.diagnostic.LoraSetting
+import org.meshtastic.core.model.firerequest.FireRequest
+import org.meshtastic.core.model.firerequest.GdhZone
 import org.meshtastic.core.model.geo.RadioPositionPacket
 import org.meshtastic.core.model.geo.SharedPoint
 import org.meshtastic.core.model.geo.toWaypoint
@@ -97,6 +100,8 @@ class ScreenFacadesTest {
     private val packets = ScreenPacketRepository(realPackets, DemoPacketRepository(store), demoMode)
     private val teams = ScreenTeamRosterPrefs(realTeams, DemoTeamRosterPrefs(store), demoMode)
     private val orgChart = ScreenOrgChartPrefs(realOrgChart, DemoOrgChartPrefs(store), demoMode)
+    private val realFireRequest = DemoFireRequestPrefs(DemoStore())
+    private val fireRequest = ScreenFireRequestPrefs(realFireRequest, DemoFireRequestPrefs(store), demoMode)
     private val uiPrefs = ScreenUiPrefs(realUiPrefs, store, demoMode)
     private val owner = ScreenRadioConfigUseCase(realRadio, store, demoMode)
 
@@ -261,6 +266,26 @@ class ScreenFacadesTest {
 
         demoMode.deactivate()
         assertEquals(received, teams.pendingRoster.value)
+    }
+
+    @Test
+    fun aFireRequestWrittenInTheDemoNeverReachesTheRealDraft() = runTest(dispatcher) {
+        val real = FireRequest(number = "REAL1")
+        realFireRequest.saveDraft(real)
+
+        demoMode.activate()
+        val demo = FireRequest(number = "DEMO1")
+        fireRequest.saveDraft(demo)
+        fireRequest.setGdhZone(GdhZone.ZULU)
+        assertEquals(demo, store.fireRequestDraft.value)
+        fireRequest.recordSent(demo)
+        assertEquals(demo, store.lastFireRequest.value)
+
+        demoMode.deactivate()
+        assertEquals(real, realFireRequest.draft.value)
+        assertEquals(null, realFireRequest.lastSent.value)
+        assertEquals(GdhZone.LOCAL, realFireRequest.gdhZone.value)
+        assertEquals(null, store.lastFireRequest.value)
     }
 
     @Test

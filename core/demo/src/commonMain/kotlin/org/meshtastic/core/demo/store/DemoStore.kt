@@ -24,6 +24,8 @@ import org.meshtastic.core.model.ContactSettings
 import org.meshtastic.core.model.MyNodeInfo
 import org.meshtastic.core.model.Node
 import org.meshtastic.core.model.diagnostic.LoraSetting
+import org.meshtastic.core.model.firerequest.FireRequest
+import org.meshtastic.core.model.firerequest.GdhZone
 import org.meshtastic.core.model.orgchart.OrgChartRecord
 import org.meshtastic.core.model.team.TeamRosterRecord
 import org.meshtastic.proto.ChannelSet
@@ -45,6 +47,11 @@ class DemoStore {
     val pendingRoster = MutableStateFlow<TeamRosterRecord?>(null)
     val orgChart = MutableStateFlow<OrgChartRecord?>(null)
     val previousOrgChart = MutableStateFlow<OrgChartRecord?>(null)
+
+    /** The fire request form's zone, draft and last request sent, in memory only. */
+    val fireRequestZone = MutableStateFlow(GdhZone.LOCAL)
+    val fireRequestDraft = MutableStateFlow<FireRequest?>(null)
+    val lastFireRequest = MutableStateFlow<FireRequest?>(null)
     val packets = MutableStateFlow<List<DemoPacket>>(emptyList())
     val contactSettings = MutableStateFlow<Map<String, ContactSettings>>(emptyMap())
 
@@ -73,6 +80,7 @@ class DemoStore {
         pendingRoster.value = null
         orgChart.value = data.orgChart
         previousOrgChart.value = null
+        clearFireRequest()
         packets.value = data.packets
         contactSettings.value = emptyMap()
         lora.value = data.lora
@@ -91,6 +99,7 @@ class DemoStore {
         pendingRoster.value = null
         orgChart.value = null
         previousOrgChart.value = null
+        clearFireRequest()
         packets.value = emptyList()
         contactSettings.value = emptyMap()
         lora.value = null
@@ -123,5 +132,11 @@ class DemoStore {
         contactSettings.update { all ->
             all + (contactKey to transform(all[contactKey] ?: ContactSettings(contactKey)))
         }
+    }
+
+    private fun clearFireRequest() {
+        fireRequestZone.value = GdhZone.LOCAL
+        fireRequestDraft.value = null
+        lastFireRequest.value = null
     }
 }
