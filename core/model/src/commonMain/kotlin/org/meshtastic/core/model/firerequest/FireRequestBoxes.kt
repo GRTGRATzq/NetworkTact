@@ -112,8 +112,8 @@ internal fun command(box: Command): List<String> = listOfNotNull(
     box.limitedStart?.let { start ->
         listOfNotNull(
             Sheet.TIME_ON_TARGET_LIMITED,
-            labelled(Sheet.START, start),
-            labelled(Sheet.END, box.limitedEnd),
+            labelled(Sheet.START, token(start)),
+            labelled(Sheet.END, token(box.limitedEnd)),
         )
             .joinToString(" ")
     },

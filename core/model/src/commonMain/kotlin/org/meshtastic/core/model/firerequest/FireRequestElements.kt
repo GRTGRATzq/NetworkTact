@@ -23,6 +23,9 @@ private val WHITESPACE = Regex("""\s+""")
 /** [text] as it may go into the message: on one line, without « · », trimmed. */
 internal fun cleanText(text: String): String = text.replace("·", " ").replace(WHITESPACE, " ").trim()
 
+/** [text] as one word: what the message separates with spaces (Rep boxes, times, coordinate pieces) has none. */
+internal fun token(text: String): String = cleanText(text).replace(" ", "")
+
 /** `label value [unit]`, or null when [value] is empty. */
 internal fun labelled(label: String, value: String, unit: String? = null): String? {
     val text = cleanText(value)

@@ -59,15 +59,15 @@ internal fun reference(line: ReferenceLine): String? {
             shift(line.nearFar, line.nearFarM),
             shift(line.upDown, line.upDownM),
         )
-    val head = listOf(Sheet.REFERENCE, cleanText(line.first), cleanText(line.second)).filter { it.isNotEmpty() }
+    val head = listOf(Sheet.REFERENCE, token(line.first), token(line.second)).filter { it.isNotEmpty() }
     if (head.size == 1 && shifts.isEmpty()) return null
     return (listOf(head.joinToString(" ")) + shifts).joinToString(Sheet.SEPARATOR)
 }
 
 /** `G 35T LL 33000 - 90300 · Z 610 m`: the MGRS coordinate, then Z. */
 internal fun lru(letter: ImpactLine, line: LruLine): String? {
-    val head = listOf(cleanText(line.zone) + cleanText(line.band), cleanText(line.square), cleanText(line.x))
-    val northing = cleanText(line.y)
+    val head = listOf(token(line.zone) + token(line.band), token(line.square), token(line.x))
+    val northing = token(line.y)
     val coordinate =
         (head.filter { it.isNotEmpty() }.joinToString(" ") + if (northing.isEmpty()) "" else " - $northing")
             .trim()
