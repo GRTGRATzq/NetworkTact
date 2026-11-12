@@ -714,6 +714,34 @@ filter_whole_word
 filter_words
 filter_words_summary
 firebase_link
+### FIREREQ ###
+firereq_block_disconnected
+firereq_block_number
+firereq_block_recipient
+firereq_block_reference
+firereq_block_too_long
+firereq_direct_note
+firereq_draft_kept
+firereq_empty_box
+firereq_gdh_invalid
+firereq_intro
+firereq_lru_help
+firereq_no_space
+firereq_number_help
+firereq_origin_help
+firereq_paste_help
+firereq_paste_into
+firereq_paste_none
+firereq_preview
+firereq_recipient_choose
+firereq_renew
+firereq_renew_replace
+firereq_rep_direction
+firereq_size
+firereq_title
+firereq_type_help
+firereq_zone
+firereq_zone_help
 ### FIRMWARE ###
 firmware
 firmware_edition

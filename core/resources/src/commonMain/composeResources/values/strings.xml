@@ -744,6 +744,34 @@
     <string name="filter_words">Filter Words</string>
     <string name="filter_words_summary">Messages containing these words will be hidden</string>
     <string name="firebase_link" translatable="false">Firebase: https://firebase.google.com/</string>
+    <!-- FIREREQ -->
+    <string name="firereq_block_disconnected">Radio not connected: cannot send.</string>
+    <string name="firereq_block_number">Type the fire number to send.</string>
+    <string name="firereq_block_recipient">Choose the recipient to send.</string>
+    <string name="firereq_block_reference">Rep: choose the direction of each shift.</string>
+    <string name="firereq_block_too_long">Too long: %1$d messages, 9 at most.</string>
+    <string name="firereq_direct_note">Direct message to the recipient, with acknowledgement. The allocation and end DTGs are sent back by the recipient.</string>
+    <string name="firereq_draft_kept">Draft kept on the phone</string>
+    <string name="firereq_empty_box">Empty box: it is sent anyway, as « %1$d non rempli ».</string>
+    <string name="firereq_gdh_invalid">Unreadable DTG: DDHHMM loc MON YY, DDHHMMZ MON YY or DDHHMM fra MON YY.</string>
+    <string name="firereq_intro">Each box follows the 68e RAA sheet, in the same order, with its labels and codes. Green background: filled in by the app, editable. « Renouveler » brings back the last request sent.</string>
+    <string name="firereq_lru_help">MGRS, written 35T LL 33000 - 90300: 35 UTM zone · T latitude band · LL 100 km square · X easting and Y northing on 5 digits (1 m) · Z altitude, optional.</string>
+    <string name="firereq_no_space">No spaces here: « %1$s » will be sent.</string>
+    <string name="firereq_number_help">Letters and digits, 10 at most. Required to send.</string>
+    <string name="firereq_origin_help">Written by the operator.</string>
+    <string name="firereq_paste_help">Optional: paste the text copied by a long press on the map or by the converter; the line fills in, and everything stays editable by hand.</string>
+    <string name="firereq_paste_into">Paste a coordinate in line %1$s</string>
+    <string name="firereq_paste_none">No complete coordinate on the clipboard.</string>
+    <string name="firereq_preview">Preview</string>
+    <string name="firereq_recipient_choose">Choose the recipient</string>
+    <string name="firereq_renew">Renew</string>
+    <string name="firereq_renew_replace">Replace what is in the form with the last request sent?</string>
+    <string name="firereq_rep_direction">Choose the direction of this shift.</string>
+    <string name="firereq_size">%1$d bytes · %2$d messages</string>
+    <string name="firereq_title">Fire request</string>
+    <string name="firereq_type_help">Several choices allowed, letters as well as types. The letters refer to the location lines of box 7.</string>
+    <string name="firereq_zone">Format</string>
+    <string name="firereq_zone_help">loc: local time · Z: Zulu time · fra: French time. The choice is kept for the next requests.</string>
     <!-- FIRMWARE -->
     <string name="firmware">Firmware</string>
     <string name="firmware_edition">Firmware Edition</string>

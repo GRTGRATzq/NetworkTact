@@ -109,6 +109,9 @@ object FireRequestSheet {
     const val ARTILLERY = "Artillerie"
     const val BUILDING = "Bâtiment"
 
+    /** « Bâtiment ou [ ] »: the free box stands for another target. */
+    const val OR = "ou"
+
     // Box 7.
     const val POLAR = "POLAIRES"
     const val RECTANGULAR = "RECTANG."
@@ -120,6 +123,12 @@ object FireRequestSheet {
     const val Y = "Y"
     const val Z = "Z"
     const val REFERENCE = "Rep"
+    const val FOR_ME = "Pour moi"
+
+    // The boxes of an L R U line in the form, as on the validated mock-up.
+    const val UTM_ZONE = "Fuseau"
+    const val LATITUDE_BAND = "Bande"
+    const val SQUARE = "Carré"
     const val TLE = "TLE"
     val TLE_CODES = listOf("1", "2", "3", "4")
 
