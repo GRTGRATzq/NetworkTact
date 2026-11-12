@@ -37,6 +37,8 @@ object DemoRoutes {
         is ContactsRoute.Contacts,
         is ContactsRoute.Messages,
         is ContactsRoute.CoordinateConverter,
+        // The fire request form; its sending goes through the screens' send use case, simulated in demo mode.
+        is ContactsRoute.FireRequest,
         // Choosing the conversation a text is inserted into; its list comes from the screens' data sources. Nothing
         // is sent from it: the conversation opens with the text in its input.
         is ContactsRoute.Share,

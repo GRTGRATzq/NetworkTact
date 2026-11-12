@@ -50,6 +50,8 @@ class NavigationConfigTest {
             ContactsRoute.QuickChat,
             ContactsRoute.CoordinateConverter(),
             ContactsRoute.CoordinateConverter(input = "31U DQ 48251 11932"),
+            ContactsRoute.FireRequest(),
+            ContactsRoute.FireRequest(contactKey = "8!0000b002"),
             // MapRoute
             MapRoute.Map(),
             MapRoute.Map(waypointId = 42),

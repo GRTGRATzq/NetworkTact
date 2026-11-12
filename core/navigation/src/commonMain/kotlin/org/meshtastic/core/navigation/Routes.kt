@@ -56,6 +56,12 @@ sealed interface ContactsRoute : Route {
      * coordinate to start from, empty for none.
      */
     @Serializable data class CoordinateConverter(val input: String = "") : ContactsRoute
+
+    /**
+     * The fire request form (« Demande de tir »), opened from a conversation: [contactKey] is that conversation, whose
+     * node is the recipient chosen first when it is a direct one; empty for none.
+     */
+    @Serializable data class FireRequest(val contactKey: String = "") : ContactsRoute
 }
 
 @Serializable
