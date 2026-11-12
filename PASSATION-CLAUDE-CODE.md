@@ -17,10 +17,10 @@ en commits au § 7, décisions au § 12), `docs/maquette-demande-de-tir.pdf` (ma
 `26596b6` sur `feat/demande-de-tir` (et `wip/demande-de-tir`).
 
 **Runs `fork-apk`** (tous sur `feat/demande-de-tir`) : 101 vert (maquette PDF), **102 vert** (`26568e3`, code commun),
-**103 vert** (`c0f9c38`, formulaire, aperçu, envoi), **104 vert** (`54beb96`, affichage en clair + passation), **105**
-lancé sur `26596b6` (cartes dans la conversation) : résultat à lire en reprenant
-(`gh api 'repos/GRTGRATzq/NetworkTact/actions/runs?branch=feat/demande-de-tir&per_page=1'`). S'il est rouge, corriger
-d'abord.
+**103 vert** (`c0f9c38`, formulaire, aperçu, envoi), **104 vert** (`54beb96`, affichage en clair + passation), **105 vert** en entier
+(`26596b6`, cartes dans la conversation : lint, compilation, tests, `core:demo`, `feature:map`, APK debug,
+`feature:map-maplibre`, APK release et son contrôle). Aucun run en cours ; `wip/demande-de-tir` est à jour et peut être
+supprimée par l'utilisateur.
 
 **Fait au commit `26596b6`** (`feature/messaging`, 221 tests JVM verts en local, spotless et detekt propres) :
 
