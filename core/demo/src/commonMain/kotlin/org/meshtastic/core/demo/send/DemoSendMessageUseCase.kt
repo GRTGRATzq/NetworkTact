@@ -38,13 +38,17 @@ import kotlin.time.Duration.Companion.milliseconds
  *
  * On a channel: waiting for my radio, then sent to my radio after 1.5 s, then relayed by the mesh after 3 s, and it
  * stays there, as a channel message is never acknowledged. Direct: the same steps, then acknowledged by the recipient
- * after 5 s; CHARLIE-3 plays a node out of reach, and its messages fail after 8 s with "no node confirmed receipt".
+ * after 5 s; CHARLIE-3 plays a node out of reach, and its messages fail after 8 s with "no node confirmed receipt". The
+ * last part of a fire request sent direct is answered with its date-time groups ([DemoFireRequestReplies]).
  */
 class DemoSendMessageUseCase(
     private val store: DemoStore,
     private val packets: DemoPacketRepository,
     private val scope: CoroutineScope,
 ) : SendMessageUseCase {
+
+    /** The answer to a fire request sent in a direct message (`docs/SPEC-DEMANDE-DE-TIR.md` § 8). */
+    private val fireRequestReplies = DemoFireRequestReplies(store, packets, scope)
 
     override suspend operator fun invoke(text: String, contactKey: String, replyId: Int?): Int {
         val key = ContactKey(contactKey)
@@ -69,6 +73,7 @@ class DemoSendMessageUseCase(
             )
         val session = store.session
         scope.launch { simulate(stored.uuid, session, isDirect, destination) }
+        if (isDirect) fireRequestReplies.onSent(text, contactKey, destination, channel ?: 0)
         return packetId
     }
 

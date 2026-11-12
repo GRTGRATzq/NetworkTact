@@ -128,7 +128,7 @@ class ScreenFacadesTest {
             assertEquals(setOf(DemoDataSet.GENERAL_KEY), awaitItem().keys)
 
             demoMode.activate()
-            assertEquals(5, awaitItem().size)
+            assertEquals(6, awaitItem().size)
 
             demoMode.deactivate()
             assertEquals(setOf(DemoDataSet.GENERAL_KEY), awaitItem().keys)

@@ -59,6 +59,7 @@ class DemoRepositoriesTest {
                 DemoDataSet.COMMAND_POST_KEY,
                 DemoDataSet.BRAVO2_DIRECT_KEY,
                 DemoDataSet.CHARLIE3_DIRECT_KEY,
+                DemoDataSet.ALPHA1_DIRECT_KEY,
             ),
             packets.getContacts().first().keys,
         )

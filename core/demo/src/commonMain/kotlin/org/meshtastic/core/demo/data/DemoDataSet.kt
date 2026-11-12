@@ -23,6 +23,25 @@ import org.meshtastic.core.model.MyNodeInfo
 import org.meshtastic.core.model.Node
 import org.meshtastic.core.model.NodeAddress
 import org.meshtastic.core.model.diagnostic.LoraSetting
+import org.meshtastic.core.model.firerequest.AdjustMethod
+import org.meshtastic.core.model.firerequest.Adjustment
+import org.meshtastic.core.model.firerequest.Charge
+import org.meshtastic.core.model.firerequest.Command
+import org.meshtastic.core.model.firerequest.Cover
+import org.meshtastic.core.model.firerequest.Effect
+import org.meshtastic.core.model.firerequest.FireRequest
+import org.meshtastic.core.model.firerequest.FireRequestReply
+import org.meshtastic.core.model.firerequest.FireRequestSplitter
+import org.meshtastic.core.model.firerequest.FireRequestText
+import org.meshtastic.core.model.firerequest.FireType
+import org.meshtastic.core.model.firerequest.Friends
+import org.meshtastic.core.model.firerequest.ImpactLine
+import org.meshtastic.core.model.firerequest.Location
+import org.meshtastic.core.model.firerequest.LruLine
+import org.meshtastic.core.model.firerequest.ReplyKind
+import org.meshtastic.core.model.firerequest.Shape
+import org.meshtastic.core.model.firerequest.ShapeKind
+import org.meshtastic.core.model.firerequest.Targets
 import org.meshtastic.core.model.freshness.PositionState
 import org.meshtastic.core.model.geo.CoordinateFormat
 import org.meshtastic.core.model.geo.FormattedCoordinates
@@ -97,6 +116,7 @@ object DemoDataSet {
     const val COMMAND_POST_KEY = "2${NodeAddress.ID_BROADCAST}"
 
     /** Direct conversations, on the public-key channel the app uses for them. */
+    val ALPHA1_DIRECT_KEY = "${NodeAddress.PKC_CHANNEL_INDEX}${id(ALPHA1_NUM)}"
     val BRAVO2_DIRECT_KEY = "${NodeAddress.PKC_CHANNEL_INDEX}${id(BRAVO2_NUM)}"
     val CHARLIE3_DIRECT_KEY = "${NodeAddress.PKC_CHANNEL_INDEX}${id(CHARLIE3_NUM)}"
 
@@ -139,6 +159,41 @@ object DemoDataSet {
 
     /** How long ago the demo radio last passed a packet to the phone: when ALPHA-1 was last heard. */
     val LAST_RADIO_PACKET_AGE = 1.minutes
+
+    /**
+     * The fire request ALPHA-1 sent: the validated example of `docs/SPEC-DEMANDE-DE-TIR.md` § 4, as it is, date-time
+     * group included.
+     */
+    val FIRE_REQUEST =
+        FireRequest(
+            origin = "OA",
+            recipient = "CDS TIR",
+            requestGdh = "112250 loc NOV 26",
+            number = "AB1234",
+            fireType = FireType(lines = setOf(ImpactLine.G), firstRound = true, prepare = true),
+            effect = Effect(neutralisation = true, mixFirst = "1", mixSecond = "2"),
+            charge = Charge(launcher = "2", trajectoryFirst = "1", modeFirst = "1"),
+            targets = Targets(personnel = true, personnelCover = Cover.OPEN),
+            location = Location(g = LruLine("35", "T", "LL", "33000", "90300", "610"), tle = "2"),
+            shape = Shape(kind = ShapeKind.CIRCULAR, radius = "100"),
+            adjustment =
+            Adjustment(
+                method = AdjustMethod.GRID,
+                observationBearing = "4800",
+                observerX = "34550",
+                observerY = "88800",
+                observerZ = "640",
+            ),
+            friends = Friends(distance = "800", bearing = "1600", protection = "1"),
+            command = Command(whenReady = true),
+        )
+
+    /** Its three parts, as sent. */
+    val FIRE_REQUEST_PARTS: List<String> =
+        FireRequestSplitter.split(FIRE_REQUEST.number, FireRequestText.write(FIRE_REQUEST))
+
+    /** The allocation date-time group PC-0 sent back, the one of the mock-up. */
+    val FIRE_REQUEST_ALLOCATION = FireRequestReply(FIRE_REQUEST.number, ReplyKind.ALLOCATION, "112252 loc NOV 26")
 
     /** The nodes: PC-0 is this phone's own; CHARLIE-3 has a position stored without any time. */
     private val nodeSpecs =
@@ -186,6 +241,11 @@ object DemoDataSet {
                 MessageStatus.ERROR,
                 routingError = Routing.Error.MAX_RETRANSMIT.value,
             ),
+            // The fire request of the specification's example, received from ALPHA-1; part 3 came before part 2.
+            Received(ALPHA1_DIRECT_KEY, ALPHA1_NUM, 5.minutes, read = true) { _, _ -> FIRE_REQUEST_PARTS[0] },
+            Received(ALPHA1_DIRECT_KEY, ALPHA1_NUM, 4.minutes, read = true) { _, _ -> FIRE_REQUEST_PARTS[2] },
+            Received(ALPHA1_DIRECT_KEY, ALPHA1_NUM, 3.minutes) { _, _ -> FIRE_REQUEST_PARTS[1] },
+            Sent(ALPHA1_DIRECT_KEY, FIRE_REQUEST_ALLOCATION.text(), 2.minutes, MessageStatus.RECEIVED),
         )
 
     fun id(num: Int): String = NodeAddress.numToDefaultId(num)

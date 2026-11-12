@@ -26,6 +26,9 @@ import org.meshtastic.core.model.diagnostic.HeardNode
 import org.meshtastic.core.model.diagnostic.LinkDiagnostics
 import org.meshtastic.core.model.diagnostic.LoraCheck
 import org.meshtastic.core.model.diagnostic.LoraSetting
+import org.meshtastic.core.model.firerequest.FireRequestAssembly
+import org.meshtastic.core.model.firerequest.FireRequestMessage
+import org.meshtastic.core.model.firerequest.FireRequestPart
 import org.meshtastic.core.model.freshness.NodeFreshness
 import org.meshtastic.core.model.freshness.PositionState
 import org.meshtastic.core.model.geo.LatLon
@@ -33,6 +36,7 @@ import org.meshtastic.core.model.geo.PositionComparison
 import org.meshtastic.core.model.geo.RadioFixQuality
 import org.meshtastic.core.model.orgchart.OrgChartLinks
 import org.meshtastic.core.model.team.TeamSuffix
+import org.meshtastic.core.model.utf8Size
 import org.meshtastic.core.model.util.getChannel
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -152,5 +156,67 @@ class DemoDataSetTest {
         assertEquals(LoraCheck.Same(DemoDataSet.DEMO_LORA), diagnostic.lora)
         assertEquals(BatteryFact.Level(DemoDataSet.PC0_BATTERY_PERCENT, low = false), diagnostic.battery)
         assertTrue(diagnostic.suggestions.isEmpty())
+    }
+
+    private fun fireRequestAssembly(): FireRequestAssembly = FireRequestAssembly.of(
+        data.packets
+            .filter { it.contactKey == DemoDataSet.ALPHA1_DIRECT_KEY }
+            .map {
+                FireRequestMessage(
+                    id = it.uuid,
+                    fromLocal = it.packet.from == DemoDataSet.id(DemoDataSet.PC0_NUM),
+                    sender = it.packet.from.orEmpty(),
+                    timeMillis = it.receivedTime,
+                    text = it.packet.text.orEmpty(),
+                )
+            },
+    )
+
+    @Test
+    fun theSpecificationExampleIsSentAsItsThreeValidatedParts() {
+        val parts = DemoDataSet.FIRE_REQUEST_PARTS
+        assertEquals(3, parts.size)
+        assertEquals(
+            "[DT AB1234 1/3]\nOrigine OA · Destinataire CDS TIR · GDH demande 112250 loc NOV 26",
+            parts[0].lines().take(2).joinToString("\n"),
+        )
+        assertEquals(
+            "[DT AB1234 2/3]\n5 Lanceurs 2 · Trajectoire 1 · Mode 1",
+            parts[1].lines().take(2).joinToString("\n"),
+        )
+        assertEquals("11 Aussitôt prêt", parts[2].lines().last())
+        assertEquals(listOf(166, 154, 168), parts.map { it.utf8Size() })
+        assertEquals("[DT AB1234] GDH attribution 112252 loc NOV 26", DemoDataSet.FIRE_REQUEST_ALLOCATION.text())
+    }
+
+    @Test
+    fun alpha1sFireRequestIsReceivedOutOfOrderAndReadsWhole() {
+        val received =
+            data.packets.filter {
+                it.contactKey == DemoDataSet.ALPHA1_DIRECT_KEY &&
+                    it.packet.from == DemoDataSet.id(DemoDataSet.ALPHA1_NUM)
+            }
+        assertEquals(listOf(1, 3, 2), received.map { FireRequestPart.parse(it.packet.text.orEmpty())?.k })
+
+        val thread = fireRequestAssembly().threads.single()
+        assertEquals("AB1234", thread.number)
+        assertTrue(thread.isComplete)
+        assertEquals(false, thread.fromLocal)
+        assertEquals(DemoDataSet.FIRE_REQUEST, thread.read().request)
+        assertTrue(thread.read().unread.isEmpty())
+    }
+
+    @Test
+    fun pc0sAllocationIsShownOnTheRequestAndTheEndIsAwaited() {
+        val assembly = fireRequestAssembly()
+        val thread = assembly.threads.single()
+        assertEquals(DemoDataSet.FIRE_REQUEST_ALLOCATION, thread.allocation)
+        assertEquals(null, thread.end)
+        assertTrue(assembly.orphanReplies.isEmpty())
+        // The request is shown once, at the allocation sent back, its three parts hidden from the list.
+        assertEquals(3, assembly.hiddenIds.size)
+        val allocation = data.packets.single { it.packet.text == DemoDataSet.FIRE_REQUEST_ALLOCATION.text() }
+        assertEquals(MessageStatus.RECEIVED, allocation.packet.status)
+        assertEquals(thread, assembly.threadAt(allocation.uuid))
     }
 }
