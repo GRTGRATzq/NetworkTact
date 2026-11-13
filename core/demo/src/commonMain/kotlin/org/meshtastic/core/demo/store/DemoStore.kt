@@ -26,6 +26,7 @@ import org.meshtastic.core.model.Node
 import org.meshtastic.core.model.diagnostic.LoraSetting
 import org.meshtastic.core.model.firerequest.FireRequest
 import org.meshtastic.core.model.firerequest.GdhZone
+import org.meshtastic.core.model.freshness.FreshnessSettings
 import org.meshtastic.core.model.orgchart.OrgChartRecord
 import org.meshtastic.core.model.team.TeamRosterRecord
 import org.meshtastic.proto.ChannelSet
@@ -60,6 +61,9 @@ class DemoStore {
     val expectedLora = MutableStateFlow<LoraSetting?>(null)
     val lastRadioPacketMillis = MutableStateFlow<Long?>(null)
 
+    /** The freshness settings of the command post view, defaults at each start of the demo. */
+    val freshness = MutableStateFlow(FreshnessSettings.Default)
+
     /**
      * Changes at every load and every clear. A simulated send started in one demo session checks it before each step,
      * so it never touches the data set of a later one.
@@ -86,6 +90,7 @@ class DemoStore {
         lora.value = data.lora
         expectedLora.value = data.expectedLora
         lastRadioPacketMillis.value = data.lastRadioPacketMillis
+        freshness.value = FreshnessSettings.Default
         this.commandPostMode.value = commandPostMode
     }
 
@@ -105,6 +110,7 @@ class DemoStore {
         lora.value = null
         expectedLora.value = null
         lastRadioPacketMillis.value = null
+        freshness.value = FreshnessSettings.Default
         commandPostMode.value = false
     }
 

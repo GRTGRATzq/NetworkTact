@@ -18,8 +18,10 @@ package org.meshtastic.core.demo.screen
 
 import kotlinx.coroutines.flow.StateFlow
 import org.meshtastic.core.model.diagnostic.LoraSetting
+import org.meshtastic.core.model.freshness.FreshnessSettings
 import org.meshtastic.core.repository.DemoMode
 import org.meshtastic.core.repository.ExpectedLoraPrefs
+import org.meshtastic.core.repository.FreshnessPrefs
 import org.meshtastic.core.repository.RadioActivityProvider
 
 /** The screens' [ExpectedLoraPrefs]: the demo's setting while demo mode is on, the real one otherwise, never both. */
@@ -33,6 +35,16 @@ class ScreenExpectedLoraPrefs(
     override val expected: StateFlow<LoraSetting?> = switch.state(real.expected, demo.expected)
 
     override fun setExpected(setting: LoraSetting?) = switch.pick({ real }, { demo }).setExpected(setting)
+}
+
+/** The screens' [FreshnessPrefs]: the demo's settings while demo mode is on, the real ones otherwise, never both. */
+class ScreenFreshnessPrefs(private val real: FreshnessPrefs, private val demo: FreshnessPrefs, demoMode: DemoMode) :
+    FreshnessPrefs {
+    private val switch = ScreenSwitch(demoMode)
+
+    override val settings: StateFlow<FreshnessSettings> = switch.state(real.settings, demo.settings)
+
+    override fun setSettings(settings: FreshnessSettings) = switch.pick({ real }, { demo }).setSettings(settings)
 }
 
 /** The screens' [RadioActivityProvider]: the demo radio's last packet while demo mode is on, the real one otherwise. */

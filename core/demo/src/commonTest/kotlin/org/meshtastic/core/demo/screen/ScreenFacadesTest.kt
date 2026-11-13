@@ -28,6 +28,7 @@ import org.meshtastic.core.demo.DemoModeController
 import org.meshtastic.core.demo.data.DemoDataSet
 import org.meshtastic.core.demo.repository.DemoExpectedLoraPrefs
 import org.meshtastic.core.demo.repository.DemoFireRequestPrefs
+import org.meshtastic.core.demo.repository.DemoFreshnessPrefs
 import org.meshtastic.core.demo.repository.DemoNodeRepository
 import org.meshtastic.core.demo.repository.DemoOrgChartPrefs
 import org.meshtastic.core.demo.repository.DemoPacketRepository
@@ -45,6 +46,7 @@ import org.meshtastic.core.model.NodeAddress
 import org.meshtastic.core.model.diagnostic.LoraSetting
 import org.meshtastic.core.model.firerequest.FireRequest
 import org.meshtastic.core.model.firerequest.GdhZone
+import org.meshtastic.core.model.freshness.FreshnessSettings
 import org.meshtastic.core.model.geo.RadioPositionPacket
 import org.meshtastic.core.model.geo.SharedPoint
 import org.meshtastic.core.model.geo.toWaypoint
@@ -58,6 +60,7 @@ import org.meshtastic.core.repository.PhonePositionSource
 import org.meshtastic.core.repository.RadioActivityProvider
 import org.meshtastic.core.repository.usecase.SendMessageUseCase
 import org.meshtastic.core.testing.FakeExpectedLoraPrefs
+import org.meshtastic.core.testing.FakeFreshnessPrefs
 import org.meshtastic.core.testing.FakeNodeRepository
 import org.meshtastic.core.testing.FakeOrgChartPrefs
 import org.meshtastic.core.testing.FakeRadioController
@@ -71,6 +74,8 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
+import kotlin.time.Duration.Companion.hours
+import kotlin.time.Duration.Companion.minutes
 
 /**
  * The real side is played by stand-ins holding recognisably real data ("REAL-1", a real history): every assertion
@@ -331,6 +336,27 @@ class ScreenFacadesTest {
         demoMode.deactivate()
         assertEquals(realSetting, expected.expected.value)
         assertEquals(realSetting, realExpected.expected.value)
+    }
+
+    @Test
+    fun freshnessSettingsChangedDuringADemoNeverReachTheRealOnes() = runTest(dispatcher) {
+        val realSettings =
+            FreshnessSettings(expectedInterval = 1.hours, autoScale = false, fixedThreshold = 2.hours)
+        val realPrefs = FakeFreshnessPrefs(realSettings)
+        val prefs = ScreenFreshnessPrefs(realPrefs, DemoFreshnessPrefs(store), demoMode)
+        assertEquals(realSettings, prefs.settings.value)
+
+        demoMode.activate()
+        assertEquals(FreshnessSettings.Default, prefs.settings.value)
+        prefs.setSettings(FreshnessSettings(expectedInterval = 5.minutes))
+        assertEquals(5.minutes, prefs.settings.value.expectedInterval)
+
+        demoMode.deactivate()
+        assertEquals(realSettings, prefs.settings.value)
+        assertEquals(realSettings, realPrefs.settings.value)
+
+        demoMode.activate()
+        assertEquals(FreshnessSettings.Default, prefs.settings.value)
     }
 
     @Test

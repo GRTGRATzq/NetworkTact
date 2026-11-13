@@ -21,12 +21,15 @@ import org.koin.core.annotation.Named
 import org.koin.core.annotation.Provided
 import org.koin.core.annotation.Single
 import org.meshtastic.core.demo.repository.DemoExpectedLoraPrefs
+import org.meshtastic.core.demo.repository.DemoFreshnessPrefs
 import org.meshtastic.core.demo.repository.DemoRadioActivityProvider
 import org.meshtastic.core.demo.screen.ScreenExpectedLoraPrefs
+import org.meshtastic.core.demo.screen.ScreenFreshnessPrefs
 import org.meshtastic.core.demo.screen.ScreenRadioActivityProvider
 import org.meshtastic.core.demo.store.DemoStore
 import org.meshtastic.core.repository.DemoMode
 import org.meshtastic.core.repository.ExpectedLoraPrefs
+import org.meshtastic.core.repository.FreshnessPrefs
 import org.meshtastic.core.repository.RadioActivityProvider
 import org.meshtastic.core.repository.SCREEN_DATA
 
@@ -48,6 +51,16 @@ class DiagnosticDemoModule {
         demo: DemoExpectedLoraPrefs,
         demoMode: DemoMode,
     ): ExpectedLoraPrefs = ScreenExpectedLoraPrefs(real, demo, demoMode)
+
+    @Single fun demoFreshnessPrefs(store: DemoStore): DemoFreshnessPrefs = DemoFreshnessPrefs(store)
+
+    @Single
+    @Named(SCREEN_DATA)
+    fun screenFreshnessPrefs(
+        @Provided real: FreshnessPrefs,
+        demo: DemoFreshnessPrefs,
+        demoMode: DemoMode,
+    ): FreshnessPrefs = ScreenFreshnessPrefs(real, demo, demoMode)
 
     @Single
     @Named(SCREEN_DATA)
