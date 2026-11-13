@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 import org.koin.core.annotation.KoinViewModel
 import org.koin.core.annotation.Named
 import org.koin.core.annotation.Single
@@ -35,6 +36,7 @@ import org.meshtastic.core.model.freshness.FreshnessThresholds
 import org.meshtastic.core.repository.ConnectionStateProvider
 import org.meshtastic.core.repository.NodeRepository
 import org.meshtastic.core.repository.SCREEN_DATA
+import org.meshtastic.core.ui.freshness.NetworkFreshnessSource
 import org.meshtastic.core.ui.viewmodel.stateInWhileSubscribed
 
 /**
@@ -61,17 +63,19 @@ class LinkAlertViewModel(
     @Named(SCREEN_DATA) nodeRepository: NodeRepository,
     @Named(SCREEN_DATA) connectionStateProvider: ConnectionStateProvider,
     private val dismissals: LinkAlertDismissals,
+    freshnessSource: NetworkFreshnessSource,
     private val clockMillis: () -> Long = { nowMillis },
 ) : ViewModel() {
-
-    private val thresholds = FreshnessThresholds.Default
 
     private val clock: Flow<Long> = flow {
         while (true) {
             emit(clockMillis())
-            delay(thresholds.refreshInterval)
+            delay(FreshnessThresholds.Default.refreshInterval)
         }
     }
+
+    /** The network threshold: the banner's first step is the same "seen recently" as the command post view's. */
+    private val thresholds = freshnessSource.state(clock.map { it / MILLIS_PER_SECOND }).map { it.thresholds }
 
     private val nodes =
         combine(nodeRepository.nodeDBbyNum, nodeRepository.ourNodeInfo) { nodes, ourNode ->
@@ -80,16 +84,21 @@ class LinkAlertViewModel(
         }
 
     val alert: StateFlow<LinkAlert?> =
-        combine(connectionStateProvider.connectionLifecycle, nodes, dismissals.dismissedKey, clock) {
+        combine(connectionStateProvider.connectionLifecycle, nodes, dismissals.dismissedKey, clock, thresholds) {
                 lifecycle,
                 (heard, myNodeNum),
                 dismissedKey,
                 now,
+                thresholds,
             ->
             val current = LinkAlerts.current(lifecycle.state, lifecycle.epochs, heard, myNodeNum, now, thresholds)
             LinkAlerts.visible(current, dismissedKey)
         }
             .stateInWhileSubscribed(initialValue = null)
+
+    private companion object {
+        const val MILLIS_PER_SECOND = 1000L
+    }
 
     /** Closes the banner until the situation changes. */
     fun dismiss(alert: LinkAlert) = dismissals.dismiss(alert.key)

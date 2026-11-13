@@ -33,6 +33,7 @@ import androidx.navigation3.runtime.NavKey
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import org.koin.compose.koinInject
+import org.meshtastic.core.model.freshness.NetworkFreshness
 import org.meshtastic.core.model.noiseFloorOrNull
 import org.meshtastic.core.navigation.MultiBackstack
 import org.meshtastic.core.navigation.NodeDetailRoute
@@ -40,6 +41,9 @@ import org.meshtastic.core.navigation.NodesRoute
 import org.meshtastic.core.navigation.TabsResetOnSwitch
 import org.meshtastic.core.repository.NodeRepository
 import org.meshtastic.core.repository.RadioConfigRepository
+import org.meshtastic.core.ui.freshness.LocalNetworkFreshness
+import org.meshtastic.core.ui.freshness.NetworkFreshnessSource
+import org.meshtastic.core.ui.freshness.freshnessTicks
 import org.meshtastic.core.ui.util.LocalMeshActivity
 import org.meshtastic.core.ui.util.LocalModemPreset
 import org.meshtastic.core.ui.util.LocalNoiseFloor
@@ -107,6 +111,13 @@ fun MeshtasticAppShell(
         remember(nodeRepository) { nodeRepository.localStats.map { it.noiseFloorOrNull }.distinctUntilChanged() }
             .collectAsStateWithLifecycle(initialValue = null)
 
+    // NetworkTact: the threshold for other radios' positions, provided once here for the map and the node detail; the
+    // command post view, the org chart and the diagnostic read the same source in their view models.
+    val freshnessSource = koinInject<NetworkFreshnessSource>()
+    val networkFreshness by
+        remember(freshnessSource) { freshnessSource.state(freshnessTicks()) }
+            .collectAsStateWithLifecycle(initialValue = NetworkFreshness.DEFAULT_STATE)
+
     val demoActive by uiViewModel.demoActive.collectAsStateWithLifecycle()
     val realMessagesSinceDemo by uiViewModel.realMessagesSinceDemo.collectAsStateWithLifecycle()
     LaunchedEffect(demoActive) { demoTabs.sync(demoActive) }
@@ -118,6 +129,7 @@ fun MeshtasticAppShell(
             LocalModemPreset provides modemPreset,
             LocalNoiseFloor provides noiseFloor,
             LocalMeshActivity provides uiViewModel.meshActivity,
+            LocalNetworkFreshness provides networkFreshness,
         ) {
             Column(modifier = Modifier.fillMaxSize()) {
                 if (demoActive) DemoBanner(realMessages = realMessagesSinceDemo, onExit = uiViewModel::exitDemo)
