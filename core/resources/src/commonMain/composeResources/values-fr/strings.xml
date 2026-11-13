@@ -1236,6 +1236,7 @@
     <string name="scan_nfc_text">Approchez votre appareil près de la balise NFC à scanner.</string>
     <string name="scan_shared_contact_nfc">Scanner le contact partagé NFC</string>
     <string name="scan_shared_contact_qr">Scanner le code QR du contact partagé</string>
+    <string name="scan_channels_qr">Scanner le code QR des canaux partagés</string>
     <string name="scanning_bluetooth">Recherche…</string>
     <string name="scanning_network">Recherche…</string>
     <string name="scroll_to_bottom">Défiler vers le bas</string>
@@ -1666,6 +1667,7 @@
     <string name="firmware_maintenance_unknown_softdevice">L'application ne peut pas confirmer quelle pile Bluetooth cet appareil utilise : l'effacer n'est pas sûr.</string>
     <string name="licensed_mode_enable_warning">Le mode licence retire les clés de chiffrement des canaux et désactive le canal d'administration, donc tout le trafic est envoyé en clair, lisible par n'importe qui — et ce firmware ne peut pas le signer, donc les autres nœuds ne peuvent pas vérifier qu'il vient de vous. Ce n'est pas compatible avec les réglages par défaut du réseau maillé, et vous restez responsable du respect des exigences de votre licence de radioamateur et de la réglementation locale.</string>
     <string name="share_channels_subject">Canaux du réseau maillé</string>
+    <string name="share_channels">Partager les canaux</string>
     <string name="share_contact_subject">Contact du réseau maillé</string>
     <string name="tak_server_channel_desc">Canal du réseau maillé utilisé pour le trafic TAK sortant</string>
     <string name="tak_server_mesh_to_cot_desc">Afficher les nœuds du réseau maillé comme contacts sur la carte ATAK</string>
