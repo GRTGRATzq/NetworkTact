@@ -900,6 +900,16 @@ fr_HT
 free_memory
 free_memory_description
 freq
+### FRESHNESS ###
+freshness_setting_auto
+freshness_setting_auto_summary
+freshness_setting_fixed
+freshness_setting_fixed_summary
+freshness_setting_interval
+freshness_setting_interval_summary
+freshness_setting_pc_only
+freshness_setting_summary
+freshness_setting_title
 gas_resistance
 generate_qr_code
 ### GEOFENCE ###

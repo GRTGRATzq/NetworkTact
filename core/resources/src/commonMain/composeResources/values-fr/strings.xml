@@ -1515,6 +1515,15 @@
     <string name="zoom_out">Zoom -</string>
     <string name="command_post_mode">Mode poste de commandement</string>
     <string name="command_post_mode_summary">Mode d'affichage : désactivé pour l'affichage Terrain (inchangé), activé pour ouvrir la vue PC (lecture seule) au démarrage.</string>
+    <string name="freshness_setting_title">Fraîcheur des positions</string>
+    <string name="freshness_setting_summary">Au-delà de ce seuil, la position d'une autre radio est ANCIENNE et son contact n'est plus récent : vue PC, organigramme, carte, fiche d'une radio, diagnostic. Enregistré sur ce téléphone seulement.</string>
+    <string name="freshness_setting_pc_only">Modifiable en mode poste de commandement seulement.</string>
+    <string name="freshness_setting_interval">Intervalle de diffusion attendu</string>
+    <string name="freshness_setting_interval_summary">L'intervalle de position réglé sur les radios (15 min dans la préparation des radios).</string>
+    <string name="freshness_setting_auto">Ajuster à la taille du réseau</string>
+    <string name="freshness_setting_auto_summary">Au-delà de 40 nœuds, le firmware espace les positions : seuil = 2 × intervalle × coefficient + 5 min.</string>
+    <string name="freshness_setting_fixed">Seuil fixe</string>
+    <string name="freshness_setting_fixed_summary">Utilisé quand l'ajustement est désactivé.</string>
     <string name="command_post_title">Poste de commandement</string>
     <string name="command_post_open">Vue PC</string>
     <string name="command_post_empty">Aucun nœud connu pour l'instant.</string>

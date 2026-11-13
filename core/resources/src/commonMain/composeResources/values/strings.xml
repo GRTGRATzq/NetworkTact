@@ -930,6 +930,16 @@
     <string name="free_memory">Free Memory</string>
     <string name="free_memory_description">Available system memory in bytes</string>
     <string name="freq">Freq</string>
+    <!-- FRESHNESS -->
+    <string name="freshness_setting_auto">Adjust to the network size</string>
+    <string name="freshness_setting_auto_summary">Beyond 40 nodes the firmware spaces out positions: threshold = 2 × interval × coefficient + 5 min.</string>
+    <string name="freshness_setting_fixed">Fixed threshold</string>
+    <string name="freshness_setting_fixed_summary">Used when the adjustment is off.</string>
+    <string name="freshness_setting_interval">Expected broadcast interval</string>
+    <string name="freshness_setting_interval_summary">The position interval set on the radios (15 min in the radio preparation).</string>
+    <string name="freshness_setting_pc_only">Can be changed in command post mode only.</string>
+    <string name="freshness_setting_summary">Beyond this threshold another radio's position is OLD and its contact no longer recent: command post view, org chart, map, node page, diagnostic. Stored on this phone only.</string>
+    <string name="freshness_setting_title">Freshness of positions</string>
     <string name="gas_resistance">Gas Resistance</string>
     <string name="generate_qr_code">Generate QR Code</string>
     <!-- GEOFENCE -->

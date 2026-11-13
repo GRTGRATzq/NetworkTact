@@ -87,6 +87,7 @@ import org.meshtastic.feature.settings.component.PrivacySettingsContent
 import org.meshtastic.feature.settings.component.ThemePickerDialog
 import org.meshtastic.feature.settings.component.UnitsOption
 import org.meshtastic.feature.settings.component.UnitsPickerDialog
+import org.meshtastic.feature.settings.freshness.FreshnessSettingHost
 import org.meshtastic.feature.settings.navigation.ConfigRoute
 import org.meshtastic.feature.settings.navigation.ModuleRoute
 import org.meshtastic.feature.settings.radio.RadioConfigItemList
@@ -319,6 +320,7 @@ fun SettingsScreen(
                         onShowUnitsPicker = { showUnitsPickerDialog = true },
                         demoActive = demoActive,
                     )
+                    FreshnessSettingHost()
                     DemoLocked(locked = demoActive) {
                         PersistenceSettingsContent(
                             cacheLimit = settingsViewModel.dbCacheLimit.collectAsStateWithLifecycle().value,
