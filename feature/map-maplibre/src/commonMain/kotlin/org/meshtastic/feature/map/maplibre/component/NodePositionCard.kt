@@ -61,6 +61,7 @@ import org.meshtastic.core.resources.details
 import org.meshtastic.core.resources.map_node_fix_at
 import org.meshtastic.core.resources.map_node_fix_on
 import org.meshtastic.core.resources.map_node_fix_unknown
+import org.meshtastic.core.ui.freshness.LocalNetworkFreshness
 import org.meshtastic.core.ui.icon.Close
 import org.meshtastic.core.ui.icon.MeshtasticIcons
 import org.meshtastic.core.ui.icon.Warning
@@ -84,7 +85,7 @@ internal fun NodePositionCard(node: Node, onDetails: () -> Unit, onDismiss: () -
                 value = nowSeconds
             }
         }
-    val time = node.positionTime(now, TimeZone.currentSystemDefault())
+    val time = node.positionTime(now, TimeZone.currentSystemDefault(), LocalNetworkFreshness.current.thresholds)
     val name = TeamSuffix.displayName(node.user.long_name).ifBlank { node.user.short_name }
 
     Surface(

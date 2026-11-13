@@ -19,6 +19,7 @@ package org.meshtastic.feature.map.maplibre.geojson
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import org.meshtastic.core.model.Node
+import org.meshtastic.core.model.freshness.FreshnessThresholds
 import org.meshtastic.core.model.freshness.NodeFreshness
 import org.meshtastic.core.model.freshness.PositionState
 import kotlin.time.Instant
@@ -59,14 +60,26 @@ internal val PositionState.chipAlert: ChipAlert?
  */
 internal data class NodePositionTime(val state: PositionState, val fixEpochSeconds: Long?, val sameDay: Boolean)
 
-internal fun Node.positionTime(nowSeconds: Long, timeZone: TimeZone): NodePositionTime {
+internal fun Node.positionTime(
+    nowSeconds: Long,
+    timeZone: TimeZone,
+    thresholds: FreshnessThresholds = FreshnessThresholds.Default,
+): NodePositionTime {
     val fix = position.timestamp.toUInt().toLong().takeIf { it > 0L }
     val sameDay = fix != null && fix.localDate(timeZone) == nowSeconds.localDate(timeZone)
-    return NodePositionTime(NodeFreshness.position(this, nowSeconds), fix, sameDay)
+    return NodePositionTime(NodeFreshness.position(this, nowSeconds, thresholds), fix, sameDay)
 }
 
-/** The chip tag of each node that has one, by node number. */
-internal fun positionAlerts(nodes: List<Node>, nowSeconds: Long): Map<Int, ChipAlert> =
-    nodes.mapNotNull { node -> NodeFreshness.position(node, nowSeconds).chipAlert?.let { node.num to it } }.toMap()
+/**
+ * The chip tag of each node that has one, by node number. The map passes the network threshold
+ * (`LocalNetworkFreshness`), the command post view's.
+ */
+internal fun positionAlerts(
+    nodes: List<Node>,
+    nowSeconds: Long,
+    thresholds: FreshnessThresholds = FreshnessThresholds.Default,
+): Map<Int, ChipAlert> = nodes
+    .mapNotNull { node -> NodeFreshness.position(node, nowSeconds, thresholds).chipAlert?.let { node.num to it } }
+    .toMap()
 
 private fun Long.localDate(timeZone: TimeZone) = Instant.fromEpochSeconds(this).toLocalDateTime(timeZone).date

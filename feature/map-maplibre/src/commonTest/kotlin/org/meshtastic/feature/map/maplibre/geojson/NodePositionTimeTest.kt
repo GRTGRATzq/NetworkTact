@@ -18,6 +18,7 @@ package org.meshtastic.feature.map.maplibre.geojson
 
 import kotlinx.datetime.TimeZone
 import org.meshtastic.core.model.Node
+import org.meshtastic.core.model.freshness.FreshnessThresholds
 import org.meshtastic.core.model.freshness.PositionState
 import org.meshtastic.proto.Position
 import kotlin.test.Test
@@ -27,6 +28,7 @@ import kotlin.test.assertIs
 import kotlin.test.assertNotEquals
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
+import kotlin.time.Duration.Companion.minutes
 
 /** The chip and the tap card read a position with the command post view's own rule; these are its cases on the map. */
 class NodePositionTimeTest {
@@ -67,6 +69,19 @@ class NodePositionTimeTest {
     @Test
     fun positionAtTenMinutesIsStillFresh() {
         assertNull(node(fixSeconds = now - 10 * minute).positionTime(now, TimeZone.UTC).state.chipAlert)
+    }
+
+    @Test
+    fun theMapUsesTheNetworkThresholdWhenGivenOne() {
+        // 50 radios on LONG_FAST: an hour, as on the command post view.
+        val network = FreshnessThresholds.Default.copy(recentContact = 60.minutes, stalePosition = 60.minutes)
+        val old = node(fixSeconds = now - 40 * minute)
+        assertNull(old.positionTime(now, TimeZone.UTC, network).state.chipAlert)
+        assertEquals(emptyMap(), positionAlerts(listOf(old), now, network))
+        assertEquals(
+            ChipAlert.OLD,
+            node(fixSeconds = now - 61 * minute).positionTime(now, TimeZone.UTC, network).state.chipAlert,
+        )
     }
 
     @Test

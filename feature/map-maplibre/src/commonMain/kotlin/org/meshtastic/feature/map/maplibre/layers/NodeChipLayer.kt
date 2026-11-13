@@ -70,6 +70,7 @@ import org.meshtastic.core.model.freshness.FreshnessThresholds
 import org.meshtastic.core.resources.Res
 import org.meshtastic.core.resources.map_chip_inconsistent
 import org.meshtastic.core.resources.map_chip_old
+import org.meshtastic.core.ui.freshness.LocalNetworkFreshness
 import org.meshtastic.core.ui.icon.MeshtasticIcons
 import org.meshtastic.core.ui.icon.Person
 import org.meshtastic.core.ui.icon.Temperature
@@ -149,7 +150,8 @@ internal fun rememberPositionAlerts(nodes: List<Node>): Map<Int, ChipAlert> {
                 value = nowSeconds
             }
         }
-    return remember(nodes, now) { positionAlerts(nodes, now) }
+    val thresholds = LocalNetworkFreshness.current.thresholds
+    return remember(nodes, now, thresholds) { positionAlerts(nodes, now, thresholds) }
 }
 
 /**
