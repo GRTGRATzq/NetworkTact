@@ -29,6 +29,11 @@ boucle (temps d'antenne partagé).
 ## 2. Vue PC et messagerie (§3, §4, §8)
 - [ ] Mode PC : l'application s'ouvre sur la vue PC ; fraîcheur du contact et de la position
       (récente, ancienne > 10 min, sans heure).
+- **Remarque (connu, ne pas relever comme défaut)** : une radio **immobile** s'affiche
+  « POSITION ANCIENNE » sur la vue PC, alors qu'elle fonctionne. Le firmware n'envoie la position
+  d'une radio immobile que toutes les 60 min par défaut, plus que le seuil de 10 min de la vue PC.
+  Ces fausses alertes sont attendues, et seront corrigées par C2 (seuils réglables) :
+  `docs/AUDIT-PASSAGE-A-L-ECHELLE.md`, § 4.4 et § 6 bis.
 - [ ] Envoyer `[URG]` et `[CR]` : barre de priorité rouge / ambre, filtres par priorité.
 - [ ] États d'envoi réels : un message de canal n'est jamais affiché « accusé ».
 - [ ] Message direct accusé : « Accusé par X », « vérifié » si la preuve est valide.
