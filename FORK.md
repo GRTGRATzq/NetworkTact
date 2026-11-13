@@ -1077,6 +1077,11 @@ Correction C2 de `docs/AUDIT-PASSAGE-A-L-ECHELLE.md` (constat G1), validée le 1
   `SettingsScreen` (Android) n'est compilé que par la CI.
 - **Autre changement, commit séparé** : traduction française de « Share Channels » (« Partager les canaux ») et de
   « Scan Shared Channels QR Code » (« Scanner le code QR des canaux partagés »).
+- **CI** : run 107 vert sur `8401f5f` (code de C2, 28 min 46) ; run 108 sur `e341280` (traduction et documentation) :
+  première tentative rouge à l'étape « Tests » (4 min 36), test en cause non identifié (journal complet inaccessible
+  depuis la session) ; tous les tests JVM de l'étape passaient en local ; relance du seul job, verte (31 min, APK de
+  debug et de release compris). Échec intermittent probable des tests Robolectric (`testAndroidHostTest`), comme aux
+  runs 45 et 47. **Jamais essayé sur un téléphone.**
 
 ## État d'avancement au 11 novembre 2026
 
