@@ -1,6 +1,6 @@
 # Passation Claude Code : où en est NetworkTact
 
-État au **12 novembre 2026** (tâche 8, demande de tir : § 0 ; tâche 7 inchangée depuis le 11 novembre, 20 h 45 UTC),
+État au **13 novembre 2026** (guide utilisateur en attente : § 0.4 ; tâche 8, demande de tir : § 0 ; tâche 7 inchangée depuis le 11 novembre, 20 h 45 UTC),
 pour reprendre dans une conversation neuve. À lire avec `FORK.md` (section de
 chaque tâche, état d'avancement), `TESTS-A-FAIRE.md` et, pour la tâche 7, `docs/PLAN-CARTE-TELECHARGEMENT.md`.
 
@@ -10,6 +10,25 @@ Branche partie de `feat/carte-telechargement` (`801af88`). Documents : `docs/SPE
 validée, § 10 = décisions), `docs/PLAN-DEMANDE-DE-TIR.md` (plan, tableau D26 validé case par case au § 3.2, découpage
 en commits au § 7, décisions au § 12), `docs/maquette-demande-de-tir.pdf` (maquette, 4 écrans). `FORK.md` § 30 et
 `TESTS-A-FAIRE.md` § 18 restent à écrire (commit 23 du plan).
+
+### 0.4 Guide utilisateur (`docs/guide-utilisateur`), en attente, état au 13 novembre 2026
+
+- Branche partie de `feat/demande-de-tir` (`1bca152`). **Étape 1 faite** : `docs/PLAN-GUIDE-UTILISATEUR.md` (`8b47005`) :
+  inventaire des fonctions écran par écran (où, à quoi, gestes, ce qui émet, messages exacts), structure en 11 chapitres,
+  17 fiches réflexes, parcours par poste, glossaire, méthode de captures, décisions (§ 7).
+- **Décisions** : D2 à D13 validées. Captures par Compose Preview Screenshot Testing (déjà dans le dépôt, sans bibliothèque
+  nouvelle), nouveau module `:guide-screenshots`, workflow `fork-guide-captures` lancé à la main seulement (artefact 30 jours),
+  clair et sombre, Pixel 6 (1080 × 2340), français, données de démo au **13 novembre 2026, 14:35, Europe/Bucharest** ;
+  contenus sans ViewModel extraits au cas par cas (D5 a) ; carte, notifications, sélecteur de fichiers et caméra capturés à
+  la main par l'utilisateur sur une liste fournie (D6) ; matière dans `docs/guide/` ; écrans radio d'origine : renvoi à
+  `PREPARER-LES-RADIOS.md`.
+- **Ouvert** : **D1**, rôle des postes CDU, PCR, OA, CDS TIR, Drone (développé, vue, rôle, fonctions) : modèle envoyé vide
+  par l'utilisateur, à redemander ; ne rien déduire. Relecture par l'utilisateur du tableau du § 2.2 et des 17 fiches.
+- **Suite** (à la reprise) : commits 2 et 3 du plan § 5 (module de captures, premier écran, workflow, premier run et mesure du
+  temps), puis captures par chapitre, puis matière du guide. Aucun code n'est encore écrit ; aucun run lancé sur cette branche.
+- **Tâche suivante** (autre session) : cartes raster GeoTIFF (« tâche 8 » pour l'utilisateur ; dans `FORK.md` la demande de
+  tir est la section 30, le raster serait une nouvelle section ; voir `docs/PLAN-CARTE-TELECHARGEMENT.md` § 17 et
+  `FORK.md` § 27 sur le crédit des cartes raster).
 
 ### 0.3 État au 12 novembre, vers 19 h UTC : À LIRE EN PREMIER (remplace les § 0.1 et 0.2 là où ils diffèrent)
 

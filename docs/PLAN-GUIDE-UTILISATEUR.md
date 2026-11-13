@@ -284,7 +284,14 @@ Règles : petits commits ; spotless et detekt en local avant tout commit de code
 Aucune modification de l'application pour le guide, sauf l'extraction éventuelle de contenus sans ViewModel (D5) ; aucune
 donnée réelle (mode démo seulement) ; aucune mise en page finale.
 
-## 7. Décisions à prendre
+## 7. Décisions
+
+**Réponses du 13 novembre 2026** : D2 à D13 validées telles que proposées, avec deux précisions : **D9**, données de démo
+au **13 novembre 2026, 14:35, fuseau Europe/Bucharest** (et non Europe/Paris, § 3.2 à corriger au moment du code) ;
+**D12**, simple renvoi à `PREPARER-LES-RADIOS.md`. Le tableau du § 2.2 (D2) et la liste des 17 fiches (D3) sont à relire
+par le porteur du projet. **D1 reste ouverte** : le porteur du projet a envoyé le modèle de réponse (développé du sigle,
+vue, rôle, fonctions pour CDU, PCR, OA, CDS TIR, Drone) sans le remplir ; rien n'est déduit en attendant. Le guide est
+**en attente** (étape 1 faite) pendant la tâche suivante (cartes raster GeoTIFF).
 
 | N° | Question | Proposition |
 |---|---|---|
