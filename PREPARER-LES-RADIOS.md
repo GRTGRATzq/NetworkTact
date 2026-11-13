@@ -1,7 +1,7 @@
 # Préparer une radio pour NetworkTact
 
 Dernière mise à jour : 13 novembre 2026 (réglages pour un maillage de plus de 50 radios, correction C0 de
-`docs/AUDIT-PASSAGE-A-L-ECHELLE.md`).
+`docs/AUDIT-PASSAGE-A-L-ECHELLE.md` ; essai de recopie par QR, § 2 ter ; seuil de fraîcheur de la vue PC, § 8).
 
 À faire sur **chaque radio, une par une**, **après une remise à zéro** (voir `FLASHER-LA-RADIO.md`), une fois la radio
 appairée en Bluetooth avec son téléphone dans NetworkTact.
@@ -16,8 +16,10 @@ appairée en Bluetooth avec son téléphone dans NetworkTact.
 
 ## Avant de commencer
 
-- **Noms des écrans.** Ils sont écrits tels que NetworkTact les affiche en français. Quelques libellés hérités ne sont
-  pas traduits et s'affichent en anglais : ils sont recopiés tels quels, entre guillemets.
+- **Noms des écrans.** Ils sont écrits tels que NetworkTact les affiche en français. Seuls les noms des préréglages
+  (`LONG_FAST`, `MEDIUM_FAST`…) restent en anglais. Les libellés de partage des canaux sont traduits depuis la branche
+  `fix/vue-pc-fraicheur` ; une version plus ancienne affiche encore « Share Channels » et « Scan Shared Channels QR
+  Code ».
 - **Chemins.**
   - L'onglet **Réglages** est celui de la barre du bas.
   - Sous Réglages, la section **Configuration** donne directement accès à **Utilisateur**, **LoRa**, **Canaux** et
@@ -83,17 +85,36 @@ préparation.
 
 Sur le **téléphone du PC** (radio du PC connectée) :
 
-- [ ] Onglet **Messages** → bouton flottant **« Importer / Exporter »** → **« Share Channels »** (non traduit) →
+- [ ] Onglet **Messages** → bouton flottant **« Importer / Exporter »** → **« Partager les canaux »** →
       **« Générer un QR Code »**.
 
 Sur **chaque autre téléphone** (sa radio connectée) :
 
-- [ ] Onglet **Messages** → **« Importer / Exporter »** → **« Scan Shared Channels QR Code »** (non traduit) → scanner
+- [ ] Onglet **Messages** → **« Importer / Exporter »** → **« Scanner le code QR des canaux partagés »** → scanner
       le code du PC → choisir **« Remplacer »**.
 - [ ] Vérifier dans Réglages → Configuration → **Canaux** que le nom du canal est le bon.
 
 D'après le texte de confirmation de l'application, « Remplacer » remplace les canaux **et** les paramètres radio
-(LoRa) par ceux du code. Ce point n'a pas encore été essayé : vérifier ensuite l'écran LoRa (§ 1).
+(LoRa) par ceux du code. Ce point n'a pas encore été essayé : faire d'abord l'essai du § 2 ter.
+
+## 2 ter. Essai sur deux radios, avant l'essai réel
+
+À faire **une fois, avant de préparer toutes les radios**, avec deux radios et deux téléphones : la radio A tient le
+rôle du PC, la radio B celui d'une radio de terrain.
+
+- [ ] Sur A : régler le canal principal (§ 2) et la LoRa (§ 1). Noter le nom du canal, la région, le préréglage et le
+      nombre de sauts.
+- [ ] Sur B : remise à zéro, puis régler volontairement un **autre préréglage** (par exemple `MEDIUM_SLOW`) et
+      **2 sauts**, pour voir si le QR les remplace.
+- [ ] Sur A : générer le QR (§ 2 bis). Sur B : le scanner et choisir **« Remplacer »**. Attendre le redémarrage et la
+      reconnexion de B.
+- [ ] Sur B, Réglages → Configuration → **Canaux** : même nom de canal que sur A.
+- [ ] Sur B, Réglages → Configuration → **LoRa** : relever **Région**, **Préréglages**, **Nombre de sauts**.
+  - S'ils sont ceux de A : le QR suffit pour recopier canal et LoRa.
+  - Sinon : régler la LoRa à la main sur chaque radio (§ 1), en plus du QR.
+- [ ] A et B échangent un message dans les deux sens.
+- [ ] Noter le résultat dans `TESTS-A-FAIRE.md` (§ 20) et le dire au porteur du projet avant de préparer les autres
+      radios.
 
 ## 3. Appareil : rôle et réémission
 
@@ -207,8 +228,10 @@ changement en une seule séance, toutes les radios réunies, avant le départ, j
       relevé.
 - [ ] La radio du PC porte l'étoile des favoris.
 
-Une radio **immobile** peut s'afficher « POSITION ANCIENNE » sur la vue PC alors qu'elle fonctionne. C'est connu, et
-sera corrigé par C2 (`TESTS-A-FAIRE.md` § 2).
+Sur la vue PC, une position est dite « ANCIENNE » au-delà du seuil affiché en haut de la vue (35 min jusqu'à 40 radios,
+avec la position réglée à 15 min au § 4). Ce seuil se règle dans Réglages, section « App », carte **« Fraîcheur des
+positions »**, en mode PC (`FORK.md` § 31). Si l'intervalle de position des radios change, y reporter le nouvel
+intervalle.
 
 ## 9. Ce qui ne se règle pas depuis NetworkTact
 

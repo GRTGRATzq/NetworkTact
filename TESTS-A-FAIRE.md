@@ -28,12 +28,8 @@ boucle (temps d'antenne partagé).
 
 ## 2. Vue PC et messagerie (§3, §4, §8)
 - [ ] Mode PC : l'application s'ouvre sur la vue PC ; fraîcheur du contact et de la position
-      (récente, ancienne > 10 min, sans heure).
-- **Remarque (connu, ne pas relever comme défaut)** : une radio **immobile** s'affiche
-  « POSITION ANCIENNE » sur la vue PC, alors qu'elle fonctionne. Le firmware n'envoie la position
-  d'une radio immobile que toutes les 60 min par défaut, plus que le seuil de 10 min de la vue PC.
-  Ces fausses alertes sont attendues, et seront corrigées par C2 (seuils réglables) :
-  `docs/AUDIT-PASSAGE-A-L-ECHELLE.md`, § 4.4 et § 6 bis.
+      (relevé il y a N min, ancienne au-delà du seuil affiché en haut de la vue, sans heure).
+      Le seuil n'est plus de 10 min : voir § 19.
 - [ ] Envoyer `[URG]` et `[CR]` : barre de priorité rouge / ambre, filtres par priorité.
 - [ ] États d'envoi réels : un message de canal n'est jamais affiché « accusé ».
 - [ ] Message direct accusé : « Accusé par X », « vérifié » si la preuve est valide.
@@ -321,6 +317,41 @@ en JVM, à voir à l'œil et au doigt. Fiche papier à côté pour la relecture.
 - [ ] Formulaire ouvert en démo, demande envoyée à BRAVO-2 : rien ne part par radio ; parties accusées ; environ 13 s après
       l'envoi, le GDH attribution arrive, puis le GDH fin 20 s plus tard. Vers CHARLIE-3 : parties en échec, aucune réponse.
 - [ ] Sortie de la démo : brouillon et dernière demande de la démo oubliés, ceux du vrai mode intacts.
+
+## 19. Fraîcheur des positions de la vue PC (C2, FORK.md §31)
+
+Radios réglées selon `PREPARER-LES-RADIOS.md` (position toutes les 15 min). Jusqu'à 40 radios entendues, le seuil
+attendu est de **35 min**.
+
+- [ ] Vue PC : en haut, « Position ancienne et contact non récent après 35 min (N nœuds entendus en 2 h). »
+- [ ] Une radio **immobile** allumée depuis plus de 15 min : « Position : relevé il y a N min » en vert, **pas**
+      « POSITION ANCIENNE » (c'était la fausse alerte connue avant C2).
+- [ ] Une radio éteinte : au bout de 35 min environ, « POSITION ANCIENNE : relevé il y a … » et « Pas entendu
+      depuis … ».
+- [ ] Même jugement, au même moment, dans l'organigramme, sur la carte (étiquette « ANCIENNE » des puces et encart au
+      toucher) et dans le diagnostic (« Aucun nœud entendu depuis … » au premier palier).
+- [ ] Fiche d'une radio (Réseau → une radio) : la ligne « Position : relevé il y a N min » apparaît au-dessus de la
+      mini-carte, avec l'alerte au-delà du seuil.
+- [ ] Ma radio : « Ma position », « Recaler » et « Diffuser ma position maintenant » gardent le seuil de 10 min.
+- [ ] Réglages, section « App », carte « Fraîcheur des positions » :
+  - [ ] en mode Terrain, visible mais grisée, avec « Modifiable en mode poste de commandement seulement » ;
+  - [ ] en mode PC, intervalle attendu 1 h : le seuil passe à 2 h 05, en haut de la vue PC aussi ;
+  - [ ] « Ajuster à la taille du réseau » désactivé, seuil fixe 20 min : la vue PC dit « (seuil fixe) » et applique
+        20 min ;
+  - [ ] réglage gardé après redémarrage de l'application.
+- [ ] Mode démo : la carte est modifiable en mode PC, la modification disparaît à la sortie et le vrai réglage n'a pas
+      changé.
+- [ ] Au-delà de 40 radios (si un essai le permet) : le nombre de nœuds affiché suit, et le seuil augmente (1 h à
+      50 radios en `LONG_FAST`).
+
+## 20. Recopie du canal par QR en mode « Remplacer »
+
+Procédure : `PREPARER-LES-RADIOS.md` § 2 ter. À faire **avant l'essai réel**.
+
+- [ ] Les libellés sont en français : « Partager les canaux », « Scanner le code QR des canaux partagés ».
+- [ ] Après « Remplacer » sur B : nom du canal de A.
+- [ ] Écran LoRa de B : région, préréglage et nombre de sauts de A ? Noter le résultat : _____
+- [ ] Message échangé entre A et B dans les deux sens.
 
 ## Avant fusion dans `main`
 - [ ] Les runs 70 et 71 ont été annulés par une poussée plus récente (rien à corriger).

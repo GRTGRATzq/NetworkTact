@@ -487,12 +487,13 @@ Décidé le 13 novembre 2026. Les autres corrections (C3 à C10) ne sont pas pro
 | Ordre | Action | Échéance |
 |---|---|---|
 | 1 | **C0** : réglages radio du § 7, sous forme de documentation (`PREPARER-LES-RADIOS.md`). | Avant l'essai réel de la semaine prochaine (semaine du 16 novembre). |
-| 2 | **C2** : seuils de fraîcheur de la vue PC réglables. | Juste après les essais des 13 et 14 novembre. |
+| 2 | **C2** : seuils de fraîcheur de la vue PC réglables. **Codé** le 13 novembre sur `fix/vue-pc-fraicheur` (`FORK.md` § 31) ; essais : `TESTS-A-FAIRE.md` § 19. | Juste après les essais des 13 et 14 novembre. |
 | 3 | **C1** : organigramme au-delà de 40 membres. **Variante à décider** : plusieurs QR (C1) ou fichier (C1 bis). | Avant tout déploiement de plus de 40 radios. |
 | 4 | Passage au préréglage **MEDIUM_FAST**. | Seulement après l'essai de portée à Cincu. D'ici là, le préréglage reste `LongFast`. |
 
-Conséquence pour les essais : tant que C2 n'est pas fait, la vue PC affiche de fausses alertes « POSITION ANCIENNE »
-pour les radios immobiles (§ 4.4, constat G1). C'est connu et noté dans `TESTS-A-FAIRE.md`.
+Conséquence pour les essais : une version sans C2 affiche de fausses alertes « POSITION ANCIENNE » pour les radios
+immobiles (§ 4.4, constat G1). Avec `fix/vue-pc-fraicheur`, le seuil suit l'intervalle attendu et la taille du réseau
+(35 min jusqu'à 40 radios à 15 min).
 
 ## 7. Réglages radio recommandés pour 50 radios
 

@@ -1,7 +1,7 @@
 # NetworkTact
 
 NetworkTact est un fork de [Meshtastic-Android](https://github.com/meshtastic/Meshtastic-Android),
-modifié à partir du 26 septembre 2026 (dernière mise à jour de ce fichier : 9 novembre 2026, branche `feat/apk-release`).
+modifié à partir du 26 septembre 2026 (dernière mise à jour de ce fichier : 13 novembre 2026, branche `fix/vue-pc-fraicheur`).
 
 - **Licence** : GPL-3.0-or-later (voir le fichier `LICENSE`, inchangé).
 - **Origine** : code de Meshtastic-Android, © Meshtastic LLC. Les mentions de copyright de
@@ -1031,6 +1031,52 @@ du Réseau, ou bouton « Diagnostic » sous un envoi en échec. Le diagnostic n'
 - **Points ouverts** : la liste paginée masque des lignes (sauts de défilement, compteur de non-lus à vérifier sur
   téléphone) ; le regroupement charge toute la conversation directe ; l'aperçu de la liste des conversations montre le texte
   brut de la dernière partie. **Jamais essayé sur un téléphone.**
+
+### 31. Fraîcheur des positions calée sur le firmware (`fix/vue-pc-fraicheur`)
+
+Correction C2 de `docs/AUDIT-PASSAGE-A-L-ECHELLE.md` (constat G1), validée le 13 novembre 2026. Rien n'est émis par radio.
+
+- **Défaut corrigé** : la vue PC disait « POSITION ANCIENNE » au-delà de 10 min et « contact récent » jusqu'à 15 min.
+  Une radio réglée à 15 min (`PREPARER-LES-RADIOS.md`), ou à 60 min (valeur par défaut du firmware), apparaissait donc
+  ancienne alors qu'elle fonctionnait ; au-delà de 40 nœuds, le firmware espace encore ses positions.
+- **Règle** (`NetworkFreshness`, `core/model/.../freshness`) : **un seul seuil** pour la position ancienne et le contact
+  récent d'une autre radio = **2 × intervalle attendu × coefficient + 5 min**, arrondi à la minute. Le ×2 tolère une
+  diffusion perdue. Le coefficient est celui du firmware 2.8.2 (`Default.h`, `congestionScalingCoefficient`) :
+  1 jusqu'à 40 nœuds entendus depuis 2 h, puis `1 + (N − 40) × 2^SF / (BW × 100)`, avec SF et BW du préréglage de ma
+  radio (`modemPresetToParams`, `bwCodeToKHz`). N compte les nœuds de la base du téléphone entendus depuis 2 h, ma
+  radio comprise, comme le firmware. Avec 15 min : 35 min jusqu'à 40 nœuds ; 1 h à 50 nœuds, 3 h 02 à 100 et 7 h 08 à
+  200 en `LONG_FAST` ; 41 min, 1 h 12 et 2 h 13 en `MEDIUM_FAST`.
+- **Ma radio** garde ses 10 min (`[POS]`, « Diffuser ma position maintenant », « Recaler ») : elle passe sa position
+  au téléphone chaque minute.
+- **Réglage** : Réglages, section « App », sous « Mode poste de commandement », carte **« Fraîcheur des positions »** :
+  seuil en vigueur en clair, « Intervalle de diffusion attendu » (5 min à 3 h, **15 min** par défaut), « Ajuster à la
+  taille du réseau » (**activé** par défaut), « Seuil fixe » (10 min à 12 h, **35 min** par défaut, utilisé quand
+  l'ajustement est désactivé). Visible par tous, **modifiable en mode PC seulement**. Enregistré sur le téléphone
+  (`FreshnessPrefs`, préférences d'interface), jamais envoyé ; chaque téléphone de terrain calcule le même seuil avec
+  les valeurs par défaut. Pas de partage par le QR de l'organigramme (format `NTORGA2`, reporté).
+- **Où le seuil s'applique** : une seule source, `NetworkFreshnessSource` (`core:ui`), lue par la vue PC, l'organigramme,
+  le diagnostic (constat « aucun contact récent ») et son bandeau (premier palier) ; `LocalNetworkFreshness`, fourni par
+  `MeshtasticAppShell`, pour la carte (étiquette « ANCIENNE » des puces, encart au toucher) et la fiche d'une radio.
+- **Affichage** :
+  - en haut de la vue PC, en petit : « Position ancienne et contact non récent après 1 h 00 (52 nœuds entendus en
+    2 h). », ou « (seuil fixe) » ;
+  - l'âge de chaque position est toujours affiché, sous le seuil aussi : « Position : relevé il y a 42 min » (le mot
+    « fraîche » est retiré : à 200 radios, une position sous le seuil peut dater de plusieurs heures). Vue PC,
+    organigramme (même ligne), et désormais **fiche d'une radio**, au-dessus de la mini-carte ;
+  - au-delà du seuil, inchangé : « POSITION ANCIENNE : relevé il y a … » en pastille inversée.
+- **Mode démo** : la carte est permise ; ses modifications restent en mémoire (`DemoFreshnessPrefs`, valeurs par défaut
+  à chaque démo) et ne touchent pas le vrai réglage. Liaisons Koin ajoutées dans `DiagnosticDemoModule` :
+  `DemoFreshnessPrefs` sous sa seule classe, `FreshnessPrefs` sous `@Named(SCREEN_DATA)`.
+- **Textes** EN/FR : `command_post_threshold_*`, `freshness_setting_*` ; `command_post_position_fresh` devient
+  « Position : relevé il y a %1$s ».
+- **Tests** : `NetworkFreshnessTest` (coefficients, tableau des seuils, préréglages et réglages personnalisés, nœuds en
+  ligne) ; `FreshnessPrefsImplTest` ; `ScreenFacadesTest` ; `CommandPostViewModelTest` (35 min à 10 radios, 1 h à 50
+  radios en `LONG_FAST`, seuil fixe) ; `OrgChartViewModelTest`, `DiagnosticViewModelTest` adaptés ;
+  `NodePositionTimeTest` (carte) ; `FreshnessSettingsViewModelTest` (refus hors mode PC). Le bandeau
+  (`LinkAlertViewModel`, `core:ui`) n'a pas de test propre. Lint et tests JVM de ces modules passés en local ;
+  `SettingsScreen` (Android) n'est compilé que par la CI.
+- **Autre changement, commit séparé** : traduction française de « Share Channels » (« Partager les canaux ») et de
+  « Scan Shared Channels QR Code » (« Scanner le code QR des canaux partagés »).
 
 ## État d'avancement au 11 novembre 2026
 
