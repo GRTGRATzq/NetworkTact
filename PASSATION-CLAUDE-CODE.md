@@ -22,8 +22,16 @@ en commits au § 7, décisions au § 12), `docs/maquette-demande-de-tir.pdf` (ma
   contenus sans ViewModel extraits au cas par cas (D5 a) ; carte, notifications, sélecteur de fichiers et caméra capturés à
   la main par l'utilisateur sur une liste fournie (D6) ; matière dans `docs/guide/` ; écrans radio d'origine : renvoi à
   `PREPARER-LES-RADIOS.md`.
-- **Ouvert** : **D1**, rôle des postes CDU, PCR, OA, CDS TIR, Drone (développé, vue, rôle, fonctions) : modèle envoyé vide
-  par l'utilisateur, à redemander ; ne rien déduire. Relecture par l'utilisateur du tableau du § 2.2 et des 17 fiches.
+- **Changement de structure (13 novembre, plus tard)** : guide **général**, indépendant du nombre de radios (réseau visé :
+  plus de 50 radios), en deux profils **Administrateur** (préparation des radios, équipes, organigramme, réglages, vue PC,
+  cartes à distribuer) et **Utilisateur** (messages, position, fait observé, carte, demande de tir) ; chaque fiche réflexe
+  indique son profil. Les postes CDU, PCR, OA, CDS TIR et Drone passent dans une annexe **« Configuration d'exercice »**,
+  remplaçable sans toucher au reste : **D1 n'est plus nécessaire** pour le corps du guide (son contenu devient D16, à
+  demander seulement pour rédiger l'annexe ; ne rien déduire). D2 (tableau des postes) et D3 (17 fiches) validés.
+  Plan § 2 refait, § 3.2 corrigé (Europe/Bucharest).
+- **Ouvert, à poser à la reprise** : D14 (fiches FR18 « Préparer une radio » et FR19 « réglage LoRa attendu »), D15 (limites
+  pour plus de 50 radios, plan § 2.3 : l'organigramme par QR plafonne à 770 caractères, soit 9 membres aux noms les plus
+  longs ; à écrire dans le guide, tâche à part pour un grand réseau), D16 (contenu de l'annexe).
 - **Suite** (à la reprise) : commits 2 et 3 du plan § 5 (module de captures, premier écran, workflow, premier run et mesure du
   temps), puis captures par chapitre, puis matière du guide. Aucun code n'est encore écrit ; aucun run lancé sur cette branche.
 - **Tâche suivante** (autre session) : cartes raster GeoTIFF (« tâche 8 » pour l'utilisateur ; dans `FORK.md` la demande de
