@@ -17,13 +17,11 @@
 package org.meshtastic.feature.node.orgchart
 
 import androidx.lifecycle.ViewModel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flow
 import org.koin.core.annotation.KoinViewModel
 import org.koin.core.annotation.Named
 import org.meshtastic.core.common.util.nowSeconds
@@ -40,6 +38,8 @@ import org.meshtastic.core.repository.OrgChartPrefs
 import org.meshtastic.core.repository.SCREEN_DATA
 import org.meshtastic.core.repository.TeamRosterPrefs
 import org.meshtastic.core.repository.UiPrefs
+import org.meshtastic.core.ui.freshness.NetworkFreshnessSource
+import org.meshtastic.core.ui.freshness.freshnessTicks
 import org.meshtastic.core.ui.viewmodel.stateInWhileSubscribed
 
 /**
@@ -53,26 +53,22 @@ class OrgChartViewModel(
     @Named(SCREEN_DATA) private val orgChartPrefs: OrgChartPrefs,
     @Named(SCREEN_DATA) teamRosterPrefs: TeamRosterPrefs,
     @Named(SCREEN_DATA) private val uiPrefs: UiPrefs,
+    freshnessSource: NetworkFreshnessSource,
 ) : ViewModel() {
 
-    private val thresholds: FreshnessThresholds = FreshnessThresholds.Default
-
-    private val clock: Flow<Long> = flow {
-        while (true) {
-            emit(nowSeconds)
-            delay(thresholds.refreshInterval)
-        }
-    }
+    private val clock: Flow<Long> = freshnessTicks()
 
     private val charts = combine(orgChartPrefs.current, orgChartPrefs.previous, ::Pair)
 
-    private val radios = combine(nodeRepository.nodeDBbyNum, nodeRepository.ourNodeInfo, ::Pair)
+    /** The radios, and the network threshold (the command post view's) to judge them by. */
+    private val radios =
+        combine(nodeRepository.nodeDBbyNum, nodeRepository.ourNodeInfo, freshnessSource.state(clock), ::Triple)
 
     val uiState: StateFlow<OrgChartUiState> =
         combine(charts, teamRosterPrefs.roster, radios, uiPrefs.commandPostMode, clock) {
                 (record, previous),
                 roster,
-                (nodes, ourNode),
+                (nodes, ourNode, freshness),
                 commandPostMode,
                 now,
             ->
@@ -84,7 +80,7 @@ class OrgChartViewModel(
                 ourNode = ourNode,
                 nowSeconds = now,
                 commandPostMode = commandPostMode,
-                thresholds = thresholds,
+                thresholds = freshness.thresholds,
             )
         }
             .stateInWhileSubscribed(initialValue = OrgChartUiState())

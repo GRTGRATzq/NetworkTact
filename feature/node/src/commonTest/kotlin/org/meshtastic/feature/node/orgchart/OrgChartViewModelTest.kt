@@ -29,10 +29,13 @@ import org.meshtastic.core.model.orgchart.OrgChartEdit
 import org.meshtastic.core.model.orgchart.OrgChartRecord
 import org.meshtastic.core.model.orgchart.OrgMember
 import org.meshtastic.core.model.orgchart.OrgTeam
+import org.meshtastic.core.testing.FakeFreshnessPrefs
 import org.meshtastic.core.testing.FakeNodeRepository
 import org.meshtastic.core.testing.FakeOrgChartPrefs
+import org.meshtastic.core.testing.FakeRadioConfigRepository
 import org.meshtastic.core.testing.FakeTeamRosterPrefs
 import org.meshtastic.core.testing.FakeUiPrefs
+import org.meshtastic.core.ui.freshness.NetworkFreshnessSource
 import org.meshtastic.proto.User
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
@@ -53,7 +56,8 @@ class OrgChartViewModelTest {
     fun setUp() {
         Dispatchers.setMain(UnconfinedTestDispatcher())
         nodes.setOurNode(Node(num = 100, user = User.Builder().also { it.long_name = "PC-0 [Alpha]" }.build()))
-        viewModel = OrgChartViewModel(nodes, prefs, FakeTeamRosterPrefs(), uiPrefs)
+        val freshness = NetworkFreshnessSource(nodes, FakeRadioConfigRepository(), FakeFreshnessPrefs())
+        viewModel = OrgChartViewModel(nodes, prefs, FakeTeamRosterPrefs(), uiPrefs, freshness)
     }
 
     @AfterTest

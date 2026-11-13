@@ -48,6 +48,7 @@ import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
 import org.meshtastic.core.common.util.NumberFormatter
 import org.meshtastic.core.model.freshness.ContactState
+import org.meshtastic.core.model.freshness.NetworkFreshnessState
 import org.meshtastic.core.model.freshness.PositionState
 import org.meshtastic.core.resources.Res
 import org.meshtastic.core.resources.command_post_contact_inconsistent
@@ -67,6 +68,8 @@ import org.meshtastic.core.resources.command_post_position_none
 import org.meshtastic.core.resources.command_post_position_stale
 import org.meshtastic.core.resources.command_post_position_stale_at_least
 import org.meshtastic.core.resources.command_post_read_only
+import org.meshtastic.core.resources.command_post_threshold_auto
+import org.meshtastic.core.resources.command_post_threshold_fixed
 import org.meshtastic.core.resources.command_post_title
 import org.meshtastic.core.resources.diag_open
 import org.meshtastic.core.resources.ic_cell_tower
@@ -97,6 +100,7 @@ fun CommandPostScreen(
     onOpenDiagnostic: (() -> Unit)? = null,
 ) {
     val rows by viewModel.rows.collectAsStateWithLifecycle()
+    val freshness by viewModel.freshness.collectAsStateWithLifecycle()
     Scaffold(
         modifier = modifier,
         topBar = {
@@ -134,6 +138,7 @@ fun CommandPostScreen(
             onOpenNode = onOpenNode,
             onOpenMessages = onOpenMessages,
             modifier = Modifier.padding(padding),
+            freshness = freshness,
         )
     }
 }
@@ -145,6 +150,7 @@ fun CommandPostContent(
     onOpenNode: (Int) -> Unit,
     onOpenMessages: (String) -> Unit,
     modifier: Modifier = Modifier,
+    freshness: NetworkFreshnessState? = null,
 ) {
     LazyColumn(
         modifier = modifier.fillMaxSize(),
@@ -157,6 +163,7 @@ fun CommandPostContent(
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+            freshness?.let { FreshnessThresholdLine(it) }
         }
         if (rows.isEmpty()) {
             item { Text(text = stringResource(Res.string.command_post_empty)) }
@@ -244,8 +251,21 @@ internal fun PositionLine(state: PositionState) {
     FreshnessLine(text = text, tone = state.tone())
 }
 
+/** The threshold in force, in small print: "Old after 1 h 00 · 52 nodes heard in 2 h", or "fixed" when set by hand. */
 @Composable
-private fun formatAge(duration: Duration): String {
+internal fun FreshnessThresholdLine(freshness: NetworkFreshnessState) {
+    val threshold = formatAge(freshness.threshold)
+    val text =
+        if (freshness.settings.autoScale) {
+            stringResource(Res.string.command_post_threshold_auto, threshold, freshness.onlineNodes)
+        } else {
+            stringResource(Res.string.command_post_threshold_fixed, threshold)
+        }
+    Text(text = text, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+}
+
+@Composable
+internal fun formatAge(duration: Duration): String {
     val totalMinutes = duration.inWholeMinutes
     return when {
         totalMinutes < 1 -> stringResource(Res.string.command_post_duration_seconds, duration.inWholeSeconds.toString())

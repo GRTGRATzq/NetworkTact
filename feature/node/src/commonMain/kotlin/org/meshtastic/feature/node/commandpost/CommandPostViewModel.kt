@@ -17,11 +17,9 @@
 package org.meshtastic.feature.node.commandpost
 
 import androidx.lifecycle.ViewModel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flow
 import org.koin.core.annotation.KoinViewModel
 import org.koin.core.annotation.Named
 import org.meshtastic.core.common.util.nowSeconds
@@ -29,10 +27,14 @@ import org.meshtastic.core.model.Node
 import org.meshtastic.core.model.NodeAddress
 import org.meshtastic.core.model.freshness.ContactState
 import org.meshtastic.core.model.freshness.FreshnessThresholds
+import org.meshtastic.core.model.freshness.NetworkFreshness
+import org.meshtastic.core.model.freshness.NetworkFreshnessState
 import org.meshtastic.core.model.freshness.NodeFreshness
 import org.meshtastic.core.model.freshness.PositionState
 import org.meshtastic.core.repository.NodeRepository
 import org.meshtastic.core.repository.SCREEN_DATA
+import org.meshtastic.core.ui.freshness.NetworkFreshnessSource
+import org.meshtastic.core.ui.freshness.freshnessTicks
 import org.meshtastic.core.ui.viewmodel.stateInWhileSubscribed
 import org.meshtastic.feature.node.model.canDirectMessage
 
@@ -54,23 +56,30 @@ data class CommandPostRow(
  * Read-only command post view over [NodeRepository.nodeDBbyNum].
  *
  * A ticker re-evaluates every row each [FreshnessThresholds.refreshInterval] so ages keep growing while no packet
- * arrives: a position must never look current just because nothing new was heard.
+ * arrives: a position must never look current just because nothing new was heard. The threshold is the network's
+ * ([NetworkFreshnessSource]), the same as the org chart's, the map's and the diagnostic's.
  */
 @KoinViewModel
-class CommandPostViewModel(@Named(SCREEN_DATA) nodeRepository: NodeRepository) : ViewModel() {
+class CommandPostViewModel(
+    @Named(SCREEN_DATA) nodeRepository: NodeRepository,
+    freshnessSource: NetworkFreshnessSource,
+    clockSeconds: () -> Long = { nowSeconds },
+) : ViewModel() {
 
-    val thresholds: FreshnessThresholds = FreshnessThresholds.Default
+    private val clock: Flow<Long> = freshnessTicks(clockSeconds)
 
-    private val clock: Flow<Long> = flow {
-        while (true) {
-            emit(nowSeconds)
-            delay(thresholds.refreshInterval)
-        }
-    }
+    /** The threshold in force, shown small at the top of the view. */
+    val freshness: StateFlow<NetworkFreshnessState> =
+        freshnessSource.state(clock).stateInWhileSubscribed(initialValue = NetworkFreshness.DEFAULT_STATE)
 
     val rows: StateFlow<List<CommandPostRow>> =
-        combine(nodeRepository.nodeDBbyNum, nodeRepository.ourNodeInfo, clock) { nodes, ourNode, now ->
-            buildCommandPostRows(nodes.values, ourNode, now, thresholds)
+        combine(nodeRepository.nodeDBbyNum, nodeRepository.ourNodeInfo, clock, freshness) {
+                nodes,
+                ourNode,
+                now,
+                freshness,
+            ->
+            buildCommandPostRows(nodes.values, ourNode, now, freshness.thresholds)
         }
             .stateInWhileSubscribed(initialValue = emptyList())
 }

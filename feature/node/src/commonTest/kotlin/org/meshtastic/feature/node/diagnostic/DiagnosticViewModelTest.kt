@@ -35,10 +35,12 @@ import org.meshtastic.core.model.diagnostic.LoraCheck
 import org.meshtastic.core.model.diagnostic.LoraSetting
 import org.meshtastic.core.repository.RadioActivityProvider
 import org.meshtastic.core.testing.FakeExpectedLoraPrefs
+import org.meshtastic.core.testing.FakeFreshnessPrefs
 import org.meshtastic.core.testing.FakeNodeRepository
 import org.meshtastic.core.testing.FakeRadioConfigRepository
 import org.meshtastic.core.testing.FakeServiceRepository
 import org.meshtastic.core.testing.FakeUiPrefs
+import org.meshtastic.core.ui.freshness.NetworkFreshnessSource
 import org.meshtastic.proto.Config
 import org.meshtastic.proto.DeviceMetrics
 import org.meshtastic.proto.LocalConfig
@@ -129,16 +131,19 @@ class DiagnosticViewModelTest {
         try {
             val uiPrefs = FakeUiPrefs()
             val expected = FakeExpectedLoraPrefs()
+            val nodes = FakeNodeRepository()
+            val radioConfig = FakeRadioConfigRepository()
             val viewModel =
                 DiagnosticViewModel(
-                    FakeNodeRepository(),
+                    nodes,
                     FakeServiceRepository(),
-                    FakeRadioConfigRepository(),
+                    radioConfig,
                     expected,
                     object : RadioActivityProvider {
                         override val lastPacketFromRadioMillis = MutableStateFlow<Long?>(null)
                     },
                     uiPrefs,
+                    NetworkFreshnessSource(nodes, radioConfig, FakeFreshnessPrefs()),
                     clockMillis = { nowMillis },
                 )
             uiPrefs.setCommandPostMode(false)
@@ -165,20 +170,29 @@ class DiagnosticViewModelTest {
             .build()
 
     /** The screen's own path: the radio's configuration and the saved expected setting, through the view model. */
-    private fun viewModelWith(radioLora: Config.LoRaConfig?, expected: LoraSetting?, commandPost: Boolean = true) =
-        DiagnosticViewModel(
-            FakeNodeRepository(),
-            FakeServiceRepository(),
+    private fun viewModelWith(
+        radioLora: Config.LoRaConfig?,
+        expected: LoraSetting?,
+        commandPost: Boolean = true,
+    ): DiagnosticViewModel {
+        val nodes = FakeNodeRepository()
+        val radioConfig =
             FakeRadioConfigRepository().also {
                 it.setLocalConfigDirect(LocalConfig.Builder().also { local -> local.lora = radioLora }.build())
-            },
+            }
+        return DiagnosticViewModel(
+            nodes,
+            FakeServiceRepository(),
+            radioConfig,
             FakeExpectedLoraPrefs(expected),
             object : RadioActivityProvider {
                 override val lastPacketFromRadioMillis = MutableStateFlow<Long?>(null)
             },
             FakeUiPrefs().also { it.setCommandPostMode(commandPost) },
+            NetworkFreshnessSource(nodes, radioConfig, FakeFreshnessPrefs()),
             clockMillis = { nowMillis },
         )
+    }
 
     /** Runs [block] with the view model's state being collected, as the screen does, then shuts everything down. */
     private fun withScreen(create: () -> DiagnosticViewModel, block: (DiagnosticViewModel) -> Unit) {

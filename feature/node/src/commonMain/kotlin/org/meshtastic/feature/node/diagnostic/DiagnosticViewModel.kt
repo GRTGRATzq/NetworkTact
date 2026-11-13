@@ -42,6 +42,7 @@ import org.meshtastic.core.repository.RadioActivityProvider
 import org.meshtastic.core.repository.RadioConfigRepository
 import org.meshtastic.core.repository.SCREEN_DATA
 import org.meshtastic.core.repository.UiPrefs
+import org.meshtastic.core.ui.freshness.NetworkFreshnessSource
 import org.meshtastic.core.ui.viewmodel.stateInWhileSubscribed
 import org.meshtastic.proto.Config
 
@@ -71,17 +72,20 @@ class DiagnosticViewModel(
     @Named(SCREEN_DATA) private val expectedLoraPrefs: ExpectedLoraPrefs,
     @Named(SCREEN_DATA) radioActivityProvider: RadioActivityProvider,
     @Named(SCREEN_DATA) private val uiPrefs: UiPrefs,
+    freshnessSource: NetworkFreshnessSource,
     private val clockMillis: () -> Long = { nowMillis },
 ) : ViewModel() {
-
-    private val thresholds: FreshnessThresholds = FreshnessThresholds.Default
 
     private val clock: Flow<Long> = flow {
         while (true) {
             emit(clockMillis())
-            delay(thresholds.refreshInterval)
+            delay(FreshnessThresholds.Default.refreshInterval)
         }
     }
+
+    /** The network threshold: "no recent contact" means the same here as on the command post view. */
+    private val thresholds: Flow<FreshnessThresholds> =
+        freshnessSource.state(clock.map { it / MILLIS_PER_SECOND }).map { it.thresholds }
 
     private val localLora: Flow<LoraSetting?> = radioConfigRepository.localConfigFlow.map { it.lora?.toLoraSetting() }
 
@@ -98,7 +102,13 @@ class DiagnosticViewModel(
     private val nodes = combine(nodeRepository.nodeDBbyNum, nodeRepository.ourNodeInfo, ::Pair)
 
     val uiState: StateFlow<DiagnosticUiState?> =
-        combine(radio, settings, nodes, clock) { radio, (expected, commandPostMode), (nodes, ourNode), now ->
+        combine(radio, settings, nodes, clock, thresholds) {
+                radio,
+                (expected, commandPostMode),
+                (nodes, ourNode),
+                now,
+                thresholds,
+            ->
             buildDiagnosticUiState(radio, expected, commandPostMode, nodes.values, ourNode, now, thresholds)
         }
             .stateInWhileSubscribed(initialValue = null)
@@ -111,6 +121,8 @@ class DiagnosticViewModel(
     }
 
     companion object {
+        private const val MILLIS_PER_SECOND = 1000L
+
         /** The regions offered for the expected setting, by proto name; UNSET is not a setting a network can use. */
         val REGION_CHOICES: List<String> =
             Config.LoRaConfig.RegionCode.entries.filter { it != Config.LoRaConfig.RegionCode.UNSET }.map { it.name }

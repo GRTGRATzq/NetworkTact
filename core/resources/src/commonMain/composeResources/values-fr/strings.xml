@@ -1519,12 +1519,14 @@
     <string name="command_post_open">Vue PC</string>
     <string name="command_post_empty">Aucun nœud connu pour l'instant.</string>
     <string name="command_post_read_only">Lecture seule. Les âges se mettent à jour seuls, même sans nouveau paquet.</string>
+    <string name="command_post_threshold_auto">Position ancienne et contact non récent après %1$s (%2$d nœuds entendus en 2 h).</string>
+    <string name="command_post_threshold_fixed">Position ancienne et contact non récent après %1$s (seuil fixe).</string>
     <string name="command_post_contact_never">Jamais entendu</string>
     <string name="command_post_contact_recent">Vu récemment : il y a %1$s</string>
     <string name="command_post_contact_stale">Pas entendu depuis %1$s</string>
     <string name="command_post_contact_inconsistent">Heure du dernier contact incohérente (%1$s dans le futur)</string>
     <string name="command_post_position_none">Aucune position</string>
-    <string name="command_post_position_fresh">Position fraîche : relevé il y a %1$s</string>
+    <string name="command_post_position_fresh">Position : relevé il y a %1$s</string>
     <string name="command_post_position_stale">POSITION ANCIENNE : relevé il y a %1$s</string>
     <string name="command_post_position_stale_at_least">POSITION ANCIENNE : au moins %1$s</string>
     <string name="command_post_position_fix_unknown">Reçue il y a %1$s, heure de relevé inconnue</string>

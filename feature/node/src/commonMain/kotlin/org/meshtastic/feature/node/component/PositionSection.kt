@@ -31,24 +31,31 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.stringResource
 import org.meshtastic.core.common.util.MeasurementSystem
+import org.meshtastic.core.common.util.nowSeconds
 import org.meshtastic.core.model.Node
+import org.meshtastic.core.model.freshness.NodeFreshness
 import org.meshtastic.core.model.util.toDistanceString
 import org.meshtastic.core.navigation.MapRoute
 import org.meshtastic.core.resources.Res
 import org.meshtastic.core.resources.open_compass
 import org.meshtastic.core.resources.site_planner_estimate
+import org.meshtastic.core.ui.freshness.LocalNetworkFreshness
+import org.meshtastic.core.ui.freshness.freshnessTicks
 import org.meshtastic.core.ui.icon.CellTower
 import org.meshtastic.core.ui.icon.Compass
 import org.meshtastic.core.ui.icon.Distance
 import org.meshtastic.core.ui.icon.MeshtasticIcons
 import org.meshtastic.core.ui.util.LocalInlineMapProvider
 import org.meshtastic.core.ui.util.LocalSitePlannerAvailable
+import org.meshtastic.feature.node.commandpost.PositionLine
 import org.meshtastic.feature.node.model.NodeDetailAction
 
 private const val MAP_HEIGHT_DP = 200
@@ -66,6 +73,7 @@ internal fun PositionInlineContent(
 ) {
     val distance = ourNode?.distance(node)?.takeIf { it > 0 }?.toDistanceString(displayUnits)
 
+    PositionAge(node)
     PositionMap(node, distance)
     LinkedCoordinatesItem(node, displayUnits)
     Spacer(Modifier.height(8.dp))
@@ -101,6 +109,17 @@ internal fun PositionInlineContent(
             )
         }
     }
+}
+
+/**
+ * NetworkTact: the age of the position, always shown, with the command post view's alert when it is past the network
+ * threshold ([LocalNetworkFreshness]): with 100 or 200 radios, a position that is not OLD can still be hours old.
+ */
+@Composable
+private fun PositionAge(node: Node) {
+    val thresholds = LocalNetworkFreshness.current.thresholds
+    val now by produceState(nowSeconds) { freshnessTicks().collect { value = it } }
+    PositionLine(NodeFreshness.position(node, now, thresholds))
 }
 
 @Composable

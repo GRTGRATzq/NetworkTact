@@ -259,13 +259,15 @@
     <string name="command_post_mode_summary">Display mode: off for the field layout (unchanged), on to open the read-only command post view on launch.</string>
     <string name="command_post_open">Command post view</string>
     <string name="command_post_position_fix_unknown">Received %1$s ago, fix time unknown</string>
-    <string name="command_post_position_fresh">Fresh position: fix %1$s ago</string>
+    <string name="command_post_position_fresh">Position: fix %1$s ago</string>
     <string name="command_post_position_inconsistent">Inconsistent timestamp (%1$s in the future)</string>
     <string name="command_post_position_no_time">Position without fix time (age unknown)</string>
     <string name="command_post_position_none">No position</string>
     <string name="command_post_position_stale">OLD POSITION: fix %1$s ago</string>
     <string name="command_post_position_stale_at_least">OLD POSITION: at least %1$s old</string>
     <string name="command_post_read_only">Read-only. Ages update on their own, even without new packets.</string>
+    <string name="command_post_threshold_auto">Old position and no recent contact after %1$s (%2$d nodes heard in 2 h).</string>
+    <string name="command_post_threshold_fixed">Old position and no recent contact after %1$s (fixed threshold).</string>
     <string name="command_post_title">Command post</string>
     <string name="communicate_off_the_grid">Communicate off-the-grid with your friends and community without cell service.</string>
     <!-- COMPASS -->
