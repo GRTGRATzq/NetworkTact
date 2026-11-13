@@ -1,7 +1,8 @@
 # Plan : guide utilisateur visuel (branche `docs/guide-utilisateur`)
 
 Branche partie de `feat/demande-de-tir` (`1bca152`, run `fork-apk` 106 vert). Ce document prépare la **matière** du guide :
-inventaire des fonctions, structure, fiches réflexes, parcours par poste, glossaire et production des captures. Le guide
+inventaire des fonctions, structure en deux profils (Administrateur, Utilisateur), fiches réflexes, annexe « Configuration
+d'exercice », glossaire et production des captures. Le guide
 sera mis en page ailleurs. **Aucun code n'est écrit avant les décisions du § 7.**
 
 Sources : le code de la branche (écrans, textes français `values-fr/strings.xml`, données de démo `DemoDataSet`),
@@ -61,7 +62,7 @@ tir » (§ 1.12). Aucune de ces puces n'envoie : elles remplissent la zone de sa
 | Liste des équipes | Réglages → Équipes | la liste `[EQUIPES] Alpha;Bravo;Charlie` adoptée par ce téléphone | adopter une liste reçue (dialogue avec émetteur et heure) ; saisie manuelle de secours | n'émet jamais (adoption) | « Aucune liste d'équipes pour l'instant. Attendez celle du PC, ou saisissez-la ci-dessous. » ; « Aucun nom d'équipe. » ; « Aucune authentification : … » |
 | Diffuser la liste (PC) | même écran, en mode PC | envoyer la liste aux autres téléphones | choix du « Canal », « Diffuser » | **émet** un message texte `[EQUIPES] …` sur le canal choisi | « Liste placée dans la conversation …, où s'affiche son état d'envoi. » ; « Non diffusée. » |
 | Mon équipe | même écran | suffixe `[Alpha]` ajouté au nom long de sa radio | choix de l'équipe | **émet** : la radio reçoit le nouveau nom, puis l'application diffuse une fois le nom (NodeInfo) | « Trop long pour la radio (N octets) : la partie nom est raccourcie, l'équipe est conservée. » ; rien si la radio n'est pas connectée |
-| Diffuser mon nom | même écran, et Réglages de l'appareil → Utilisateur | renvoyer son nom aux autres postes | bouton, confirmation, puis 30 s d'attente avec décompte | **émet** un NodeInfo sur le canal principal | « Aucune radio connectée : diffusion impossible. » ; « Le nom de ma radio n'est pas encore connu. Attendez la fin de la connexion. » ; en démo « diffusion simulée, rien n'est envoyé » |
+| Diffuser mon nom | même écran, et Réglages de l'appareil → Utilisateur | renvoyer son nom aux autres radios | bouton, confirmation, puis 30 s d'attente avec décompte | **émet** un NodeInfo sur le canal principal | « Aucune radio connectée : diffusion impossible. » ; « Le nom de ma radio n'est pas encore connu. Attendez la fin de la connexion. » ; en démo « diffusion simulée, rien n'est envoyé » |
 | Affichage de l'équipe | messagerie, vue PC | « ALPHA-1 · Équipe Alpha » ; filtre « Équipe » | — | — | « Aucune liste d'équipes » (filtre) |
 
 ### 1.6 Organigramme (`FORK.md` § 17, 26)
@@ -120,70 +121,123 @@ Réglages de l'appareil (Utilisateur : nom long, nom court ; Position ; LoRa ; C
 liste des appareils), mise à jour du firmware radio, À propos, Remerciements (licences). Le guide renvoie pour ces écrans à
 `PREPARER-LES-RADIOS.md` (réglages à faire) et `FLASHER-LA-RADIO.md`, sans les détailler.
 
-## 2. Structure proposée du guide
+## 2. Structure du guide (décision du 13 novembre 2026)
 
-1. **Prise en main** : installer l'APK, écran de bienvenue, associer sa radio (Ma radio), lire la barre de navigation et
-   l'icône d'état, choisir Terrain ou PC, thème.
-2. **Les règles de base** : ce qui part par radio et ce qui n'y part jamais (tableau unique tiré du § 1), 200 octets par
-   message, rien d'automatique, aucune authentification (équipes, organigramme), heures et âges (fraîche, ANCIENNE,
-   inconnue, incohérente).
-3. **Messagerie** : conversations, priorités, états d'envoi et raisons d'échec, filtres, renvoi.
-4. **Positions et coordonnées** : Ma position, Fait observé, convertisseur, Voir sur la carte, partager un point.
-5. **Carte** : lecture des puces, appui long, Recaler et Diffuser ma position, cartes hors ligne (importer, télécharger,
-   exporter, supprimer).
-6. **Équipes et organigramme** : liste des équipes, mon équipe, diffuser mon nom, organigramme, QR.
-7. **Vue PC et diagnostic** : vue PC, bandeau, diagnostic, réglage LoRa attendu, tester la liaison.
-8. **Demande de tir** : formulaire case par case, aperçu, envoi, carte émetteur, fiche reçue, GDH, brouillon, Renouveler.
-9. **Mode démo** : entrer, ce qui est simulé, quitter.
-10. **Dépannage** : tous les messages d'erreur, classés par écran, avec la cause et le geste (repris du § 1).
-11. **Annexes** : glossaire, fiches réflexes, parcours par poste.
+Le guide est **général** : il ne dépend ni du nombre de radios (le réseau visé dépasse 50 radios), ni d'une organisation
+particulière. Il est organisé selon **deux profils** :
+
+- **Administrateur** : prépare et tient le réseau. Préparation des radios (renvoi à `PREPARER-LES-RADIOS.md`), liste des
+  équipes, organigramme, réglages du téléphone (vue Terrain ou PC, réglage LoRa attendu), vue PC et diagnostic, cartes
+  hors ligne à préparer et à distribuer. Les fonctions réservées au mode PC (diffuser la liste des équipes, modifier
+  l'organigramme, saisir le réglage LoRa attendu) sont dans ce profil.
+- **Utilisateur** : se sert de l'application en mission. Messages, position, fait observé, convertisseur, carte, demande
+  de tir, adoption de la liste des équipes et de l'organigramme, choix de son équipe, premier diagnostic.
+
+Les postes d'un exercice (CDU, PCR, OA, CDS TIR, Drone) ne figurent que dans l'annexe **« Configuration d'exercice »**
+(§ 2.2), remplaçable sans toucher au reste. Le corps du guide parle de profils et de fonctions, jamais de postes ; les mots
+de la fiche de demande de tir (OA, CDS TIR dans l'exemple validé) restent cités comme exemples de la fiche.
+
+1. **Prise en main** (les deux profils) : installer l'APK, écran de bienvenue, associer sa radio (Ma radio), lire la barre
+   de navigation et l'icône d'état, thème.
+2. **Les règles de base** (les deux profils) : ce qui part par radio et ce qui n'y part jamais (tableau unique tiré du § 1),
+   200 octets par message, rien d'automatique, aucune authentification (équipes, organigramme), heures et âges (fraîche,
+   ANCIENNE, inconnue, incohérente), temps d'antenne partagé par tout le réseau.
+
+**Partie A, Administrateur**
+
+3. **Préparer les radios** : renvoi à `PREPARER-LES-RADIOS.md` et `FLASHER-LA-RADIO.md` (D12), sans les reprendre.
+4. **Préparer les téléphones** : vue Terrain ou PC (« Mode poste de commandement »), mode démo pour former.
+5. **Équipes** : composer et diffuser la liste, suivre son adoption, diffuser son nom.
+6. **Organigramme** : construire, partager par QR, revenir au précédent.
+7. **Vue PC et diagnostic** : suivre le réseau, bandeau, diagnostic, réglage LoRa attendu, tester la liaison.
+8. **Cartes à distribuer** : importer, télécharger, exporter, faire passer les fichiers aux autres téléphones (procédure
+   de `CARTE-HORS-LIGNE.md`), supprimer.
+
+**Partie B, Utilisateur**
+
+9. **Messagerie** : conversations, priorités, états d'envoi et raisons d'échec, filtres, renvoi.
+10. **Positions et coordonnées** : Ma position, Fait observé, convertisseur, Voir sur la carte, partager un point.
+11. **Carte** : lecture des puces, appui long, Recaler et Diffuser ma position, importer une carte reçue.
+12. **Équipes et organigramme côté utilisateur** : adopter la liste, choisir son équipe, adopter l'organigramme.
+13. **Demande de tir** : formulaire case par case, aperçu, envoi, carte émetteur, fiche reçue, GDH, brouillon, Renouveler.
+14. **Premier diagnostic** : bandeau, « Diagnostic » sous un échec, quoi vérifier avant d'appeler l'administrateur.
+
+**Communs et annexes**
+
+15. **Mode démo** : entrer, ce qui est simulé, quitter.
+16. **Dépannage** : tous les messages d'erreur, classés par écran, avec la cause, le geste et le profil concerné (repris
+    du § 1).
+17. **Annexes** : glossaire (§ 2.4), fiches réflexes (§ 2.1), **Configuration d'exercice** (§ 2.2).
 
 ### 2.1 Fiches réflexes (une page chacune)
 
-Gabarit : **Objectif** (une phrase) · **Avant de commencer** (radio connectée, mode, poste) · **Étapes numérotées** (6 au
-plus, un geste par étape, le bouton écrit tel qu'il apparaît) · **Capture** annotée (numéros des étapes sur l'image) ·
-**Ce qui part par radio** · **Erreurs fréquentes** (message exact → que faire).
+Gabarit : **Profil** (Administrateur, Utilisateur ou les deux) · **Objectif** (une phrase) · **Avant de commencer** (radio
+connectée, vue Terrain ou PC) · **Étapes numérotées** (6 au plus, un geste par étape, le bouton écrit tel qu'il apparaît) ·
+**Capture** annotée (numéros des étapes sur l'image) · **Ce qui part par radio** · **Erreurs fréquentes** (message exact
+→ que faire). Liste validée le 13 novembre 2026, profil ajouté ; la colonne « Postes » est passée dans l'annexe (§ 2.2).
 
-| # | Fiche | Postes |
+| # | Fiche | Profil |
 |---|---|---|
-| FR1 | Envoyer un message urgent et vérifier l'accusé | tous |
-| FR2 | Transmettre sa position (`[POS]`) | tous |
-| FR3 | Rendre compte d'un fait observé | tous |
-| FR4 | Convertir une coordonnée | tous |
-| FR5 | Lire une coordonnée sur la carte et l'envoyer | tous |
-| FR6 | Comparer GPS radio et téléphone, diffuser sa position | tous |
-| FR7 | Adopter la liste des équipes et choisir son équipe | tous sauf PC |
-| FR8 | Diffuser la liste des équipes | PC |
-| FR9 | Construire et partager l'organigramme par QR | PC |
-| FR10 | Adopter l'organigramme du PC | tous sauf PC |
-| FR11 | Que faire quand un message est en échec (diagnostic) | tous |
-| FR12 | Suivre le réseau depuis la vue PC | PC |
-| FR13 | Rédiger et envoyer une demande de tir | OA, Drone (toute station) |
-| FR14 | Recevoir une demande de tir et renvoyer les GDH | CDS TIR |
-| FR15 | Renvoyer une partie manquante | émetteur d'une DT |
-| FR16 | Importer ou télécharger une carte hors ligne | tous |
-| FR17 | Présenter l'application en mode démo | tous |
+| FR1 | Envoyer un message urgent et vérifier l'accusé | Utilisateur |
+| FR2 | Transmettre sa position (`[POS]`) | Utilisateur |
+| FR3 | Rendre compte d'un fait observé | Utilisateur |
+| FR4 | Convertir une coordonnée | Utilisateur |
+| FR5 | Lire une coordonnée sur la carte et l'envoyer | Utilisateur |
+| FR6 | Comparer GPS radio et téléphone, diffuser sa position | Utilisateur |
+| FR7 | Adopter la liste des équipes et choisir son équipe | Utilisateur |
+| FR8 | Diffuser la liste des équipes | Administrateur |
+| FR9 | Construire et partager l'organigramme par QR | Administrateur |
+| FR10 | Adopter l'organigramme du PC | Utilisateur |
+| FR11 | Que faire quand un message est en échec (diagnostic) | Utilisateur et Administrateur |
+| FR12 | Suivre le réseau depuis la vue PC | Administrateur |
+| FR13 | Rédiger et envoyer une demande de tir | Utilisateur |
+| FR14 | Recevoir une demande de tir et renvoyer les GDH | Utilisateur |
+| FR15 | Renvoyer une partie manquante | Utilisateur |
+| FR16 | Importer ou télécharger une carte hors ligne | Administrateur (préparer et distribuer) et Utilisateur (importer une carte reçue) |
+| FR17 | Présenter l'application en mode démo | Utilisateur et Administrateur |
 
-### 2.2 Parcours par poste
+Proposées en plus, à valider (D14) : **FR18** « Préparer une radio » (Administrateur, une page qui renvoie aux étapes de
+`PREPARER-LES-RADIOS.md`) ; **FR19** « Saisir le réglage LoRa attendu et repérer une radio en écart » (Administrateur).
 
-Chaque parcours : rôle du poste **(à fournir, § 7 D1)**, réglages à faire une fois (vue Terrain ou PC, équipe), fonctions
-utilisées dans l'ordre d'une mission, fiches réflexes à garder sous la main. Répartition proposée, à valider :
+### 2.2 Annexe « Configuration d'exercice »
+
+Une annexe par exercice, remplaçable sans toucher au corps du guide. Elle donne, pour chaque poste : développé du sigle,
+rôle, profil (Administrateur ou Utilisateur), vue (Terrain ou PC), fonctions utilisées dans l'ordre de la mission, fiches
+réflexes à garder sous la main, et les réglages propres à l'exercice (équipes, organigramme, canaux, réglage LoRa attendu).
+Le développé des sigles et le rôle de chaque poste seront fournis par le porteur du projet ; rien n'est déduit.
+
+Première annexe, répartition validée le 13 novembre 2026 :
 
 | Poste | Vue | Fonctions principales | Fiches |
 |---|---|---|---|
-| CDU | à préciser (D1) | messagerie, vue PC ou Terrain, organigramme, diagnostic | FR1, FR11, FR12 ou FR10 |
+| CDU | à préciser | messagerie, vue PC ou Terrain, organigramme, diagnostic | FR1, FR11, FR12 ou FR10 |
 | PCR | PC | vue PC, équipes, organigramme, diagnostic et réglage LoRa attendu, messagerie | FR8, FR9, FR11, FR12 |
 | OA | Terrain | Ma position, Fait observé, convertisseur, carte, demande de tir | FR2 à FR5, FR13, FR15 |
-| CDS TIR | Terrain (ou PC, D1) | réception des demandes de tir, GDH, Voir sur la carte | FR14, FR1, FR4 |
+| CDS TIR | Terrain (ou PC) | réception des demandes de tir, GDH, Voir sur la carte | FR14, FR1, FR4 |
 | Drone | Terrain | Fait observé, coordonnée sur la carte, demande de tir | FR3, FR5, FR13 |
 
-### 2.3 Glossaire (abréviations affichées par l'application seulement)
+### 2.3 Réseau de plus de 50 radios : limites actuelles à écrire dans le guide
+
+Le guide décrit l'application telle qu'elle est. Limites relevées dans le code et `FORK.md`, à signaler (rien n'est
+changé ici) :
+
+- **Organigramme par QR** : 770 caractères au plus (QR de version 22) ; 9 membres aux indicatifs et fonctions de longueur
+  maximale tiennent en 720 caractères. Avec des noms courts, davantage tiennent, mais un organigramme de plus de 50 radios
+  ne tiendra probablement pas dans un seul QR : l'ajout est alors refusé avec la longueur atteinte. À mesurer sur les
+  indicatifs réels ; une évolution (plusieurs QR, format compact) serait une tâche à part.
+- **Liste des équipes** : un message de 200 octets, 16 octets par nom.
+- **Temps d'antenne** : chaque envoi est partagé par tout le réseau ; diffusions de position et de nom, traceroutes et
+  demandes de tir (jusqu'à 9 messages) à utiliser avec retenue.
+- **Vue PC** : tous les nœuds connus en une liste, recalculée toutes les 15 s ; pas de regroupement par équipe.
+
+### 2.4 Glossaire (abréviations affichées par l'application seulement)
 
 `[URG]`, `[CR]`, INFO, `[POS]`, FAIT OBSERVÉ, `[EQUIPES]`, PC, DT, GDH, loc / Z / fra, mois OTAN (JAN … DEC), OA, CDS TIR,
 TLE, L R U, Rep, NLT, HSO, MGRS, UTM, DMS, WGS84, HDOP, PDOP, SNR, RSSI, LoRa, EU_868, LONG_FAST, NodeInfo, traceroute,
 point de repère, `.pmtiles`, `.mbtiles`, QR, PKI, millièmes (m barré), « non rempli », « non reçu ». Chaque définition
-reprend la fiche, la spécification ou `FORK.md` ; aucune abréviation absente de l'application (CDU, PCR et les postes ne
-figurent dans le glossaire que si l'utilisateur fournit leur définition, D1).
+reprend la fiche, la spécification ou `FORK.md` ; aucune abréviation absente de l'application. OA et CDS TIR y figurent
+comme mots de l'exemple de la fiche de demande de tir ; les sigles des postes d'un exercice (CDU, PCR…) sont définis dans
+l'annexe « Configuration d'exercice », pas dans le glossaire.
 
 ## 3. Captures d'écran
 
@@ -207,7 +261,8 @@ figurent dans le glossaire que si l'utilisateur fournit leur définition, D1).
 
 - Nouveau module **`:guide-screenshots`** (sur le modèle de `:docs-screenshots`, mêmes plugins, aucune dépendance nouvelle),
   ou ajout au module `:docs-screenshots` existant (D4). Il dépend de `core:demo` pour les données fictives
-  (`DemoDataSet.create(heure fixe, fuseau Europe/Paris)`, donc des captures identiques d'un run à l'autre) et des modules
+  (`DemoDataSet.create(13 novembre 2026, 14:35, fuseau Europe/Bucharest)`, D9, donc des captures identiques d'un run à
+  l'autre) et des modules
   d'écran.
 - Une fonction de capture par écran, `@PreviewTest`, format téléphone (`device = "spec:width=411dp,height=891dp,dpi=420"`,
   proche d'un Pixel), **thème clair**, et **sombre** par `uiMode` (deux images par écran, coût négligeable). Langue
@@ -273,7 +328,7 @@ diagnostic (constats, réglage attendu identique et en écart, Tester la liaison
 | 2 | Module de captures (ou ajout à `:docs-screenshots`), premier écran, workflow manuel | build, CI |
 | 3 | Run du workflow, mesure du temps, réglages | CI |
 | 4 à 8 | Captures par chapitre (messagerie, positions, équipes et organigramme, vue PC et diagnostic, demande de tir, démo et réglages) ; extractions de contenus sans ViewModel si D5 (a), chacune testée | feature, captures |
-| 9 | Matière du guide : `docs/guide/` (chapitres, fiches réflexes, parcours, glossaire, dépannage), Markdown | docs |
+| 9 | Matière du guide : `docs/guide/` (chapitres des deux profils, fiches réflexes, glossaire, dépannage ; l'annexe « Configuration d'exercice » dans un fichier à part, remplaçable), Markdown | docs |
 | 10 | Liste des captures à faire à la main (carte, notifications, QR) | docs |
 
 Règles : petits commits ; spotless et detekt en local avant tout commit de code ; tests locaux des seuls modules modifiés,
@@ -288,16 +343,30 @@ donnée réelle (mode démo seulement) ; aucune mise en page finale.
 
 **Réponses du 13 novembre 2026** : D2 à D13 validées telles que proposées, avec deux précisions : **D9**, données de démo
 au **13 novembre 2026, 14:35, fuseau Europe/Bucharest** (et non Europe/Paris, § 3.2 à corriger au moment du code) ;
-**D12**, simple renvoi à `PREPARER-LES-RADIOS.md`. Le tableau du § 2.2 (D2) et la liste des 17 fiches (D3) sont à relire
-par le porteur du projet. **D1 reste ouverte** : le porteur du projet a envoyé le modèle de réponse (développé du sigle,
-vue, rôle, fonctions pour CDU, PCR, OA, CDS TIR, Drone) sans le remplir ; rien n'est déduit en attendant. Le guide est
-**en attente** (étape 1 faite) pendant la tâche suivante (cartes raster GeoTIFF).
+**D12**, simple renvoi à `PREPARER-LES-RADIOS.md`. D2 (tableau des postes) et D3 (17 fiches) validés après relecture.
+
+**Changement de structure du 13 novembre 2026** : guide **général**, indépendant du nombre de radios (réseau visé : plus de
+50 radios), en deux profils **Administrateur** et **Utilisateur** ; chaque fiche réflexe indique son profil (§ 2, § 2.1).
+Les postes CDU, PCR, OA, CDS TIR et Drone passent dans l'annexe **« Configuration d'exercice »** (§ 2.2), remplaçable sans
+toucher au reste : **D1 n'est plus nécessaire pour le corps du guide** ; le développé des sigles et le rôle des postes ne
+seront demandés que pour remplir cette annexe. Le guide est **en attente** (étape 1 faite) pendant la tâche suivante
+(cartes raster GeoTIFF).
+
+Nouvelles questions, à poser à la reprise :
 
 | N° | Question | Proposition |
 |---|---|---|
-| D1 | Définition des postes **CDU, PCR, OA, CDS TIR, Drone** : rôle, vue (Terrain ou PC), fonctions utilisées. Le dépôt ne les définit pas (seuls OA, CDS TIR et Drone apparaissent, dans la demande de tir) | à fournir par le porteur du projet ; rien n'est inventé |
-| D2 | Répartition des fonctions et des fiches par poste (§ 2.2) | à valider ou corriger |
-| D3 | Structure du guide (§ 2) et liste des 17 fiches réflexes (§ 2.1) | à valider |
+| D14 | Ajouter les fiches FR18 « Préparer une radio » et FR19 « Saisir le réglage LoRa attendu et repérer une radio en écart » (Administrateur) | oui |
+| D15 | Limites pour un réseau de plus de 50 radios (§ 2.3), surtout l'organigramme par QR (770 caractères) : les écrire telles quelles dans le guide, et ouvrir une tâche à part pour l'organigramme d'un grand réseau | oui / à décider |
+| D16 | Contenu de l'annexe « Configuration d'exercice » : développé, rôle, profil, vue, fonctions et fiches de chaque poste (ancienne D1) | à fournir au moment de rédiger l'annexe |
+
+Décisions de l'étape 1 (D1 remplacée par l'annexe, D16) :
+
+| N° | Question | Proposition |
+|---|---|---|
+| D1 | Définition des postes **CDU, PCR, OA, CDS TIR, Drone** : rôle, vue (Terrain ou PC), fonctions utilisées. Le dépôt ne les définit pas (seuls OA, CDS TIR et Drone apparaissent, dans la demande de tir) | **sans objet pour le corps du guide** (13/11) : passe dans l'annexe « Configuration d'exercice » (D16) |
+| D2 | Répartition des fonctions et des fiches par poste (§ 2.2) | **validée**, placée dans l'annexe |
+| D3 | Structure du guide (§ 2) et liste des 17 fiches réflexes (§ 2.1) | **validée** ; structure refaite en deux profils le 13/11 |
 | D4 | Captures : nouveau module `:guide-screenshots` ou ajout au module amont `:docs-screenshots` | nouveau module, pour ne pas mélanger avec l'amont |
 | D5 | Écrans liés à un ViewModel : (a) extraire un contenu sans ViewModel, ou (b) vrai ViewModel sur les données de démo ; et rendre publiques les fonctions `internal` nécessaires ou capturer depuis le module qui les contient | (a), au cas par cas |
 | D6 | Carte, notifications, sélecteur de fichiers, caméra : captures à la main par vous (liste fournie), ou workflow sur émulateur plus tard | à la main |
