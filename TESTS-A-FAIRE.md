@@ -247,7 +247,7 @@ produit est identique à `pmtiles extract` (CI) ; tout ce qui suit est à voir �
       réelle après, la durée ; la carte s'affiche, mode avion compris ; mention ⓘ « © contributeurs OpenStreetMap · Protomaps ».
       → 18,3 Mo annoncés, 18,2 Mo réels, ≈ 15 s.
 - [x] Le cadre : poignées faciles à saisir, dimensions en km justes, zone téléchargée = zone du cadre.
-- [x] Au-delà de 50 Mo : confirmation, la même sur Wi-Fi et sur données mobiles ; en dessous : pas de confirmation.
+- [ ] Au-delà de 50 Mo : confirmation, la même sur Wi-Fi et sur données mobiles ; en dessous : pas de confirmation.
       → confirmation vue au-delà de 50 Mo ; Wi-Fi et données mobiles non comparés.
 - [x] Écran de la source : le texte « Le serveur source voit la zone demandée et l'adresse du téléphone » est lisible en entier ;
       une adresse `http://` est refusée ; une adresse `https://` valide est gardée.
@@ -260,7 +260,7 @@ produit est identique à `pmtiles extract` (CI) ; tout ce qui suit est à voir �
 - [ ] Mode démo : bouton désactivé, rien téléchargé. Espace presque plein : refus avec les tailles.
       → 13/11 : démo OK ; espace presque plein non fait.
 - [x] Un ancien fichier importé du Mac (`cincu-30km.pmtiles`) fonctionne toujours à côté.
-- [x] **Comparaison sur Mac** : récupérer le fichier du téléphone (APK de debug : `adb exec-out run-as
+- [ ] **Comparaison sur Mac** : récupérer le fichier du téléphone (APK de debug : `adb exec-out run-as
       com.geeksville.mesh.fdroid.debug cat files/pmtiles/<identifiant>.pmtiles > telephone.pmtiles` ; avec l'APK de release, qui
       n'est pas débogable, passer par « Exporter une carte », essai ci-dessous). Puis `pmtiles verify telephone.pmtiles` et
       `pmtiles show telephone.pmtiles`, à comparer à `pmtiles show cincu-30km.pmtiles` (produit le 8 novembre) : type de
@@ -269,7 +269,7 @@ produit est identique à `pmtiles extract` (CI) ; tout ce qui suit est à voir �
       téléphone**, `pmtiles extract <source>/<édition>.pmtiles essai.pmtiles --bbox=<ouest,sud,est,nord du cadre>
       --maxzoom=15` et comparer `pmtiles show essai.pmtiles` : mêmes nombres de tuiles et de contenus attendus.
       → verify sans erreur, même type et zooms ; comparaison à zone égale non faite.
-- [x] **Exporter une carte** (D12) : « Cartes sur le téléphone » → Exporter sur la carte téléchargée : le sélecteur de fichiers
+- [x] **Exporter une carte** (décision D12 du plan) : « Cartes sur le téléphone » → Exporter sur la carte téléchargée : le sélecteur de fichiers
       Android s'ouvre avec le nom `<nom>.pmtiles` ; choisir `Download` ; le fichier apparaît là, de même taille que dans la
       liste ; rien d'autre n'est demandé (aucune permission, aucun partage vers une application). Annuler le sélecteur : rien
       n'est écrit. Le fichier exporté, copié sur le Mac, sert à la comparaison ci-dessus (`pmtiles verify`, `pmtiles show`) et
@@ -289,18 +289,18 @@ en JVM, à voir à l'œil et au doigt. Fiche papier à côté pour la relecture.
 
 **Formulaire (A)**
 
-- [ ] Puce « DT Demande de tir » (contour rouge, badge DT) sur sa ligne, sous « Ma position · Fait observé · Convertisseur ».
-      → non relevé le 13/11.
+- [x] Puce « DT Demande de tir » (contour rouge, badge DT) sur sa ligne, sous « Ma position · Fait observé · Convertisseur ».
+      → utilisée en 18.2, 18.4 et 18.11.
 - [x] Ouvert depuis la conversation directe avec B : destinataire présélectionné, « Destinataire » prérempli avec le nom
       de B (sans équipe), modifiable. Ouvert depuis un canal : destinataire à choisir.
       → destinataire prérempli « CDS TIR - a4cc » (R4).
 - [ ] Chaque case conforme à la fiche (libellés, ordre, codes, unités : millièmes, m, min, s, ms) ; clavier numérique pour
       les nombres ; défilement avec le clavier ouvert ; rien qui ne soit sur la fiche.
       → revue de la maquette reportée.
-- [x] GDH : prérempli à l'heure du téléphone en loc, Z (`112150Z NOV 26`) et fra ; le choix du fuseau est gardé après
+- [ ] GDH : prérempli à l'heure du téléphone en loc, Z (`112150Z NOV 26`) et fra ; le choix du fuseau est gardé après
       redémarrage ; un GDH illisible est signalé sans bloquer l'envoi.
       → GDH illisible non essayé.
-- [x] « Envoyer » grisé avec sa raison : n° de tir vide ; décalage Rep sans direction ; plus de 9 parties ; radio
+- [ ] « Envoyer » grisé avec sa raison : n° de tir vide ; décalage Rep sans direction ; plus de 9 parties ; radio
       déconnectée. Avertissement sous un champ saisi avec une espace (Rep, heures `..H..`, morceaux L R U).
       → plus de 9 parties non essayé ; espace dans X impossible au clavier numérique.
 - [ ] **Coller une coordonnée** : appui long sur la carte → Copier, ou copie depuis le convertisseur ; dans la case 7, coller
