@@ -148,15 +148,22 @@ internal fun NumberField(
     onChange: (String) -> Unit,
     unit: String? = null,
     width: Dp = 96.dp,
+    filter: (String) -> String = ::digitsInput,
 ) {
-    SheetField(label, value, onChange, width = width, numeric = true, unit = unit, filter = ::digitsInput)
+    SheetField(label, value, onChange, width = width, numeric = true, unit = unit, filter = filter)
 }
 
 /** A box sent as one word: the operator is told, under it, what will go without its spaces. */
 @Composable
-internal fun WordField(label: String, value: String, onChange: (String) -> Unit, width: Dp = 96.dp) {
+internal fun WordField(
+    label: String,
+    value: String,
+    onChange: (String) -> Unit,
+    width: Dp = 96.dp,
+    filter: (String) -> String = ::freeInput,
+) {
     Column {
-        SheetField(label, value, onChange, width = width)
+        SheetField(label, value, onChange, width = width, filter = filter)
         withoutSpaces(value)?.let { Help(stringResource(Res.string.firereq_no_space, it), isError = true) }
     }
 }

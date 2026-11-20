@@ -185,17 +185,57 @@ private fun ShiftRow(
 
 @Composable
 private fun Lru(letter: ImpactLine, line: LruLine, edit: (LruLine) -> Unit) {
+    // A box takes its own value; a whole text pasted in it (« Point carte · MGRS 35T… ») is never put in the box: the
+    // coordinate it holds fills the whole line, and a text with none leaves the box as it was.
+    val keep: (String) -> String = { it }
+    fun change(input: String, filter: (String) -> String, typed: (String) -> LruLine) {
+        if (LruCoordinate.isLongInput(input)) {
+            LruCoordinate.fromLongInput(line, input)?.let(edit)
+        } else {
+            edit(typed(filter(input)))
+        }
+    }
     Column {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(letter.name)
-            WordField(Sheet.UTM_ZONE, line.zone, { edit(line.copy(zone = it)) }, width = 72.dp)
-            WordField(Sheet.LATITUDE_BAND, line.band, { edit(line.copy(band = it.uppercase())) }, width = 72.dp)
-            WordField(Sheet.SQUARE, line.square, { edit(line.copy(square = it.uppercase())) }, width = 72.dp)
+            WordField(
+                Sheet.UTM_ZONE,
+                line.zone,
+                { change(it, ::freeInput) { v -> line.copy(zone = v) } },
+                width = 72.dp,
+                filter = keep,
+            )
+            WordField(
+                Sheet.LATITUDE_BAND,
+                line.band,
+                { change(it, ::freeInput) { v -> line.copy(band = v.uppercase()) } },
+                width = 72.dp,
+                filter = keep,
+            )
+            WordField(
+                Sheet.SQUARE,
+                line.square,
+                { change(it, ::freeInput) { v -> line.copy(square = v.uppercase()) } },
+                width = 72.dp,
+                filter = keep,
+            )
         }
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-            NumberField(Sheet.X, line.x, { edit(line.copy(x = it)) }, width = 104.dp)
+            NumberField(
+                Sheet.X,
+                line.x,
+                { change(it, ::digitsInput) { v -> line.copy(x = v) } },
+                width = 104.dp,
+                filter = keep,
+            )
             Text("-")
-            NumberField(Sheet.Y, line.y, { edit(line.copy(y = it)) }, width = 104.dp)
+            NumberField(
+                Sheet.Y,
+                line.y,
+                { change(it, ::digitsInput) { v -> line.copy(y = v) } },
+                width = 104.dp,
+                filter = keep,
+            )
         }
         NumberField(Sheet.Z, line.z, { edit(line.copy(z = it)) }, unit = Sheet.METRES, width = 88.dp)
         val checked = LruCoordinate.check(line)
