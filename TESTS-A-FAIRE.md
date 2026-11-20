@@ -240,6 +240,10 @@ produit est identique à `pmtiles extract` (CI) ; tout ce qui suit est à voir �
 - [ ] Aucune édition joignable (mode avion juste avant « Calculer la taille ») : « Impossible de joindre la source … » ;
       source réglée sur une adresse sans édition : « Aucune édition de carte n'a été trouvée … pour les 8 derniers jours ».
 - [ ] Écran des licences : `pmtiles-reader` apparaît avec la licence BSD-3-Clause.
+- [ ] **D11 à refaire (`fix/ecran-licences`, release fdroid)** : Réglages › Information › « Licences des logiciels
+      libres » ouvre la liste ; « Reader » (pmtiles-reader, Simon Poole) y figure, licence BSD-3-Clause, texte affiché en
+      le touchant. « À propos » est écrit sans faute ; « Remerciements » y ouvre toujours la même liste. La recherche des
+      Réglages (« licence ») trouve l'entrée.
 
 ## 18. Demande de tir (tâche 8, FORK.md §30)
 
