@@ -1850,7 +1850,7 @@
     <string name="firereq_empty_box">Case vide : elle part quand même, sous la forme « %1$d non rempli ».</string>
     <string name="firereq_no_space">Sans espace ici : « %1$s » sera envoyé.</string>
     <string name="firereq_paste_into">Coller une coordonnée en ligne %1$s</string>
-    <string name="firereq_paste_help">Facultatif : coller le texte copié par l'appui long sur la carte ou par le convertisseur ; la ligne se remplit, tout reste modifiable à la main.</string>
+    <string name="firereq_paste_help">Facultatif : copier un point par l'appui long sur la carte ou par « Copier » dans le convertisseur, puis appuyer sur le bouton de la ligne ; Fuseau, Bande, Carré, X et Y se remplissent, Z est conservé, tout reste modifiable à la main.</string>
     <string name="firereq_paste_none">Aucune coordonnée complète dans le presse-papiers.</string>
     <string name="firereq_lru_help">MGRS, écrit 35T LL 33000 - 90300 : 35 fuseau UTM · T bande de latitude · LL carré de 100 km · X abscisse et Y ordonnée à 5 chiffres (au mètre) · Z altitude, facultative.</string>
     <string name="firereq_rep_direction">Choisir la direction de ce décalage.</string>

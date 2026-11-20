@@ -767,7 +767,7 @@
     <string name="firereq_number_help">Letters and digits, 10 at most. Required to send.</string>
     <string name="firereq_origin_help">Written by the operator.</string>
     <string name="firereq_part_status">%1$d/%2$d %3$s</string>
-    <string name="firereq_paste_help">Optional: paste the text copied by a long press on the map or by the converter; the line fills in, and everything stays editable by hand.</string>
+    <string name="firereq_paste_help">Optional: copy a point by a long press on the map or with Copy in the converter, then press the button of the line; Zone, Band, Square, X and Y fill in, Z is kept, and everything stays editable by hand.</string>
     <string name="firereq_paste_into">Paste a coordinate in line %1$s</string>
     <string name="firereq_paste_none">No complete coordinate on the clipboard.</string>
     <string name="firereq_preview">Preview</string>
