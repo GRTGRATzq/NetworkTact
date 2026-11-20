@@ -141,6 +141,9 @@ voient déjà. Sur le téléphone de OA, ne jamais utiliser « Infos utilisateur
       d'heure et `23:50 (veille)` dans le rapport. Heure déjà passée : pas de « (veille) ».
 - [ ] Clavier de la description : la touche d'action est « Terminé » et ferme le clavier sans
       toucher un autre champ. Idem pour le champ d'heure. Pas de retour à la ligne ajouté.
+- [ ] **D10 à refaire (`fix/fait-observe-clavier`)**, sur le Crosscall (✓) **et** sur l'autre modèle (« OK ») : dans la
+      description, puis dans « Observé à », la touche d'action ferme le clavier, le curseur quitte le champ, rien n'est
+      ajouté au texte. « Lieu » se comporte toujours pareil. Coller une description sur deux lignes : elle tient sur une.
 
 ## 13. Diagnostic : écart LoRa (§25), défaut D8 du 8 novembre
 

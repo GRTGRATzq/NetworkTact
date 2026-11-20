@@ -86,6 +86,26 @@ private fun estimatedBytes(typedAs: CoordinateFormat, description: String, obser
         .utf8Size()
 }
 
+/** The description after an edit, and whether the edit was the Enter key, which then closes the keyboard. */
+internal data class DescriptionEdit(val text: String, val closeKeyboard: Boolean)
+
+/**
+ * The report is one line: a line break never enters the description. Some keyboards send the action key of a multi-line
+ * field as a line break: one typed alone ([old] plus one break) leaves the text as it was and closes the keyboard;
+ * breaks in a pasted text become spaces.
+ */
+internal fun descriptionEdit(old: String, new: String): DescriptionEdit {
+    if (new.none { it == '\n' || it == '\r' }) return DescriptionEdit(new, closeKeyboard = false)
+    val typedEnter = new.length == old.length + 1 && new.filterNot { it == '\n' || it == '\r' } == old
+    return if (typedEnter) {
+        DescriptionEdit(old, closeKeyboard = true)
+    } else {
+        DescriptionEdit(new.replace(LINE_BREAKS, " "), closeKeyboard = false)
+    }
+}
+
+private val LINE_BREAKS = Regex("""[\r\n]+""")
+
 private const val REFERENCE_PLACE = "31U DQ 48251 11932"
 
 private val CLOCK = Regex("""^(\d{1,2}) ?[:hH. ]? ?(\d{2})$""")
