@@ -1543,6 +1543,7 @@ offline_map_download_source_field
 offline_map_download_source_https
 offline_map_download_start
 offline_map_download_use_view
+offline_map_download_where
 offline_map_downloaded_edition
 offline_map_downloaded_file
 offline_map_error_copy

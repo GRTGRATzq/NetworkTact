@@ -17,6 +17,9 @@
 package org.meshtastic.feature.map.maplibre.component
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
@@ -33,6 +36,8 @@ import org.meshtastic.core.repository.MapPrefs
 import org.meshtastic.core.repository.MapTileProviderPrefs
 import org.meshtastic.core.resources.Res
 import org.meshtastic.core.resources.map_tile_source
+import org.meshtastic.core.resources.offline_map_download
+import org.meshtastic.core.ui.icon.Download
 import org.meshtastic.core.ui.icon.Map
 import org.meshtastic.core.ui.icon.MeshtasticIcons
 import org.meshtastic.feature.map.component.BasemapChoice
@@ -130,7 +135,11 @@ internal fun rememberBasemapSelection(customs: List<Basemap>?): BasemapSelection
  * toolbar button and maps [BasemapSelection] onto the choices it renders.
  */
 @Composable
-internal fun BasemapButton(selection: BasemapSelection, extra: @Composable () -> Unit = {}) {
+internal fun BasemapButton(
+    selection: BasemapSelection,
+    extra: @Composable () -> Unit = {},
+    onDownloadMap: (() -> Unit)? = null,
+) {
     var expanded by remember { mutableStateOf(false) }
 
     Box {
@@ -146,7 +155,21 @@ internal fun BasemapButton(selection: BasemapSelection, extra: @Composable () ->
             groups = listOf(selection.builtIns.toChoices(), selection.customs.toChoices()),
             selectedId = selection.current.id,
             onSelect = { choice -> selection.byId(choice.id)?.let(selection.onSelect) },
-            trailingContent = extra,
+            trailingContent = {
+                extra()
+                // R3: "Download a map" right under "Maps on this phone", where the host downloads; the menu closes so
+                // the download frame is not hidden behind it.
+                if (onDownloadMap != null) {
+                    DropdownMenuItem(
+                        text = { Text(stringResource(Res.string.offline_map_download)) },
+                        leadingIcon = { Icon(MeshtasticIcons.Download, contentDescription = null) },
+                        onClick = {
+                            expanded = false
+                            onDownloadMap()
+                        },
+                    )
+                }
+            },
         )
     }
 }

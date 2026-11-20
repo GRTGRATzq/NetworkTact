@@ -1777,6 +1777,7 @@
     <string name="intro_insignia_joint_project">NetworkTact, un projet d'innovation porté conjointement par deux batteries.</string>
     <string name="offline_map_download">Télécharger une carte</string>
     <string name="offline_map_download_privacy">Le serveur source voit la zone demandée et l'adresse du téléphone.</string>
+    <string name="offline_map_download_where">Les cartes téléchargées se trouvent dans le menu des styles de carte, sous « Cartes sur le téléphone ».</string>
     <string name="offline_map_download_source">Source : %1$s</string>
     <string name="offline_map_download_source_change">Modifier</string>
     <string name="offline_map_download_source_field">Adresse de la source (https://…)</string>

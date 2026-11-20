@@ -220,6 +220,7 @@ class MapLibreMapViewProvider(
                 layersSheetExtra = layersSheetExtra,
                 offlineMapsSupported = offlineMapsSupported,
                 onSitePlannerClick = sitePlanner?.let { { screen.plannerOpen = true } },
+                onDownloadMap = downloads?.let { controller -> controller::openFrame },
             )
 
             downloads?.let { MapDownloadSlot(it, mapState) }
@@ -445,6 +446,7 @@ private fun BoxScope.MapToolbar(
     layersSheetExtra: @Composable () -> Unit,
     offlineMapsSupported: Boolean,
     onSitePlannerClick: (() -> Unit)?,
+    onDownloadMap: (() -> Unit)?,
 ) {
     var filterMenuExpanded by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
@@ -479,7 +481,10 @@ private fun BoxScope.MapToolbar(
                 )
             }
         },
-        mapTypeContent = { BasemapButton(selection = basemaps, extra = basemapMenuExtra) },
+        // R3: "Download a map" in the basemap menu and at the head of the layers sheet, where the host downloads.
+        mapTypeContent = {
+            BasemapButton(selection = basemaps, extra = basemapMenuExtra, onDownloadMap = onDownloadMap)
+        },
         layersContent = {
             MapLayersButton(
                 overlays = overlays,
@@ -493,6 +498,7 @@ private fun BoxScope.MapToolbar(
                 ),
                 offlineMapsSupported = offlineMapsSupported,
                 extra = layersSheetExtra,
+                onDownloadMap = onDownloadMap,
             )
         },
         onSitePlannerClick = onSitePlannerClick.takeUnless { demo },
