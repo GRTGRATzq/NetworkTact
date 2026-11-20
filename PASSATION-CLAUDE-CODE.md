@@ -1,8 +1,82 @@
 # Passation Claude Code : où en est NetworkTact
 
-État au **12 novembre 2026** (tâche 8, demande de tir : § 0 ; tâche 7 inchangée depuis le 11 novembre, 20 h 45 UTC),
+État au **20 novembre 2026** (corrections des essais du 13 novembre : § 00 ; tâche 8, demande de tir : § 0 ; tâche 7
+inchangée depuis le 11 novembre, 20 h 45 UTC),
 pour reprendre dans une conversation neuve. À lire avec `FORK.md` (section de
 chaque tâche, état d'avancement), `TESTS-A-FAIRE.md` et, pour la tâche 7, `docs/PLAN-CARTE-TELECHARGEMENT.md`.
+
+## 00. État au 20 novembre 2026, vers 20 h 40 UTC : À LIRE EN PREMIER (corrections des essais du 13 novembre)
+
+Remplace les § 0 à 7 là où ils diffèrent. Détail de chaque défaut dans `FORK.md` (section indiquée) et essais dans
+`TESTS-A-FAIRE.md`. Suite prévue dans une nouvelle session : **point 4, radios dans le cadre ami** (non commencé).
+
+### 00.1 Branches (toutes poussées, aucun changement local en attente)
+
+| Branche | Base | Contenu | Dernier commit |
+|---|---|---|---|
+| `fix/dt-espacement` | `feat/demande-de-tir` | D12 : file d'envoi séquentielle, reprise après « envoi trop rapide » (FORK §31) | `172acc2` |
+| `fix/dt-coller-coordonnee` | `fix/dt-espacement` | D13 : coordonnée collée lue malgré les espaces insécables ; vrai bouton « Coller une coordonnée » (G, H) ; lecture du presse-papiers (`core:ui`) ; « Copier » du convertisseur (FORK §31) | `15dfaa8` |
+| `fix/fait-observe-clavier` | `fix/dt-coller-coordonnee` | D10 : touche d'action du clavier dans « Fait observé » (FORK §23) | `5778b47` |
+| `fix/ecran-licences` | `fix/dt-coller-coordonnee` | D11 : « Licences des logiciels libres » dans Information, « À propos » corrigé (FORK §16) | `6978b91` |
+| `fix/equipe-casse` | `fix/dt-coller-coordonnee` | D9 : équipe qui ne diffère que par la casse (FORK §6) | `c4ccfa5` |
+| `test/correctifs-13-11` | `fix/dt-coller-coordonnee` | fusion `--no-ff` de D10, D11, D9 | `a07e96b` |
+| `fix/textes-et-acces` | `test/correctifs-13-11` | R1 : 141 + 33 textes FR (Réglages, `core:ui`) (FORK §24) ; R2 : diffusion du nom après la reconnexion qui suit un choix d'équipe (FORK §21) | `c56788c` |
+| `feat/reglages-sections` | `test/correctifs-13-11` | A3 : Réglages en sept sections repliables (FORK §32) | `a139b06` |
+| `feat/carte-renommer` | `test/correctifs-13-11` | A4 : renommer une carte de « Cartes sur le téléphone » (FORK §29) | `18fe3a1` |
+| `fix/acces-telecharger-carte` | `test/correctifs-13-11` | R3 : « Télécharger une carte » en tête de « Gérer les calques » et dans le menu des styles (FORK §29) | `fd589fb` |
+| `test/correctifs-13-11-b` | `test/correctifs-13-11` | fusion `--no-ff` des quatre précédentes, plus ce paragraphe | (ce commit) |
+
+Les fusions vers `test/…` se sont faites sans conflit. Chaque `fix/…` ou `feat/…` est identique à sa `wip/…`.
+
+### 00.2 Runs `fork-apk`
+
+| Run | Branche, commit | Résultat |
+|---|---|---|
+| 110 | `fix/dt-espacement`, `172acc2` (D12) | vert ; APK `apk-fdroid-release` |
+| 111 | `fix/dt-coller-coordonnee`, `15dfaa8` (D12 + D13), lancé à la main | vert ; APK `apk-fdroid-release` |
+| 112 | `test/correctifs-13-11`, `a07e96b` (D9 à D13), lancé à la main | **échec à l'étape « Tests »** (lint et compilation fdroid verts) ; pas d'APK |
+| 113 | `test/correctifs-13-11-b`, `03fc34e` (tout), lancé à la main à 20 h 37 UTC | **en cours** au moment de la passation |
+
+**Run 112, à élucider en premier** : le journal complet n'a pas pu être lu ici (l'hôte des journaux et des artefacts,
+`*.blob.core.windows.net`, est refusé par le proxy de la session ; la fin du journal ne montre que les diagnostics).
+L'étape « Tests » lance `feature:messaging`, `feature:node`, `feature:settings`, `core:model`, `core:prefs`,
+`core:service` en `jvmTest`, plus `testAndroidHostTest` (Robolectric) pour `feature:node`, `core:model`, `core:prefs`,
+`core:service`. Tous les `jvmTest` de cette liste passent en local sur `test/correctifs-13-11-b`, qui contient 112 : le
+défaut est donc soit un test Android hôte (impossible ici sans SDK), soit un incident du runner (déjà vu, runs 45 et 47).
+À faire : lire « Tests » du run 112 dans l'interface GitHub, regarder si 113 échoue au même endroit ; si oui, corriger
+sur la branche fautive puis refusionner dans les deux `test/…`. Tant que ce n'est pas réglé, **l'APK à essayer est celui
+du run 113 s'il est vert**, sinon celui du run 111 (D12 et D13 seulement).
+
+### 00.3 À essayer sur les radios (APK du run 113)
+
+- D12 (`TESTS-A-FAIRE.md` §18) : file d'envoi, reprise après « envoi trop rapide », « partie 2 / 3 ».
+- D13 (§18, essai 18.9) : appui long sur la carte, « Copier » du convertisseur, texte entier collé dans Fuseau ; lignes G
+  puis H, Z conservé ; message d'erreur seulement après un appui sans coordonnée.
+- D10 (§12) : touche d'action (Crosscall ✓, autre modèle « OK ») dans la description et l'heure de « Fait observé ».
+- D11 (§17) : Information › « Licences des logiciels libres », pmtiles-reader en BSD-3-Clause.
+- D9 (§3) : Drone `[Obs]` → OBS sans redémarrage ; même essai sur CDS TIR (l'utilisateur ne sait plus ce qui avait été
+  fait la première fois).
+- R1 (§8) : plus de libellé anglais dans les Réglages ; R2 (§10) : « Nom … diffusé » après la reconnexion qui suit un
+  choix d'équipe ; R3 et A4 (§17) ; A3 (§21).
+
+### 00.4 Branches à supprimer sur GitHub (par l'utilisateur ; la suppression par push est refusée ici)
+
+`backup/dt-coller-coordonnee` (sauvegarde du 20 novembre, son contenu est dans `wip/dt-coller-coordonnee`), et les
+`wip/…` : `wip/dt-coller-coordonnee`, `wip/fait-observe-clavier`, `wip/ecran-licences`, `wip/equipe-casse`,
+`wip/textes-et-acces`, `wip/reglages-sections`, `wip/carte-renommer`, `wip/acces-telecharger-carte`.
+
+### 00.5 Limites de vérification (pas de SDK Android dans la session)
+
+- Vérifié en local : spotless, detekt (y compris `androidApp`), compilation JVM et bureau, tests JVM des modules
+  modifiés, et sur `test/correctifs-13-11-b` les suites complètes `feature:settings` (369), `feature:map-maplibre` (126),
+  `feature:messaging` (255) et les `jvmTest` de `feature:node`, `core:model`, `core:prefs`, `core:service`.
+- **Non compilé ici** : le code `androidMain` et la variante fdroid (`SettingsScreen`, `AppInfoSection`, `ClipboardUtils`
+  Android, `OfflineMapLibrary.rename`), ni les tests Android hôtes : seule la CI les vérifie.
+- **Non essayé sur téléphone** : tout ce qui précède. Causes démontrées par des tests qui échouent sur l'ancien code :
+  D9, D10, R2. Non démontrée : pourquoi le nom court diffusait déjà son message (R2), pourquoi CDS TIR marchait (D9).
+- Règles de la session : petits commits d'un sujet, outil d'édition seulement, spotless et detekt avant chaque commit,
+  tests ciblés en 10 min au plus, push sur `wip/…` après chaque commit, `fix/…` une fois le run en cours fini, pas de
+  force push. Les poussées qui ne changent que des `.md` ne lancent pas `fork-apk` : le lancer à la main.
 
 ## 0. Tâche 8 en cours : demande de tir (`feat/demande-de-tir`), état au 12 novembre 2026
 
