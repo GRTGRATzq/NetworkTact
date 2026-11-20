@@ -1058,8 +1058,14 @@ du Réseau, ou bouton « Diagnostic » sous un envoi en échec. Le diagnostic n'
   « Voir sur la carte » des messages et la demande de tir lisent pareil, sans code dupliqué. Le champ « Fuseau », la bande,
   le carré, X et Y ne prennent plus un texte entier : un texte de plus de 5 caractères (`LruCoordinate.isLongInput`)
   collé dans l'une de ces cases remplit toute la ligne avec le MGRS qu'il contient (`fromLongInput`, Z conservé), ou est
-  ignoré s'il n'en contient pas ; il n'entre jamais dans la case. Le champ « Coller une coordonnée » garde son message
-  « Aucune coordonnée complète dans le presse-papiers » quand le texte n'a pas de MGRS ni d'autre coordonnée complète.
+  ignoré s'il n'en contient pas ; il n'entre jamais dans la case. Le champ de collage est remplacé par un vrai bouton
+  « Coller une coordonnée en ligne G » (et H), en tête de case 7 comme la maquette et le plan : un appui lit le
+  presse-papiers (`rememberReadClipboardText`, `core:ui` : Android par `ClipData.coerceToText`, bureau par AWT, iOS vide)
+  et remplit Fuseau, Bande, Carré, X et Y par `LruCoordinate.fromClipboard` (par `fromText`), Z conservé. « Aucune
+  coordonnée complète dans le presse-papiers » ne s'affiche qu'après un appui sans coordonnée lisible. Le convertisseur a
+  un bouton « Copier » qui pose le même texte que l'appui long sur la carte (`MapPointCoordinate.messageText`, étiquette
+  « Point carte »), avec « Coordonnée copiée » ; la sélection des formats reste possible. `LruCoordinateClipboardTest`
+  prend le vrai `messageText` de 81 points de la zone de Cincu, avec espaces ordinaires puis insécables.
   `LruCoordinatePasteTest` prend les textes que l'application produit elle-même (`MapPointCoordinate.messageText`, résultats
   du convertisseur, sur 400 points du globe), le MGRS avec et sans espaces, et les variantes d'espaces et de sauts de
   ligne. **Non vérifié** : si ce sont bien ces caractères que le presse-papiers du téléphone contient. Le texte copié par
