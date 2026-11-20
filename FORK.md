@@ -1032,6 +1032,26 @@ du Réseau, ou bouton « Diagnostic » sous un envoi en échec. Le diagnostic n'
   téléphone) ; le regroupement charge toute la conversation directe ; l'aperçu de la liste des conversations montre le texte
   brut de la dernière partie. **Jamais essayé sur un téléphone.**
 
+### 31. Demande de tir : corrections des essais du 13 novembre (`fix/dt-espacement`, `fix/dt-coller-coordonnee`)
+
+- **D12, « envoi trop rapide »** (`fix/dt-espacement`, partie de `feat/demande-de-tir`). Origine : la radio répond à un
+  message qu'elle refuse par un NAK `Routing.Error.RATE_LIMIT_EXCEEDED` (affiché « envoi trop rapide »,
+  `tactmsg_reason_rate_limit`). Sa limite exacte vient du micrologiciel, que ce fork ne modifie pas et qu'aucun fichier du
+  dépôt ne donne : l'espacement est donc **prudent et croissant**, pas calculé sur une valeur lue. Avant, les N parties
+  partaient à la suite dans la file d'envoi (un `SendMessageUseCase` par partie).
+  Maintenant `FireRequestSender` (`feature/messaging/.../firerequest/`, code commun, testé en temps virtuel) envoie une
+  partie, attend qu'elle ait quitté la file du téléphone (`QUEUED` → `ENROUTE`, 30 s au plus) puis **au moins 2 s**, et lit
+  l'état du paquet par `PacketRepository.getOutgoingOutcome` (état, code d'erreur de la radio, n° de ligne). Une partie
+  refusée pour ce seul motif est **supprimée puis renvoyée** après 5 s, puis 10 s, puis 20 s (3 essais au plus) ; les parties
+  suivantes sont espacées d'autant. Après le troisième refus la partie reste en échec, avec « Renvoyer » comme avant. Les
+  autres échecs ne sont pas retentés. L'écran d'aperçu affiche « Envoi de la partie 2 / 3… » ou « Partie 2 / 3 en attente …
+  nouvel essai 1 / 3… ». L'envoi tourne dans le `viewModelScope` : quitter l'écran n'abandonne pas les parties restantes.
+  Mode démo inchangé : le dépôt de démo ne tient aucun état de radio (`getOutgoingOutcome` rend null), rien n'attend.
+  Seul ajout hors `feature:messaging` : `PacketRepository.getOutgoingOutcome` (valeur par défaut null, lecture dans
+  `PacketRepositoryImpl`, relais dans `ScreenPacketRepository`).
+- **Limite connue** : un refus qui arriverait plus de 2 s après l'envoi n'est pas vu par la file ; la partie reste alors en
+  échec avec « Renvoyer », comme avant la correction.
+
 ## État d'avancement au 11 novembre 2026
 
 - **Branches** : les sections 1 à 20 sont chacune sur une branche `feat/…`, empilées les unes

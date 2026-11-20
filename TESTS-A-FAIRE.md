@@ -269,6 +269,13 @@ en JVM, à voir à l'œil et au doigt. Fiche papier à côté pour la relecture.
       (488), « Modifier » revient au formulaire intact.
 - [ ] « Envoyer la demande » : la conversation directe avec B s'ouvre ; une seule carte « DT AB1234 · 3 messages », chaque
       partie passe « en file » → « Accusé par … » ; aucune bulle de partie isolée.
+- [ ] **D12, envoi espacé** (`fix/dt-espacement`) : OA → CDS TIR, exemple de la spécification (3 parties 166 / 154 / 168
+      octets), un seul geste « Envoyer la demande ». Les parties 2 et 3 ne doivent plus être refusées « envoi trop rapide »
+      sans intervention ; l'écran d'aperçu affiche « Envoi de la partie 2 / 3… » (au moins 2 s entre deux parties). Si la
+      radio en refuse tout de même une, « Partie 2 / 3 en attente (… envoi trop rapide), nouvel essai 1 / 3… », la partie
+      refusée est remplacée (pas de doublon rouge dans la carte) et les suivantes sont plus espacées. Noter : le temps total
+      de l'envoi, s'il y a eu des refus automatiques, et si la carte de l'émetteur montre bien 3 parties accusées. Après 3
+      refus, la partie reste en échec avec « Renvoyer » (comme avant). En démo, rien n'attend.
 - [ ] Demande longue (plusieurs cases pleines) : découpage annoncé par l'aperçu = parties reçues par B ; une case coupée
       reprend son numéro dans la partie suivante.
 - [ ] Un client Meshtastic officiel (troisième téléphone, ou B sans NetworkTact) reçoit les parties en texte lisible.
