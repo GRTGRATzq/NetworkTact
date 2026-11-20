@@ -36,6 +36,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -80,9 +81,6 @@ internal fun ObservedFactDialog(onInsert: (String) -> Unit, onDismiss: () -> Uni
             observedFactDraft(place, format, description, timeText, nowSeconds, systemTimeZone)
         }
 
-    val focusManager = LocalFocusManager.current
-    val closeKeyboard = { focusManager.clearFocus() }
-
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(Res.string.coords_fact_title)) },
@@ -91,12 +89,7 @@ internal fun ObservedFactDialog(onInsert: (String) -> Unit, onDismiss: () -> Uni
                 modifier = Modifier.verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                ObservedAtField(
-                    text = timeText,
-                    observedAt = draft.observedAt,
-                    onTextChange = { timeText = it },
-                    onDone = closeKeyboard,
-                )
+                ObservedAtField(text = timeText, observedAt = draft.observedAt, onTextChange = { timeText = it })
                 CoordinateField(
                     format = format,
                     text = placeText,
@@ -105,12 +98,7 @@ internal fun ObservedFactDialog(onInsert: (String) -> Unit, onDismiss: () -> Uni
                     onTextChange = { placeText = it },
                     label = stringResource(Res.string.coords_fact_place),
                 )
-                DescriptionField(
-                    text = description,
-                    draft = draft,
-                    onTextChange = { description = it },
-                    onDone = closeKeyboard,
-                )
+                DescriptionField(text = description, draft = draft, onTextChange = { description = it })
                 draft.message?.let { message ->
                     Text(message, style = MaterialTheme.typography.bodySmall, fontFamily = FontFamily.Monospace)
                 }
@@ -136,12 +124,8 @@ internal fun ObservedFactDialog(onInsert: (String) -> Unit, onDismiss: () -> Uni
  * red beyond [PositionMessage.MAX_MESSAGE_BYTES] (the insert button is then disabled; nothing is shortened).
  */
 @Composable
-private fun DescriptionField(
-    text: String,
-    draft: ObservedFactDraft,
-    onTextChange: (String) -> Unit,
-    onDone: () -> Unit,
-) {
+private fun DescriptionField(text: String, draft: ObservedFactDraft, onTextChange: (String) -> Unit) {
+    val onDone = rememberCloseKeyboard()
     OutlinedTextField(
         value = text,
         onValueChange = onTextChange,
@@ -168,12 +152,8 @@ private fun DescriptionField(
 
 /** The time of the observation: invalid until it reads as HH:MM, and flagged when it is taken as the day before. */
 @Composable
-private fun ObservedAtField(
-    text: String,
-    observedAt: ObservedTime?,
-    onTextChange: (String) -> Unit,
-    onDone: () -> Unit,
-) {
+private fun ObservedAtField(text: String, observedAt: ObservedTime?, onTextChange: (String) -> Unit) {
+    val onDone = rememberCloseKeyboard()
     OutlinedTextField(
         value = text,
         onValueChange = { if (it.length <= MAX_TIME_CHARS) onTextChange(it) },
@@ -196,6 +176,21 @@ private fun ObservedAtField(
             else -> null
         },
     )
+}
+
+/**
+ * Hides the keyboard and leaves the field. Read inside the field, not where the dialog is called: the dialog is a
+ * window of its own, and the focus manager of the screen behind it does nothing here. That was D10: the keyboard's
+ * action key had no effect in the description and the time, while the place, which keeps the default action, worked.
+ */
+@Composable
+private fun rememberCloseKeyboard(): () -> Unit {
+    val focusManager = LocalFocusManager.current
+    val keyboard = LocalSoftwareKeyboardController.current
+    return {
+        keyboard?.hide()
+        focusManager.clearFocus()
+    }
 }
 
 private const val MAX_DESCRIPTION_LINES = 4
