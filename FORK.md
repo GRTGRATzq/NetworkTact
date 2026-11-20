@@ -800,8 +800,10 @@ du Réseau, ou bouton « Diagnostic » sous un envoi en échec. Le diagnostic n'
   autorisation, redémarrage). 141 traduits (bloc commenté « R1 » en fin de fichier). Laissés tels quels, la valeur
   anglaise convenant : les noms de langues écrits dans leur langue (`fr_HT`, `pt_BR`, `zh_CN`, `zh_TW`) et les formats
   sans mot (`bandwidth_option_khz`, `label_with_unit`, `unit_khz`, `redacted`, `tak_server_channel_option`,
-  `tak_server_loading`, `tak_server_test_result_bytes`, `tak_server_test_result_unknown_error`). Hors Réglages, il en
-  reste dans `core:ui` (émojis, sécurité des nœuds, qualité de l'air…), non traités ici.
+  `tak_server_loading`, `tak_server_test_result_bytes`, `tak_server_test_result_unknown_error`). Ensuite, les 36 de
+  `core:ui` (composants communs : nœuds, sécurité, partage, émojis, qualité de l'air) : 33 traduites (second bloc « R1 »),
+  `transport_api` (API), `transport_udp` (UDP) et `elevation_suffix` (MSL) gardées, ce sont des sigles. Les autres
+  modules (`feature:node`, `feature:messaging`, `feature:map`…) n'ont pas été relevés.
 - **Actions de `fork-apk`** : `actions/checkout` v4 → v5, `actions/setup-java` v4 → v5,
   `gradle/actions/setup-gradle` v4 → v5, `actions/upload-artifact` v4 → v6. Chaque version exécute Node.js 24
   (`runs.using: node24` dans son `action.yml`), ce qui supprime l'avertissement « Node.js 20 is deprecated ».
