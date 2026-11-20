@@ -20,7 +20,23 @@ import android.content.ClipData
 import android.content.ClipDescription
 import android.os.Build
 import android.os.PersistableBundle
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.ClipEntry
+import androidx.compose.ui.platform.LocalClipboard
+import androidx.compose.ui.platform.LocalContext
+
+@Composable
+actual fun rememberReadClipboardText(): suspend () -> String? {
+    val context = LocalContext.current.applicationContext
+    val clipboard = LocalClipboard.current
+    return remember(context, clipboard) {
+        {
+            val clip = clipboard.getClipEntry()?.clipData
+            if (clip == null || clip.itemCount == 0) null else clip.getItemAt(0).coerceToText(context)?.toString()
+        }
+    }
+}
 
 actual fun createClipEntry(text: String, label: String, sensitive: Boolean): ClipEntry {
     val clip = ClipData.newPlainText(label, text)

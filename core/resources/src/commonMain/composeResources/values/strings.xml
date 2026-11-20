@@ -319,6 +319,7 @@
     <string name="coords_converter_intro">Type a position in one format to see it in the other two. Offline, WGS84.</string>
     <string name="coords_converter_limits">MGRS to 1 m, UTM to the metre, DMS to the second. UTM and MGRS stop at 84° N and 80° S: the polar caps are not covered.</string>
     <string name="coords_converter_title">Coordinate converter</string>
+    <string name="coords_copied">Coordinate copied</string>
     <string name="coords_error_band">Unknown latitude band: letters C to X, without I or O.</string>
     <string name="coords_error_degrees">Latitude goes up to 90° and longitude up to 180°.</string>
     <string name="coords_error_easting">Easting must be between 100000 and 900000 m.</string>
@@ -767,7 +768,7 @@
     <string name="firereq_number_help">Letters and digits, 10 at most. Required to send.</string>
     <string name="firereq_origin_help">Written by the operator.</string>
     <string name="firereq_part_status">%1$d/%2$d %3$s</string>
-    <string name="firereq_paste_help">Optional: paste the text copied by a long press on the map or by the converter; the line fills in, and everything stays editable by hand.</string>
+    <string name="firereq_paste_help">Optional: copy a point by a long press on the map or with Copy in the converter, then press the button of the line; Zone, Band, Square, X and Y fill in, Z is kept, and everything stays editable by hand.</string>
     <string name="firereq_paste_into">Paste a coordinate in line %1$s</string>
     <string name="firereq_paste_none">No complete coordinate on the clipboard.</string>
     <string name="firereq_preview">Preview</string>

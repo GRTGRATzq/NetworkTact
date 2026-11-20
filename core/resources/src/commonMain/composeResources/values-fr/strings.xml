@@ -275,6 +275,7 @@
     <string name="coords_converter_intro">Saisissez une position dans un format pour la voir dans les deux autres. Hors ligne, WGS84.</string>
     <string name="coords_converter_limits">MGRS à 1 m, UTM au mètre, DMS à la seconde. UTM et MGRS s'arrêtent à 84° N et 80° S : les calottes polaires ne sont pas couvertes.</string>
     <string name="coords_converter_title">Convertisseur de coordonnées</string>
+    <string name="coords_copied">Coordonnée copiée</string>
     <string name="coords_error_band">Bande de latitude inconnue : lettres C à X, sans I ni O.</string>
     <string name="coords_error_degrees">La latitude va jusqu'à 90° et la longitude jusqu'à 180°.</string>
     <string name="coords_error_easting">L'abscisse doit être comprise entre 100000 et 900000 m.</string>
@@ -1850,7 +1851,7 @@
     <string name="firereq_empty_box">Case vide : elle part quand même, sous la forme « %1$d non rempli ».</string>
     <string name="firereq_no_space">Sans espace ici : « %1$s » sera envoyé.</string>
     <string name="firereq_paste_into">Coller une coordonnée en ligne %1$s</string>
-    <string name="firereq_paste_help">Facultatif : coller le texte copié par l'appui long sur la carte ou par le convertisseur ; la ligne se remplit, tout reste modifiable à la main.</string>
+    <string name="firereq_paste_help">Facultatif : copier un point par l'appui long sur la carte ou par « Copier » dans le convertisseur, puis appuyer sur le bouton de la ligne ; Fuseau, Bande, Carré, X et Y se remplissent, Z est conservé, tout reste modifiable à la main.</string>
     <string name="firereq_paste_none">Aucune coordonnée complète dans le presse-papiers.</string>
     <string name="firereq_lru_help">MGRS, écrit 35T LL 33000 - 90300 : 35 fuseau UTM · T bande de latitude · LL carré de 100 km · X abscisse et Y ordonnée à 5 chiffres (au mètre) · Z altitude, facultative.</string>
     <string name="firereq_rep_direction">Choisir la direction de ce décalage.</string>

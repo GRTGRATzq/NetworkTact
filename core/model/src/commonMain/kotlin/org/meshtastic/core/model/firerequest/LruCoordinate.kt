@@ -80,6 +80,13 @@ object LruCoordinate {
     fun fromLongInput(line: LruLine, input: String): LruLine? =
         fromText(input)?.copy(z = line.z)?.takeIf { isLongInput(input) }
 
+    /**
+     * The line that « Coller une coordonnée » makes of [line] from the clipboard's [clipboard] text: Fuseau, Bande,
+     * Carré, X and Y from the coordinate it holds, Z kept; null when the clipboard is empty or holds no complete
+     * coordinate, and the line is then left as it was.
+     */
+    fun fromClipboard(line: LruLine, clipboard: String?): LruLine? = clipboard?.let(::fromText)?.copy(z = line.z)
+
     private const val DIGITS = 5
     private const val EASTING = 3
     private const val NORTHING = 4

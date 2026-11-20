@@ -18,6 +18,7 @@ package org.meshtastic.feature.messaging.coordinates
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -26,30 +27,39 @@ import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import org.meshtastic.core.model.geo.CoordinateFormat
 import org.meshtastic.core.model.geo.CoordinateInput
 import org.meshtastic.core.model.geo.CoordinateParser
 import org.meshtastic.core.model.geo.FormattedCoordinates
+import org.meshtastic.core.model.geo.MapPointCoordinate
 import org.meshtastic.core.resources.Res
 import org.meshtastic.core.resources.coords_converter_intro
 import org.meshtastic.core.resources.coords_converter_limits
 import org.meshtastic.core.resources.coords_converter_title
+import org.meshtastic.core.resources.coords_copied
 import org.meshtastic.core.resources.coords_not_covered
+import org.meshtastic.core.resources.copy
 import org.meshtastic.core.ui.component.MainAppBar
 import org.meshtastic.core.ui.theme.AppTheme
+import org.meshtastic.core.ui.util.createClipEntry
 
 /** Offline converter: a position typed in MGRS, UTM or DMS, shown in the other two formats. */
 @Composable
@@ -109,10 +119,17 @@ internal fun initialFormat(input: String): CoordinateFormat =
     CoordinateFormat.entries.firstOrNull { CoordinateParser.parse(input, it) is CoordinateInput.Valid }
         ?: CoordinateFormat.MGRS
 
-/** The two formats the user did not type, selectable so they can be copied. */
+/**
+ * The two formats the user did not type, selectable, and « Copier », which puts on the clipboard the same text as the
+ * map's long press (« Point carte · MGRS … »), so « Coller une coordonnée » of a fire request reads either alike.
+ */
 @Composable
 private fun ConvertedCoordinates(formatted: FormattedCoordinates, typedAs: CoordinateFormat) {
     val notCovered = stringResource(Res.string.coords_not_covered)
+    val clipboard = LocalClipboard.current
+    val scope = rememberCoroutineScope()
+    // A new point forgets the previous copy.
+    var copied by remember(formatted) { mutableStateOf(false) }
     Card(modifier = Modifier.fillMaxWidth()) {
         SelectionContainer {
             Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -132,6 +149,30 @@ private fun ConvertedCoordinates(formatted: FormattedCoordinates, typedAs: Coord
                             )
                         }
                     }
+            }
+        }
+        Row(
+            modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            OutlinedButton(
+                onClick = {
+                    val text = MapPointCoordinate(formatted).messageText
+                    scope.launch {
+                        clipboard.setClipEntry(createClipEntry(text, MapPointCoordinate.PREFIX))
+                        copied = true
+                    }
+                },
+            ) {
+                Text(stringResource(Res.string.copy))
+            }
+            if (copied) {
+                Text(
+                    stringResource(Res.string.coords_copied),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
         }
     }

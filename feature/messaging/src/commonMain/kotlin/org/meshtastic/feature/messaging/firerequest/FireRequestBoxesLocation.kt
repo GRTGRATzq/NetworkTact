@@ -21,16 +21,19 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import org.meshtastic.core.model.firerequest.ImpactLine
 import org.meshtastic.core.model.firerequest.Location
@@ -49,6 +52,7 @@ import org.meshtastic.core.resources.firereq_paste_help
 import org.meshtastic.core.resources.firereq_paste_into
 import org.meshtastic.core.resources.firereq_paste_none
 import org.meshtastic.core.resources.firereq_rep_direction
+import org.meshtastic.core.ui.util.rememberReadClipboardText
 import org.meshtastic.feature.messaging.coordinates.coordinateErrorText
 import org.meshtastic.core.model.firerequest.FireRequestSheet as Sheet
 
@@ -57,9 +61,7 @@ import org.meshtastic.core.model.firerequest.FireRequestSheet as Sheet
 @Composable
 internal fun LocationBox(box: Location, edit: (Location) -> Unit) {
     BoxCard(BOX_LOCATION) {
-        Help(stringResource(Res.string.firereq_paste_help))
-        PasteField(ImpactLine.G) { edit(box.copy(g = it.copy(z = box.g.z))) }
-        PasteField(ImpactLine.H) { edit(box.copy(h = it.copy(z = box.h.z))) }
+        PasteButtons(box, edit)
         Text(Sheet.POLAR, style = MaterialTheme.typography.labelLarge)
         Polar(ImpactLine.A, box.a) { edit(box.copy(a = it)) }
         Polar(ImpactLine.B, box.b) { edit(box.copy(b = it)) }
@@ -83,28 +85,37 @@ internal fun LocationBox(box: Location, edit: (Location) -> Unit) {
     }
 }
 
-/** A field to paste a copied coordinate into: once a complete one reads, it fills line [line] and empties itself. */
+/**
+ * « Coller une coordonnée » for lines G and H, at the head of the box as on the sheet's mock-up: a press reads the
+ * clipboard and fills Fuseau, Bande, Carré, X and Y of that line, Z kept. Only a press that finds no complete
+ * coordinate shows the error, until the next press.
+ */
 @Composable
-private fun PasteField(line: ImpactLine, onCoordinate: (LruLine) -> Unit) {
-    var text by remember { mutableStateOf("") }
-    Column {
-        OutlinedTextField(
-            value = text,
-            onValueChange = { pasted ->
-                val coordinate = LruCoordinate.fromText(pasted)
-                if (coordinate == null) {
-                    text = pasted
-                } else {
-                    text = ""
-                    onCoordinate(coordinate)
-                }
-            },
-            label = { Text(stringResource(Res.string.firereq_paste_into, line.name)) },
-            singleLine = true,
-            isError = text.isNotBlank(),
-            modifier = Modifier.fillMaxWidth(),
-        )
-        if (text.isNotBlank()) Help(stringResource(Res.string.firereq_paste_none), isError = true)
+private fun PasteButtons(box: Location, edit: (Location) -> Unit) {
+    val readClipboard = rememberReadClipboardText()
+    val scope = rememberCoroutineScope()
+    val current by rememberUpdatedState(box)
+    var failed by remember { mutableStateOf(false) }
+    fun paste(letter: ImpactLine) {
+        scope.launch {
+            val text = readClipboard()
+            val location = current
+            val line = if (letter == ImpactLine.G) location.g else location.h
+            val pasted = LruCoordinate.fromClipboard(line, text)
+            failed = pasted == null
+            if (pasted != null) {
+                edit(if (letter == ImpactLine.G) location.copy(g = pasted) else location.copy(h = pasted))
+            }
+        }
+    }
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Help(stringResource(Res.string.firereq_paste_help))
+        listOf(ImpactLine.G, ImpactLine.H).forEach { letter ->
+            OutlinedButton(onClick = { paste(letter) }, modifier = Modifier.fillMaxWidth()) {
+                Text(stringResource(Res.string.firereq_paste_into, letter.name))
+            }
+        }
+        if (failed) Help(stringResource(Res.string.firereq_paste_none), isError = true)
     }
 }
 
