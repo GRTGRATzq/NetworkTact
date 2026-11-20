@@ -25,6 +25,7 @@ import org.meshtastic.core.model.MessageStatus
 import org.meshtastic.core.model.Node
 import org.meshtastic.core.model.Reaction
 import org.meshtastic.core.repository.DemoMode
+import org.meshtastic.core.repository.OutgoingOutcome
 import org.meshtastic.core.repository.PacketRepository
 import org.meshtastic.core.repository.PersistedPacket
 import org.meshtastic.core.repository.PersistedPacketId
@@ -189,6 +190,8 @@ class ScreenPacketRepository(
         current().updateFilteredBySender(senderId, filtered)
 
     override suspend fun getPacketByPacketId(packetId: Int): DataPacket? = current().getPacketByPacketId(packetId)
+
+    override suspend fun getOutgoingOutcome(packetId: Int): OutgoingOutcome? = current().getOutgoingOutcome(packetId)
 
     override suspend fun getPacketByPacketIdIfUnique(packetId: Int): DataPacket? =
         current().getPacketByPacketIdIfUnique(packetId)

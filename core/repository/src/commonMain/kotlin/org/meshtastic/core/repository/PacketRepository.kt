@@ -32,6 +32,12 @@ data class PersistedPacketId(val myNodeNum: Int, val uuid: Long)
 /** A persisted packet paired with the stable row identity needed by durable background work. */
 data class PersistedPacket(val id: PersistedPacketId, val packet: DataPacket)
 
+/**
+ * What became of a message this phone sent: its row [uuid], its [status] and the radio's [routingError] (a
+ * `Routing.Error` value, or -1 while none came back).
+ */
+data class OutgoingOutcome(val uuid: Long, val status: MessageStatus, val routingError: Int)
+
 /** Stable identity of one persisted reaction row within its owning node database. */
 data class PersistedReactionId(val myNodeNum: Int, val replyId: Int, val userId: String, val emoji: String)
 
@@ -249,6 +255,12 @@ interface PacketRepository {
 
     /** Returns a packet by its mesh-layer packet ID. */
     suspend fun getPacketByPacketId(packetId: Int): DataPacket?
+
+    /**
+     * The status and radio error of the message sent with mesh-layer [packetId], or null when no such row is held (the
+     * demo's, which never waits on a radio).
+     */
+    suspend fun getOutgoingOutcome(packetId: Int): OutgoingOutcome? = null
 
     /** Returns a packet by mesh-layer ID only when exactly one row has that ID in the current node database. */
     suspend fun getPacketByPacketIdIfUnique(packetId: Int): DataPacket?

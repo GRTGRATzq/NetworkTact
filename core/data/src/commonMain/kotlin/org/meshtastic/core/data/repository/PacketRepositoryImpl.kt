@@ -40,6 +40,7 @@ import org.meshtastic.core.model.MessageStatus
 import org.meshtastic.core.model.Node
 import org.meshtastic.core.model.NodeAddress
 import org.meshtastic.core.model.Reaction
+import org.meshtastic.core.repository.OutgoingOutcome
 import org.meshtastic.core.repository.PersistedPacket
 import org.meshtastic.core.repository.PersistedPacketId
 import org.meshtastic.core.repository.PersistedReaction
@@ -350,6 +351,12 @@ class PacketRepositoryImpl(private val dbManager: DatabaseProvider, private val 
 
     override suspend fun getPacketByPacketId(packetId: Int): DataPacket? = withContext(dispatchers.io) {
         dbManager.currentDb.value.packetDao().getPacketByPacketId(packetId)?.packet?.data
+    }
+
+    override suspend fun getOutgoingOutcome(packetId: Int): OutgoingOutcome? = withContext(dispatchers.io) {
+        dbManager.currentDb.value.packetDao().getPacketByPacketId(packetId)?.packet?.let {
+            OutgoingOutcome(it.uuid, it.data.status ?: MessageStatus.UNKNOWN, it.routingError)
+        }
     }
 
     override suspend fun getPacketByPacketIdIfUnique(packetId: Int): DataPacket? = withContext(dispatchers.io) {
