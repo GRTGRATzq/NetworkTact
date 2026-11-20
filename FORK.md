@@ -709,6 +709,16 @@ du Réseau, ou bouton « Diagnostic » sous un envoi en échec. Le diagnostic n'
   Textes `name_broadcast_*` en anglais et en français. Tests JVM : `NameBroadcastTest`,
   `NameBroadcasterTest`, `TeamsViewModelTest`.
 - **CI** : `fork-apk` se déclenche désormais aussi sur les poussées vers `fix/**` et `docs/**`.
+- **R2, pas de message après un choix d'équipe** (`fix/textes-et-acces`, essai du 13 novembre) : « Nom … diffusé à tous
+  les postes » s'affichait après un changement de nom court, pas après un choix d'équipe (la radio redémarrait et le
+  nom arrivait quand même, par la diffusion propre du firmware). Cause démontrée par un test : `setOwner` met à jour
+  tout de suite la copie locale de ma radio (`handleReceivedUser`), et l'écran Équipes signale le changement après
+  l'écriture ; la diffusion automatique voyait donc le nouveau nom aussitôt et partait vers une radio sur le point de
+  redémarrer, sans rien après la reconnexion. Maintenant un nom vu avant toute coupure est gardé 20 s : si la radio se
+  coupe dans ce délai, la diffusion attend son retour et part à la reconnexion, avec le message ; sinon (radio qui ne
+  redémarre pas) elle part au bout des 20 s. L'abandon reste à 3 min. Mode démo inchangé (pas de radio à redémarrer).
+  Tests : `NameBroadcasterTest` (13), dont les deux nouveaux échouent sur l'ancien code. **Non vérifié** sur radio :
+  pourquoi le nom court marchait déjà (même chemin `setOwner`).
 
 ### 22. Un seul mode démo (`fix/demo-unique`)
 
@@ -783,6 +793,17 @@ du Réseau, ou bouton « Diagnostic » sous un envoi en échec. Le diagnostic n'
   plus tard doit y être ajoutée). Les textes ajoutés par les sections 22 et 23 : aucun. Vérifié par script : les
   380 textes ajoutés par le fork à `values/strings.xml` ont tous un équivalent français ; les 17 identiques à
   l'anglais sont des mots communs aux deux langues (Description, Info, Urgent, HDOP, Traceroute…).
+- **R1, Réglages restés en partie en anglais** (`fix/textes-et-acces`, essai du 13 novembre ; exemple « Show full
+  message timestamps ») : la vérification ci-dessus ne portait que sur les textes ajoutés par le fork, pas sur ceux
+  repris de Meshtastic que Crowdin n'avait pas traduits. Relevé par script : les `Res.string` de `feature:settings`
+  absents de `values-fr` (142), plus ceux des fenêtres communes ouvertes depuis les Réglages (partage QR/NFC,
+  autorisation, redémarrage). 141 traduits (bloc commenté « R1 » en fin de fichier). Laissés tels quels, la valeur
+  anglaise convenant : les noms de langues écrits dans leur langue (`fr_HT`, `pt_BR`, `zh_CN`, `zh_TW`) et les formats
+  sans mot (`bandwidth_option_khz`, `label_with_unit`, `unit_khz`, `redacted`, `tak_server_channel_option`,
+  `tak_server_loading`, `tak_server_test_result_bytes`, `tak_server_test_result_unknown_error`). Ensuite, les 36 de
+  `core:ui` (composants communs : nœuds, sécurité, partage, émojis, qualité de l'air) : 33 traduites (second bloc « R1 »),
+  `transport_api` (API), `transport_udp` (UDP) et `elevation_suffix` (MSL) gardées, ce sont des sigles. Les autres
+  modules (`feature:node`, `feature:messaging`, `feature:map`…) n'ont pas été relevés.
 - **Actions de `fork-apk`** : `actions/checkout` v4 → v5, `actions/setup-java` v4 → v5,
   `gradle/actions/setup-gradle` v4 → v5, `actions/upload-artifact` v4 → v6. Chaque version exécute Node.js 24
   (`runs.using: node24` dans son `action.yml`), ce qui supprime l'avertissement « Node.js 20 is deprecated ».

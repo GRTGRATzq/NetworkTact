@@ -100,6 +100,10 @@ boucle (temps d'antenne partagé).
       de la vue PC. Rouge seulement pour « urgent ».
 - [ ] Icône d'état de ma radio : connectée, connexion, veille, déconnectée, distinguables sans couleur.
 - [ ] Hors ligne : aucune erreur visible due aux requêtes de fond vers api.meshtastic.org.
+- [ ] **R1 (`fix/textes-et-acces`)**, téléphone en français : parcourir les Réglages (App, Autorisations, Disposition des
+      nœuds, Filtres, Unités, Réglages de l'appareil : Utilisateur, LoRa, Réseau, MQTT, Sécurité, Balise réseau, Serveur
+      TAK, Canaux › Partager) : plus de libellé en anglais, sauf noms propres (MQTT, TAK, ATAK, Wi-Fi). Exemple : « Afficher
+      la date et l'heure complètes des messages ». Noter tout libellé encore en anglais et l'écran où il apparaît.
 
 ## 9. Compatibilité
 - [ ] Une radio sous l'application Meshtastic officielle lit les messages `[URG]`, `[EQUIPES]`,
@@ -120,6 +124,10 @@ voient déjà. Sur le téléphone de OA, ne jamais utiliser « Infos utilisateur
 - [ ] « Diffuser mon nom » (Utilisateur ou Équipes) : confirmation obligatoire ; après envoi, bouton
       bloqué 30 s avec décompte, sur les deux écrans. Radio éteinte : « Aucune radio connectée ».
 - [ ] Changer seulement « Non joignable par message » dans Utilisateur : rien n'est diffusé.
+- [ ] **R2 à refaire (`fix/textes-et-acces`)** : Réglages → Équipes, choisir une équipe, confirmer, rester sur l'écran.
+      « Nom … envoyé à ma radio » pendant le redémarrage, puis, **après la reconnexion**, « Nom … diffusé à tous les
+      postes ». Noter le délai entre la reconnexion et le message (attendu : aussitôt). Refaire avec le nom court
+      (Utilisateur) : le message vient aussi, au plus tard 20 s après l'enregistrement si la radio ne redémarre pas.
 - [ ] Mode démo, Réglages → Équipes : choisir une équipe puis « Diffuser mon nom » : « diffusion
       simulée, rien n'est envoyé » ; OA ne reçoit rien.
 - [ ] Si OA garde l'ancien nom : noter la version du firmware des deux radios et si un message

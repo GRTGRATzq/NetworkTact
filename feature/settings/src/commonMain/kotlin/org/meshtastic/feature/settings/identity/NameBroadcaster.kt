@@ -25,6 +25,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -46,6 +47,9 @@ import org.meshtastic.proto.User
 import kotlin.time.Duration.Companion.seconds
 
 private val APPLY_TIMEOUT = NameBroadcast.APPLY_TIMEOUT_SECONDS.seconds
+
+/** How long a new name reported before any disconnection is held, in case the radio is about to restart. */
+private val RESTART_GRACE = 20.seconds
 
 /** What the last name broadcast, automatic or manual, came to. */
 sealed interface NameBroadcastEvent {
@@ -121,10 +125,7 @@ class NameBroadcaster(
     }
 
     private suspend fun broadcastOnceApplied(expected: User) {
-        val applied =
-            withTimeoutOrNull(APPLY_TIMEOUT) {
-                reportedWhileConnected().first { NameBroadcast.isApplied(it, expected) }
-            }
+        val applied = withTimeoutOrNull(APPLY_TIMEOUT) { appliedAfterRestart(expected) }
         if (applied == null) {
             _event.value = NameBroadcastEvent.NotApplied(expected.long_name)
             return
@@ -132,6 +133,30 @@ class NameBroadcaster(
         // A manual broadcast a moment ago still holds the channel back.
         lastBroadcastEpochSeconds?.let { delay(NameBroadcast.cooldownRemaining(it, clock()).seconds) }
         sendLock.withLock { send(applied, automatic = true) }
+    }
+
+    /**
+     * [expected] once my radio reports it and is back from the restart that follows the change. Writing the owner
+     * updates the phone's copy of my radio at once, before the radio restarts (R2: after a team choice, the broadcast
+     * went out then and nothing followed the reconnection). So a report seen before any disconnection is held for
+     * [RESTART_GRACE]: if the radio drops in that time, the report that counts is the one after it is back; if it does
+     * not, the radio is not restarting and the report stands. Demo mode has no radio to restart.
+     */
+    private suspend fun appliedAfterRestart(expected: User): User {
+        var restarted = false
+        while (true) {
+            val applied =
+                reportedWhileConnected()
+                    .onEach { if (it == null) restarted = true }
+                    .first { NameBroadcast.isApplied(it, expected) }
+            if (applied != null && (restarted || demoMode.isActive.value)) return applied
+            val dropped =
+                withTimeoutOrNull(RESTART_GRACE) {
+                    connectionStateProvider.connectionState.first { it !is ConnectionState.Connected }
+                }
+            if (applied != null && dropped == null) return applied
+            restarted = true
+        }
     }
 
     /** My radio's `User` as it reports it, null while it is unknown or not connected. */

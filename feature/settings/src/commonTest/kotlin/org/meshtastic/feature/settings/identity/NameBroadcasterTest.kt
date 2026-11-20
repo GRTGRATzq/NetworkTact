@@ -163,6 +163,46 @@ class NameBroadcasterTest {
     }
 
     @Test
+    fun after_a_team_change_the_broadcast_waits_for_the_radio_to_come_back_from_its_restart() = runTest {
+        val broadcaster = broadcaster()
+        val renamed = owner.withLongName("CDS TIR [OBS]")
+
+        // R2: set_owner updates the phone's copy of my radio at once, before the radio restarts; the Teams screen then
+        // reports the change. A broadcast now would go to a radio about to restart, and nothing would follow.
+        nodes.setOurNode(Node(num = myNum, user = renamed))
+        broadcaster.ownerWritten(before = owner, sent = renamed)
+        runCurrent()
+        assertTrue(radio.sentPackets.isEmpty())
+        assertEquals(NameBroadcastEvent.Waiting("CDS TIR [OBS]"), broadcaster.event.value)
+
+        advanceTimeBy(7_000)
+        service.setConnectionState(ConnectionState.Disconnected)
+        advanceTimeBy(40_000)
+        assertTrue(radio.sentPackets.isEmpty())
+
+        service.setConnectionState(ConnectionState.Connected)
+        runCurrent()
+
+        assertEquals(listOf(renamed), sentUsers())
+        assertEquals(NameBroadcastEvent.Sent("CDS TIR [OBS]", automatic = true), broadcaster.event.value)
+    }
+
+    @Test
+    fun a_radio_that_does_not_restart_after_the_change_gets_the_broadcast_once_the_wait_is_over() = runTest {
+        val broadcaster = broadcaster()
+        val renamed = owner.withLongName("CDS TIR [OBS]")
+
+        nodes.setOurNode(Node(num = myNum, user = renamed))
+        broadcaster.ownerWritten(before = owner, sent = renamed)
+        advanceTimeBy(19_000)
+        assertTrue(radio.sentPackets.isEmpty())
+
+        advanceTimeBy(2_000)
+        assertEquals(listOf(renamed), sentUsers())
+        assertEquals(NameBroadcastEvent.Sent("CDS TIR [OBS]", automatic = true), broadcaster.event.value)
+    }
+
+    @Test
     fun a_change_that_leaves_the_names_alone_broadcasts_nothing() = runTest {
         val broadcaster = broadcaster()
 
