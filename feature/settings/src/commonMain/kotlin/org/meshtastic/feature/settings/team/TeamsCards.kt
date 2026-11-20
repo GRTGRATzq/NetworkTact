@@ -188,7 +188,9 @@ internal fun MyTeamCard(state: TeamsUiState, sendResult: TeamSendResult?, onChoo
                 state.roster?.teams?.forEach { team ->
                     TeamOption(
                         label = team,
-                        selected = state.myTeam.equals(team, ignoreCase = true),
+                        // Exact text, case included (D9): « [Obs] » is not the list's OBS, so choosing OBS renames the
+                        // radio. Ignoring case here left the option selected and disabled, and the name unchanged.
+                        selected = state.myTeam == team,
                         enabled = enabled,
                         onClick = { onChooseTeam(team) },
                     )
