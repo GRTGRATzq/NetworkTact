@@ -749,6 +749,16 @@ du Réseau, ou bouton « Diagnostic » sous un envoi en échec. Le diagnostic n'
   (`DescriptionField`). Tests JVM : `ObservedFactDraftTest` (14 tests). Vérifié en local : spotless,
   detekt, tests JVM de `feature:messaging`. La variante Android n'a pas été compilée en local (pas de
   SDK Android sur ce poste) : la CI le fait.
+- **D10, touche d'action sans effet** (`fix/fait-observe-clavier`, essai du 13 novembre) : sur un Crosscall (✓) et un
+  autre modèle (« OK »), la touche d'action du clavier ne faisait rien dans la description ni dans l'heure, alors qu'elle
+  marchait dans « Lieu ». Cause démontrée par un test : le gestionnaire de focus était lu hors de l'`AlertDialog`, qui
+  est une fenêtre à part ; `clearFocus()` n'y faisait rien, et le gestionnaire fourni empêchait l'action par défaut
+  (celle de « Lieu », qui n'en fournit pas). Il est maintenant lu dans chaque champ (`rememberCloseKeyboard`), avec le
+  clavier logiciel, qui est masqué. La description étant multiligne, un clavier qui enverrait la touche comme un retour à
+  la ligne est aussi couvert : un retour tapé seul n'entre pas dans le texte et ferme le clavier ; ceux d'un texte collé
+  deviennent des espaces (`descriptionEdit`). Tests : `ObservedFactKeyboardTest` (la vraie boîte de dialogue ; les deux
+  tests de la touche échouent sur l'ancien code), `ObservedFactDraftTest` (20 tests en tout avec ceux-ci). **Non
+  vérifié** sur téléphone.
 
 ### 24. Textes français gérés par le fork, actions Node.js 24 (`fix/textes-fr`)
 
