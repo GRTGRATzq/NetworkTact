@@ -275,6 +275,7 @@
     <string name="coords_converter_intro">Saisissez une position dans un format pour la voir dans les deux autres. Hors ligne, WGS84.</string>
     <string name="coords_converter_limits">MGRS à 1 m, UTM au mètre, DMS à la seconde. UTM et MGRS s'arrêtent à 84° N et 80° S : les calottes polaires ne sont pas couvertes.</string>
     <string name="coords_converter_title">Convertisseur de coordonnées</string>
+    <string name="coords_copied">Coordonnée copiée</string>
     <string name="coords_error_band">Bande de latitude inconnue : lettres C à X, sans I ni O.</string>
     <string name="coords_error_degrees">La latitude va jusqu'à 90° et la longitude jusqu'à 180°.</string>
     <string name="coords_error_easting">L'abscisse doit être comprise entre 100000 et 900000 m.</string>

@@ -295,6 +295,7 @@ conversations
 coords_converter_intro
 coords_converter_limits
 coords_converter_title
+coords_copied
 coords_error_band
 coords_error_degrees
 coords_error_easting

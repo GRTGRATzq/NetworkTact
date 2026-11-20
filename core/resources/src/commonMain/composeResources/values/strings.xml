@@ -319,6 +319,7 @@
     <string name="coords_converter_intro">Type a position in one format to see it in the other two. Offline, WGS84.</string>
     <string name="coords_converter_limits">MGRS to 1 m, UTM to the metre, DMS to the second. UTM and MGRS stop at 84° N and 80° S: the polar caps are not covered.</string>
     <string name="coords_converter_title">Coordinate converter</string>
+    <string name="coords_copied">Coordinate copied</string>
     <string name="coords_error_band">Unknown latitude band: letters C to X, without I or O.</string>
     <string name="coords_error_degrees">Latitude goes up to 90° and longitude up to 180°.</string>
     <string name="coords_error_easting">Easting must be between 100000 and 900000 m.</string>
