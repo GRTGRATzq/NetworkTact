@@ -43,11 +43,9 @@ object MessageCoordinate {
             CoordinateFormat.DMS to Regex("""$NOT_AFTER$DMS_AXIS[NS][ ,;]+$DMS_AXIS[EWO](?![A-Z])"""),
         )
 
-    private val WHITESPACE = Regex("""\s+""")
-
     /** The first complete position in [text], or null when it holds none. */
     fun find(text: String): Found? {
-        val normalized = text.uppercase().replace(WHITESPACE, " ")
+        val normalized = text.uppercase().withSingleSpaces()
         for ((format, pattern) in candidates) {
             for (match in pattern.findAll(normalized)) {
                 val input = CoordinateParser.parse(match.value, format)

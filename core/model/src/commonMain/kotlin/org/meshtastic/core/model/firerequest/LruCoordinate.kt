@@ -68,6 +68,18 @@ object LruCoordinate {
         ?.drop(1)
         ?.let { LruLine(zone = it[0], band = it[1], square = it[2], x = it[EASTING], y = it[NORTHING]) }
 
+    /**
+     * Whether [input], typed or pasted in one box of an L R U line, is longer than any value of a box (five digits).
+     */
+    fun isLongInput(input: String): Boolean = input.trim().length > DIGITS
+
+    /**
+     * The line that [input] stands for when it is [long][isLongInput]: the coordinate found in it (a whole copied text
+     * pasted in one box), Z kept; null when it holds none, and the box is then left as it was. Never the whole text.
+     */
+    fun fromLongInput(line: LruLine, input: String): LruLine? =
+        fromText(input)?.copy(z = line.z)?.takeIf { isLongInput(input) }
+
     private const val DIGITS = 5
     private const val EASTING = 3
     private const val NORTHING = 4

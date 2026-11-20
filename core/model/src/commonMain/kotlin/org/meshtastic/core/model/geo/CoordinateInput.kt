@@ -64,6 +64,28 @@ sealed interface CoordinateInput {
     data class Invalid(val error: CoordinateError) : CoordinateInput
 }
 
+/** Characters that show nothing and that a copy or a keyboard may leave inside a text: zero-width spaces and marks. */
+private val INVISIBLE =
+    // Zero-width space, non-joiner, joiner, word joiner, byte order mark, soft hyphen; by code, as they cannot be read.
+    listOf(0x200B, 0x200C, 0x200D, 0x2060, 0xFEFF, 0x00AD).map { it.toChar() }.toSet()
+
+/**
+ * The text with every kind of space (no-break U+00A0, narrow no-break U+202F, thin U+2009, tabs, line breaks…) turned
+ * into one plain space, invisible characters dropped, and the ends trimmed. A regex `\s` covers only ASCII spaces, so a
+ * coordinate copied with no-break spaces would otherwise not be read.
+ */
+internal fun String.withSingleSpaces(): String {
+    val out = StringBuilder(length)
+    for (c in this) {
+        when {
+            c in INVISIBLE -> Unit
+            c.isWhitespace() -> if (out.isNotEmpty() && out.last() != ' ') out.append(' ')
+            else -> out.append(c)
+        }
+    }
+    return out.toString().trimEnd()
+}
+
 /** One position in all three formats. [mgrs] and [utm] are null outside 80° S–84° N, where they are undefined. */
 data class FormattedCoordinates(val point: LatLon, val mgrs: String?, val utm: String?, val dms: String) {
     companion object {
@@ -108,7 +130,7 @@ object CoordinateParser {
         """(?<${name}S>\d{1,2}(?:[.,]\d+)?) ?(?:"|″|'')? ?"""
 
     fun parse(text: String, format: CoordinateFormat): CoordinateInput {
-        val normalized = text.trim().uppercase().replace(Regex("""\s+"""), " ")
+        val normalized = text.uppercase().withSingleSpaces()
         if (normalized.isEmpty()) return CoordinateInput.Invalid(CoordinateError.EMPTY)
         return when (format) {
             CoordinateFormat.MGRS -> parseMgrs(normalized.replace(" ", ""))
