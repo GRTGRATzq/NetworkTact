@@ -86,7 +86,8 @@ fun RadioConfigItemList(
     val enabled = state.connected && !state.responseState.isWaiting() && !isManaged
 
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        ExpressiveSection(title = stringResource(Res.string.configuration)) {
+        // A3: the Settings sections open and close; only this first one is open at first.
+        ExpressiveSection(title = stringResource(Res.string.configuration), collapsible = true) {
             if (isManaged) {
                 ManagedMessage()
             }
@@ -142,7 +143,11 @@ private fun ColumnScope.ModuleSettingsContent(enabled: Boolean, onNavigate: (Rou
 
 @Composable
 private fun BackupRestoreSection(isManaged: Boolean, enabled: Boolean, onImport: () -> Unit, onExport: () -> Unit) {
-    ExpressiveSection(title = stringResource(Res.string.backup_restore)) {
+    ExpressiveSection(
+        title = stringResource(Res.string.backup_restore),
+        collapsible = true,
+        initiallyExpanded = false,
+    ) {
         if (isManaged) {
             ManagedMessage()
         }
@@ -179,7 +184,11 @@ private fun ColumnScope.AdministrationContent(enabled: Boolean, onNavigate: (Rou
 
 @Composable
 private fun AdvancedSection(isManaged: Boolean, isOtaCapable: Boolean, enabled: Boolean, onNavigate: (Route) -> Unit) {
-    ExpressiveSection(title = stringResource(Res.string.advanced_title)) {
+    ExpressiveSection(
+        title = stringResource(Res.string.advanced_title),
+        collapsible = true,
+        initiallyExpanded = false,
+    ) {
         if (isManaged) {
             ManagedMessage()
         }

@@ -160,7 +160,7 @@ internal fun ColumnScope.PermissionsSettingsContent() {
         )
     }
 
-    ExpressiveSection(title = stringResource(Res.string.permissions)) {
+    ExpressiveSection(title = stringResource(Res.string.permissions), collapsible = true, initiallyExpanded = false) {
         ListItem(
             text = stringResource(Res.string.permissions),
             supportingText =
