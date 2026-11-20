@@ -791,10 +791,12 @@
     <string name="firereq_reply_waiting">%1$s: waiting</string>
     <string name="firereq_resend_part">Resend part %1$d</string>
     <string name="firereq_send">Send the request</string>
+    <string name="firereq_sending_part">Sending part %1$d / %2$d…</string>
     <string name="firereq_shortcut">Fire request</string>
     <string name="firereq_size">%1$d bytes · %2$d messages</string>
     <string name="firereq_title">Fire request</string>
     <string name="firereq_type_help">Several choices allowed, letters as well as types. The letters refer to the location lines of box 7.</string>
+    <string name="firereq_waiting_part">Part %1$d / %2$d waiting (the radio refused it as too fast), new try %3$d / 3…</string>
     <string name="firereq_zone">Format</string>
     <string name="firereq_zone_help">loc: local time · Z: Zulu time · fra: French time. The choice is kept for the next requests.</string>
     <!-- FIRMWARE -->

@@ -761,10 +761,12 @@ firereq_reply_title
 firereq_reply_waiting
 firereq_resend_part
 firereq_send
+firereq_sending_part
 firereq_shortcut
 firereq_size
 firereq_title
 firereq_type_help
+firereq_waiting_part
 firereq_zone
 firereq_zone_help
 ### FIRMWARE ###

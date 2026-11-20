@@ -1867,6 +1867,8 @@
     <string name="firereq_preview_summary">Demande %1$s : %2$d octets, découpée en %3$d messages entre deux cases. Voici exactement ce qui part par radio.</string>
     <string name="firereq_preview_part">Message %1$d / %2$d</string>
     <string name="firereq_preview_part_size">%1$d octets sur 200</string>
+    <string name="firereq_sending_part">Envoi de la partie %1$d / %2$d…</string>
+    <string name="firereq_waiting_part">Partie %1$d / %2$d en attente (la radio l\'a refusée : envoi trop rapide), nouvel essai %3$d / 3…</string>
     <string name="firereq_preview_note">Les 11 cases partent toujours, une case vide sous la forme « non rempli ». Libellés et codes sont ceux de la fiche ; le destinataire voit les codes en clair.</string>
     <string name="firereq_shortcut">Demande de tir</string>
     <string name="firereq_block_disconnected">Radio non connectée : envoi impossible.</string>

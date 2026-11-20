@@ -18,6 +18,7 @@ package org.meshtastic.feature.messaging.firerequest
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -41,6 +42,7 @@ import org.meshtastic.core.model.team.TeamSuffix
 import org.meshtastic.core.repository.ConnectionStateProvider
 import org.meshtastic.core.repository.FireRequestPrefs
 import org.meshtastic.core.repository.NodeRepository
+import org.meshtastic.core.repository.PacketRepository
 import org.meshtastic.core.repository.SCREEN_DATA
 import org.meshtastic.core.repository.usecase.SendMessageUseCase
 
@@ -58,7 +60,21 @@ class FireRequestViewModel(
     @Named(SCREEN_DATA) private val prefs: FireRequestPrefs,
     @Named(SCREEN_DATA) private val sendMessageUseCase: SendMessageUseCase,
     @Named(SCREEN_DATA) connectionStateProvider: ConnectionStateProvider,
+    @Named(SCREEN_DATA) private val packetRepository: PacketRepository,
 ) : ViewModel() {
+
+    /** Spaces the parts out and sends again those the radio refuses for sending too fast. */
+    private val sender =
+        FireRequestSender(
+            send = { text -> sendMessageUseCase(text, sendingTo) },
+            outcome = packetRepository::getOutgoingOutcome,
+            discard = { uuid -> packetRepository.deleteMessages(listOf(uuid)) },
+        )
+
+    private var sendingTo = ""
+
+    /** The part being sent (« partie 2/3 en attente »); null when nothing is being sent. */
+    val progress: StateFlow<FireRequestProgress?> = sender.progress
 
     private val _request = MutableStateFlow(prefs.draft.value ?: FireRequest(requestGdh = gdhNow(prefs.gdhZone.value)))
     val request: StateFlow<FireRequest> = _request.asStateFlow()
@@ -149,7 +165,13 @@ class FireRequestViewModel(
         val contactKey = directContactKey(node, nodeRepository.ourNodeInfo.value)
         val request = _request.value
         // Computed again from the request sent, not from the preview flow, which may lag one change behind.
-        FireRequestPreview.of(request).parts.forEach { sendMessageUseCase(it, contactKey) }
+        // In the view model's scope: leaving the screen must not drop the parts still to send.
+        viewModelScope
+            .async {
+                sendingTo = contactKey
+                sender.sendAll(FireRequestPreview.of(request).parts)
+            }
+            .await()
         prefs.recordSent(request)
         return contactKey
     }

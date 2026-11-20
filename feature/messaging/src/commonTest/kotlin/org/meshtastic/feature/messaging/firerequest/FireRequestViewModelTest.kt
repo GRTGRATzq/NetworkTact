@@ -33,6 +33,7 @@ import org.meshtastic.core.model.firerequest.Gdh
 import org.meshtastic.core.model.firerequest.GdhZone
 import org.meshtastic.core.repository.ConnectionStateProvider
 import org.meshtastic.core.repository.FireRequestPrefs
+import org.meshtastic.core.repository.PacketRepository
 import org.meshtastic.core.repository.usecase.SendMessageUseCase
 import org.meshtastic.core.testing.FakeNodeRepository
 import kotlin.test.AfterTest
@@ -81,6 +82,7 @@ class FireRequestViewModelTest {
     private val connection = MutableStateFlow<ConnectionState>(ConnectionState.Connected)
     private val connectionStateProvider: ConnectionStateProvider = mock(MockMode.autofill)
     private val sendMessageUseCase: SendMessageUseCase = mock(MockMode.autofill)
+    private val packetRepository: PacketRepository = mock(MockMode.autofill)
 
     @BeforeTest
     fun setUp() {
@@ -94,7 +96,7 @@ class FireRequestViewModelTest {
     }
 
     private fun viewModel(prefs: FireRequestPrefs) =
-        FireRequestViewModel(nodeRepository, prefs, sendMessageUseCase, connectionStateProvider)
+        FireRequestViewModel(nodeRepository, prefs, sendMessageUseCase, connectionStateProvider, packetRepository)
 
     @Test
     fun `an empty form starts with the request date-time group at now in the chosen zone`() {

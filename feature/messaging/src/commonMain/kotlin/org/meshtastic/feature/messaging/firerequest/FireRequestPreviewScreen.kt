@@ -55,6 +55,8 @@ import org.meshtastic.core.resources.firereq_preview_subtitle
 import org.meshtastic.core.resources.firereq_preview_summary
 import org.meshtastic.core.resources.firereq_preview_title
 import org.meshtastic.core.resources.firereq_send
+import org.meshtastic.core.resources.firereq_sending_part
+import org.meshtastic.core.resources.firereq_waiting_part
 import org.meshtastic.core.ui.component.MainAppBar
 
 /**
@@ -88,10 +90,12 @@ fun FireRequestRoute(
         val recipient by viewModel.recipient.collectAsStateWithLifecycle()
         val scope = rememberCoroutineScope()
         var sending by remember { mutableStateOf(false) }
+        val progress by viewModel.progress.collectAsStateWithLifecycle()
         FireRequestPreviewScreen(
             number = request.number,
             recipient = recipient?.name.orEmpty(),
             preview = preview,
+            progress = progress,
             canSend = block == null && !sending,
             onEdit = { previewing = false },
             onSend = {
@@ -117,6 +121,7 @@ fun FireRequestPreviewScreen(
     onEdit: () -> Unit,
     onSend: () -> Unit,
     modifier: Modifier = Modifier,
+    progress: FireRequestProgress? = null,
 ) {
     Scaffold(
         modifier = modifier,
@@ -134,14 +139,23 @@ fun FireRequestPreviewScreen(
         },
         bottomBar = {
             Surface(tonalElevation = 3.dp) {
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(12.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    OutlinedButton(onClick = onEdit, modifier = Modifier.weight(1f)) {
-                        Text(stringResource(Res.string.firereq_edit))
+                Column {
+                    if (progress != null) {
+                        Text(
+                            progressText(progress),
+                            modifier = Modifier.fillMaxWidth().padding(start = 12.dp, top = 12.dp, end = 12.dp),
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
                     }
-                    PrimaryAction(stringResource(Res.string.firereq_send), canSend, onSend, Modifier.weight(2f))
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(12.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        OutlinedButton(onClick = onEdit, modifier = Modifier.weight(1f)) {
+                            Text(stringResource(Res.string.firereq_edit))
+                        }
+                        PrimaryAction(stringResource(Res.string.firereq_send), canSend, onSend, Modifier.weight(2f))
+                    }
                 }
             }
         },
@@ -156,6 +170,14 @@ fun FireRequestPreviewScreen(
             item { Help(stringResource(Res.string.firereq_preview_note)) }
         }
     }
+}
+
+/** « Envoi de la partie 2 / 3… », or the part waiting to be sent again after the radio refused it as too fast. */
+@Composable
+private fun progressText(progress: FireRequestProgress): String = if (progress.waiting) {
+    stringResource(Res.string.firereq_waiting_part, progress.part, progress.count, progress.retry)
+} else {
+    stringResource(Res.string.firereq_sending_part, progress.part, progress.count)
 }
 
 @Composable

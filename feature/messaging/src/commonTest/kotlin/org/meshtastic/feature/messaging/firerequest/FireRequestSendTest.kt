@@ -31,6 +31,7 @@ import org.meshtastic.core.model.ConnectionState
 import org.meshtastic.core.model.firerequest.Command
 import org.meshtastic.core.model.firerequest.FireRequest
 import org.meshtastic.core.repository.ConnectionStateProvider
+import org.meshtastic.core.repository.PacketRepository
 import org.meshtastic.core.repository.usecase.SendMessageUseCase
 import org.meshtastic.core.testing.FakeNodeRepository
 import org.meshtastic.core.testing.TestDataFactory
@@ -58,6 +59,9 @@ class FireRequestSendTest {
     private val connection = MutableStateFlow<ConnectionState>(ConnectionState.Connected)
     private val connectionStateProvider: ConnectionStateProvider = mock(MockMode.autofill)
     private val send = RecordingSendMessageUseCase()
+
+    /** Holds nothing for the packets sent, as in demo mode: the sender does not wait. */
+    private val packetRepository: PacketRepository = mock(MockMode.autofill)
     private val key = byteArrayOf(1, 2, 3).toByteString()
 
     private val ours = TestDataFactory.createTestNode(num = 1, userId = "!00000001", longName = "PC-0")
@@ -87,7 +91,7 @@ class FireRequestSendTest {
     }
 
     private fun viewModel(prefs: FakeFireRequestPrefs = FakeFireRequestPrefs(draft = draft)) =
-        FireRequestViewModel(nodeRepository, prefs, send, connectionStateProvider)
+        FireRequestViewModel(nodeRepository, prefs, send, connectionStateProvider, packetRepository)
 
     @Test
     fun `the direct conversation gives the recipient, its name without team in the Destinataire box`() {
