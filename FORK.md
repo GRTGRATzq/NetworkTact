@@ -65,6 +65,15 @@ Le détail de chaque changement est dans l'historique Git de ce dépôt.
   (`ALPHA-1 [Alpha]`), envoyé par la fonction existante de modification du propriétaire. Seul le
   nom long change, dans la limite de 39 octets UTF-8 (prévenu avant toute troncature). Rien n'est
   envoyé si la radio n'est pas connectée.
+- **D9, équipe qui ne diffère que par la casse** (`fix/equipe-casse`, essai du 13 novembre) : Drone portait
+  `Drone [Obs]` ; après adoption de `PC;OBS;TIR`, choisir OBS laissait `[Obs]`, sur Drone comme sur la vue PC.
+  Cause démontrée par un test : dans le choix de l'équipe, une option était cochée quand l'équipe déclarée lui était
+  égale sans tenir compte de la casse ; OBS paraissait donc déjà choisie, et une option cochée est désactivée (choisir
+  l'équipe en cours n'envoie rien). Le contournement (« aucune », puis OBS) passait par une équipe différente.
+  Maintenant une option n'est cochée que si le texte est identique : choisir OBS renomme la radio en `Drone [OBS]`.
+  Inchangé : « mon équipe n'est plus dans la liste » ignore toujours la casse (`[Obs]` n'y est pas signalé). Test :
+  `MyTeamCardCaseTest` (échoue sur l'ancien code). **Non expliqué** : pourquoi CDS TIR (`[Tir]` → `TIR`) a marché,
+  puisque le même code s'appliquait ; à regarder si l'essai sur CDS TIR diffère.
 - **Affichage** : le suffixe est retiré du nom et l'équipe est affichée après lui
   (« ALPHA-1 · Équipe Alpha ») dans la messagerie et la vue PC. Filtre « Équipe » dans la
   messagerie.

@@ -37,6 +37,10 @@ boucle (temps d'antenne partagé).
 - [ ] A diffuse `[EQUIPES] Alpha;Bravo` ; B propose l'adoption avec émetteur et heure.
 - [ ] B choisit son équipe : le nom long devient `ALPHA-1 [Alpha]`, affiché « ALPHA-1 · Équipe Alpha ».
 - [ ] Nom long trop long (> 39 octets) : prévenu avant troncature. Radio non connectée : rien envoyé.
+- [ ] **D9 à refaire (`fix/equipe-casse`)**, sur Drone : nom long `Drone [Obs]`, liste `PC;OBS;TIR` adoptée. Dans
+      Réglages › Équipes, OBS n'est **pas** cochée et reste touchable ; la choisir, confirmer : le nom devient
+      `Drone [OBS]` sur Drone et sur la vue PC, sans redémarrage ni passage par « aucune ». Choisir de nouveau OBS : rien
+      n'est renvoyé (option cochée et grisée). Même essai sur CDS TIR (`[Tir]` → `TIR`).
 
 ## 4. Coordonnées et faits observés (§7, §12)
 - [ ] Convertisseur : un point connu en UTM, MGRS et DMS, saisie DMS sans symboles, erreur précise.
