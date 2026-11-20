@@ -55,6 +55,7 @@ import org.meshtastic.core.resources.info
 import org.meshtastic.core.resources.modules_already_unlocked
 import org.meshtastic.core.resources.modules_unlocked
 import org.meshtastic.core.resources.node_layout_section_title
+import org.meshtastic.core.resources.open_source_licenses
 import org.meshtastic.core.resources.preferences_language
 import org.meshtastic.core.resources.remotely_administrating
 import org.meshtastic.core.resources.theme
@@ -73,6 +74,7 @@ import org.meshtastic.core.ui.icon.Language
 import org.meshtastic.core.ui.icon.List
 import org.meshtastic.core.ui.icon.Memory
 import org.meshtastic.core.ui.icon.MeshtasticIcons
+import org.meshtastic.core.ui.icon.Notes
 import org.meshtastic.core.ui.icon.PermScanWifi
 import org.meshtastic.core.ui.icon.Wifi
 import org.meshtastic.core.ui.util.rememberShowToastResource
@@ -292,19 +294,21 @@ fun DesktopSettingsScreen(
                     hiddenFeaturesUnlocked = hiddenFeaturesUnlocked,
                     onUnlockHiddenFeatures = { settingsViewModel.unlockHiddenFeatures() },
                     onNavigateToAbout = { onNavigate(SettingsRoute.About) },
+                    onNavigateToLicenses = { onNavigate(SettingsRoute.Acknowledgements) },
                 )
             }
         }
     }
 }
 
-/** Desktop App Info section: About link and version with hidden-features unlock easter egg. */
+/** Desktop App Info section: About and licences links, and version with hidden-features unlock easter egg. */
 @Composable
 private fun DesktopAppInfoSection(
     appVersionName: String,
     hiddenFeaturesUnlocked: Boolean,
     onUnlockHiddenFeatures: () -> Unit,
     onNavigateToAbout: () -> Unit,
+    onNavigateToLicenses: () -> Unit,
 ) {
     ExpressiveSection(title = stringResource(Res.string.info)) {
         ListItem(
@@ -313,6 +317,15 @@ private fun DesktopAppInfoSection(
             trailingIcon = MeshtasticIcons.ChevronRight,
         ) {
             onNavigateToAbout()
+        }
+
+        // NetworkTact (D11): the licences of the libraries, otherwise only under About › Acknowledgements.
+        ListItem(
+            text = stringResource(Res.string.open_source_licenses),
+            leadingIcon = MeshtasticIcons.Notes,
+            trailingIcon = MeshtasticIcons.ChevronRight,
+        ) {
+            onNavigateToLicenses()
         }
 
         DesktopAppVersionButton(

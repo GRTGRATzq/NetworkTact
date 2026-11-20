@@ -1621,6 +1621,7 @@
     <string name="open_settings">Open settings</string>
     <string name="open_source_description">NetworkTact is built with the following open source libraries. Tap any library to view its license.</string>
     <string name="open_source_libraries">Open Source Libraries</string>
+    <string name="open_source_licenses">Open-source licences</string>
     <string name="open_wifi_settings">Open Wi-Fi settings</string>
     <string name="options">Options</string>
     <!-- ORGCHART -->
