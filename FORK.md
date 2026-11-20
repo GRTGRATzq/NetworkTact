@@ -793,6 +793,15 @@ du Réseau, ou bouton « Diagnostic » sous un envoi en échec. Le diagnostic n'
   plus tard doit y être ajoutée). Les textes ajoutés par les sections 22 et 23 : aucun. Vérifié par script : les
   380 textes ajoutés par le fork à `values/strings.xml` ont tous un équivalent français ; les 17 identiques à
   l'anglais sont des mots communs aux deux langues (Description, Info, Urgent, HDOP, Traceroute…).
+- **R1, Réglages restés en partie en anglais** (`fix/textes-et-acces`, essai du 13 novembre ; exemple « Show full
+  message timestamps ») : la vérification ci-dessus ne portait que sur les textes ajoutés par le fork, pas sur ceux
+  repris de Meshtastic que Crowdin n'avait pas traduits. Relevé par script : les `Res.string` de `feature:settings`
+  absents de `values-fr` (142), plus ceux des fenêtres communes ouvertes depuis les Réglages (partage QR/NFC,
+  autorisation, redémarrage). 141 traduits (bloc commenté « R1 » en fin de fichier). Laissés tels quels, la valeur
+  anglaise convenant : les noms de langues écrits dans leur langue (`fr_HT`, `pt_BR`, `zh_CN`, `zh_TW`) et les formats
+  sans mot (`bandwidth_option_khz`, `label_with_unit`, `unit_khz`, `redacted`, `tak_server_channel_option`,
+  `tak_server_loading`, `tak_server_test_result_bytes`, `tak_server_test_result_unknown_error`). Hors Réglages, il en
+  reste dans `core:ui` (émojis, sécurité des nœuds, qualité de l'air…), non traités ici.
 - **Actions de `fork-apk`** : `actions/checkout` v4 → v5, `actions/setup-java` v4 → v5,
   `gradle/actions/setup-gradle` v4 → v5, `actions/upload-artifact` v4 → v6. Chaque version exécute Node.js 24
   (`runs.using: node24` dans son `action.yml`), ce qui supprime l'avertissement « Node.js 20 is deprecated ».

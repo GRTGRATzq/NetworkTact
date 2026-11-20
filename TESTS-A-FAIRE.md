@@ -100,6 +100,10 @@ boucle (temps d'antenne partagé).
       de la vue PC. Rouge seulement pour « urgent ».
 - [ ] Icône d'état de ma radio : connectée, connexion, veille, déconnectée, distinguables sans couleur.
 - [ ] Hors ligne : aucune erreur visible due aux requêtes de fond vers api.meshtastic.org.
+- [ ] **R1 (`fix/textes-et-acces`)**, téléphone en français : parcourir les Réglages (App, Autorisations, Disposition des
+      nœuds, Filtres, Unités, Réglages de l'appareil : Utilisateur, LoRa, Réseau, MQTT, Sécurité, Balise réseau, Serveur
+      TAK, Canaux › Partager) : plus de libellé en anglais, sauf noms propres (MQTT, TAK, ATAK, Wi-Fi). Exemple : « Afficher
+      la date et l'heure complètes des messages ». Noter tout libellé encore en anglais et l'écran où il apparaît.
 
 ## 9. Compatibilité
 - [ ] Une radio sous l'application Meshtastic officielle lit les messages `[URG]`, `[EQUIPES]`,
