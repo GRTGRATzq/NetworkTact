@@ -1120,6 +1120,21 @@ du Réseau, ou bouton « Diagnostic » sous un envoi en échec. Le diagnostic n'
 - **Limite connue** : un refus qui arriverait plus de 2 s après l'envoi n'est pas vu par la file ; la partie reste alors en
   échec avec « Renvoyer », comme avant la correction.
 
+### 32. Réglages en sections repliables (`feat/reglages-sections`, A3)
+
+- **Demande** (essai du 13 novembre) : l'écran Réglages est long ; ses sections s'ouvrent et se ferment.
+- **Sections**, dans l'ordre : Configuration ; Sauvegarder et restaurer ; Avancé ; Mode démo ; Autorisations ; App ;
+  Information. Chacune garde ses sous-parties (Configuration : réglages de la radio, de l'appareil, des modules,
+  administration). Seule Configuration est ouverte à la première ouverture ; le choix de l'utilisateur est gardé à la
+  rotation et au retour sur l'écran (pas d'un lancement à l'autre). Le titre de section est un bouton (chevron, état
+  « Étendu » / « Réduit » lu par TalkBack, 48 dp de haut).
+- **Recherche** : elle passe par son catalogue de routes (`SettingsSearchCatalog`), indépendant de l'affichage ; elle
+  trouve donc toujours les écrans, sections fermées comprises.
+- **Bureau** : Configuration, Sauvegarder et restaurer et Avancé, communs aux deux, se replient aussi ; les autres
+  sections du bureau ne changent pas.
+- **Code** : `ExpressiveSection(collapsible, initiallyExpanded)` (`feature:settings`), utilisé dans `RadioConfig`,
+  `PermissionsSection`, `SettingsScreen` et `AppInfoSection`. Test : `ExpressiveSectionCollapseTest`.
+
 ## État d'avancement au 11 novembre 2026
 
 - **Branches** : les sections 1 à 20 sont chacune sur une branche `feat/…`, empilées les unes

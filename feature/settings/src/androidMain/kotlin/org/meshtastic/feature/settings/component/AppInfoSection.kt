@@ -72,7 +72,7 @@ fun AppInfoSection(
     onNavigateToLicenses: () -> Unit,
     demoActive: Boolean = false,
 ) {
-    ExpressiveSection(title = stringResource(Res.string.info)) {
+    ExpressiveSection(title = stringResource(Res.string.info), collapsible = true, initiallyExpanded = false) {
         DemoLocked(locked = demoActive) { AppSystemItems(onShowAppIntro) }
 
         ListItem(

@@ -278,7 +278,11 @@ fun SettingsScreen(
 
             // App-local settings are only relevant when configuring the local node
             if (state.isLocal) {
-                ExpressiveSection(title = stringResource(Res.string.tactdemo_setting)) {
+                ExpressiveSection(
+                    title = stringResource(Res.string.tactdemo_setting),
+                    collapsible = true,
+                    initiallyExpanded = false,
+                ) {
                     SwitchPreference(
                         title = stringResource(Res.string.tactdemo_setting),
                         summary = stringResource(Res.string.tactdemo_setting_summary),
@@ -294,7 +298,11 @@ fun SettingsScreen(
                     PermissionsSettingsContent()
                 }
 
-                ExpressiveSection(title = stringResource(Res.string.app_settings)) {
+                ExpressiveSection(
+                    title = stringResource(Res.string.app_settings),
+                    collapsible = true,
+                    initiallyExpanded = false,
+                ) {
                     DemoLocked(locked = demoActive) {
                         PrivacySettingsContent(
                             analyticsAvailable = appFunctionsAvailable,
