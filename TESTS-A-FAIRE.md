@@ -344,6 +344,17 @@ en JVM, à voir à l'œil et au doigt. Fiche papier à côté pour la relecture.
       l'envoi, le GDH attribution arrive, puis le GDH fin 20 s plus tard. Vers CHARLIE-3 : parties en échec, aucune réponse.
 - [ ] Sortie de la démo : brouillon et dernière demande de la démo oubliés, ceux du vrai mode intacts.
 
+## 21. Réglages en sections repliables (FORK.md §32, A3)
+
+- [ ] Ouvrir Réglages : seule « Configuration » est ouverte ; Sauvegarder et restaurer, Avancé, Mode démo,
+      Autorisations, App, Information sont fermées, titre et chevron visibles.
+- [ ] Toucher un titre : la section s'ouvre ; le toucher de nouveau : elle se ferme. Tourner le téléphone, ou ouvrir un
+      sous-écran puis revenir : les sections restent comme laissées.
+- [ ] Recherche (« licence », « équipes », « LoRa », « filtre ») avec toutes les sections fermées : l'entrée est trouvée
+      et s'ouvre.
+- [ ] Mode démo actif : ses sections restent verrouillées comme avant une fois ouvertes. TalkBack : « Étendu » ou
+      « Réduit » annoncé sur le titre.
+
 ## Avant fusion dans `main`
 - [ ] Les runs 70 et 71 ont été annulés par une poussée plus récente (rien à corriger).
 - [ ] Compiler la variante google et lancer `core:ui` / `core:navigation` à la main si nécessaire.
