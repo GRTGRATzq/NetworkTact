@@ -16,8 +16,35 @@
  */
 package org.meshtastic.core.ui.util
 
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.ClipEntry
+import java.awt.HeadlessException
+import java.awt.Toolkit
+import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.StringSelection
+import java.awt.datatransfer.UnsupportedFlavorException
+import java.io.IOException
+
+@Composable
+actual fun rememberReadClipboardText(): suspend () -> String? = {
+    try {
+        val clipboard = Toolkit.getDefaultToolkit().systemClipboard
+        if (clipboard.isDataFlavorAvailable(DataFlavor.stringFlavor)) {
+            clipboard.getData(DataFlavor.stringFlavor) as? String
+        } else {
+            null
+        }
+    } catch (_: HeadlessException) {
+        null
+    } catch (_: IllegalStateException) {
+        // The clipboard is momentarily held by another application.
+        null
+    } catch (_: UnsupportedFlavorException) {
+        null
+    } catch (_: IOException) {
+        null
+    }
+}
 
 // `sensitive` has no AWT equivalent — the desktop clipboard carries no such flag — so it is accepted and ignored.
 @OptIn(androidx.compose.ui.ExperimentalComposeUiApi::class)

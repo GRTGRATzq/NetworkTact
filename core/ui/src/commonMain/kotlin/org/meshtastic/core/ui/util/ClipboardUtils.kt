@@ -16,7 +16,15 @@
  */
 package org.meshtastic.core.ui.util
 
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.ClipEntry
+
+/**
+ * Returns a function that reads the system clipboard as plain text, or null when it is empty or holds no text.
+ *
+ * Read only on an explicit user action (a "Paste" button): Android shows a "pasted from" notice on every read.
+ */
+@Composable expect fun rememberReadClipboardText(): suspend () -> String?
 
 /**
  * Creates a platform-appropriate [ClipEntry] for the given text.
