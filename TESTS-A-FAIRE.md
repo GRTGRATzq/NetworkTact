@@ -120,6 +120,10 @@ voient déjà. Sur le téléphone de OA, ne jamais utiliser « Infos utilisateur
 - [ ] « Diffuser mon nom » (Utilisateur ou Équipes) : confirmation obligatoire ; après envoi, bouton
       bloqué 30 s avec décompte, sur les deux écrans. Radio éteinte : « Aucune radio connectée ».
 - [ ] Changer seulement « Non joignable par message » dans Utilisateur : rien n'est diffusé.
+- [ ] **R2 à refaire (`fix/textes-et-acces`)** : Réglages → Équipes, choisir une équipe, confirmer, rester sur l'écran.
+      « Nom … envoyé à ma radio » pendant le redémarrage, puis, **après la reconnexion**, « Nom … diffusé à tous les
+      postes ». Noter le délai entre la reconnexion et le message (attendu : aussitôt). Refaire avec le nom court
+      (Utilisateur) : le message vient aussi, au plus tard 20 s après l'enregistrement si la radio ne redémarre pas.
 - [ ] Mode démo, Réglages → Équipes : choisir une équipe puis « Diffuser mon nom » : « diffusion
       simulée, rien n'est envoyé » ; OA ne reçoit rien.
 - [ ] Si OA garde l'ancien nom : noter la version du firmware des deux radios et si un message

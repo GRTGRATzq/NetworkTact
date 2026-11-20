@@ -709,6 +709,16 @@ du Réseau, ou bouton « Diagnostic » sous un envoi en échec. Le diagnostic n'
   Textes `name_broadcast_*` en anglais et en français. Tests JVM : `NameBroadcastTest`,
   `NameBroadcasterTest`, `TeamsViewModelTest`.
 - **CI** : `fork-apk` se déclenche désormais aussi sur les poussées vers `fix/**` et `docs/**`.
+- **R2, pas de message après un choix d'équipe** (`fix/textes-et-acces`, essai du 13 novembre) : « Nom … diffusé à tous
+  les postes » s'affichait après un changement de nom court, pas après un choix d'équipe (la radio redémarrait et le
+  nom arrivait quand même, par la diffusion propre du firmware). Cause démontrée par un test : `setOwner` met à jour
+  tout de suite la copie locale de ma radio (`handleReceivedUser`), et l'écran Équipes signale le changement après
+  l'écriture ; la diffusion automatique voyait donc le nouveau nom aussitôt et partait vers une radio sur le point de
+  redémarrer, sans rien après la reconnexion. Maintenant un nom vu avant toute coupure est gardé 20 s : si la radio se
+  coupe dans ce délai, la diffusion attend son retour et part à la reconnexion, avec le message ; sinon (radio qui ne
+  redémarre pas) elle part au bout des 20 s. L'abandon reste à 3 min. Mode démo inchangé (pas de radio à redémarrer).
+  Tests : `NameBroadcasterTest` (13), dont les deux nouveaux échouent sur l'ancien code. **Non vérifié** sur radio :
+  pourquoi le nom court marchait déjà (même chemin `setOwner`).
 
 ### 22. Un seul mode démo (`fix/demo-unique`)
 
