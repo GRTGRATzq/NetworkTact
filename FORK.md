@@ -1049,6 +1049,22 @@ du Réseau, ou bouton « Diagnostic » sous un envoi en échec. Le diagnostic n'
   Mode démo inchangé : le dépôt de démo ne tient aucun état de radio (`getOutgoingOutcome` rend null), rien n'attend.
   Seul ajout hors `feature:messaging` : `PacketRepository.getOutgoingOutcome` (valeur par défaut null, lecture dans
   `PacketRepositoryImpl`, relais dans `ScreenPacketRepository`).
+- **D13, « Coller une coordonnée »** (`fix/dt-coller-coordonnee`, partie de `fix/dt-espacement`). Cause démontrée par un
+  test : le texte du champ était cherché par `MessageCoordinate.find` après une normalisation par l'expression `\s`, qui
+  ne couvre que les espaces ASCII ; le même texte avec des espaces insécables (U+00A0), fines insécables (U+202F), fines
+  (U+2009), ou des caractères de largeur nulle ne rendait **aucune** coordonnée. Maintenant `withSingleSpaces()`
+  (`core:model`, `CoordinateInput.kt`) remplace toute espace Unicode et tout saut de ligne par une espace simple et retire
+  les caractères invisibles ; `CoordinateParser.parse` et `MessageCoordinate.find` s'en servent, donc le convertisseur,
+  « Voir sur la carte » des messages et la demande de tir lisent pareil, sans code dupliqué. Le champ « Fuseau », la bande,
+  le carré, X et Y ne prennent plus un texte entier : un texte de plus de 5 caractères (`LruCoordinate.isLongInput`)
+  collé dans l'une de ces cases remplit toute la ligne avec le MGRS qu'il contient (`fromLongInput`, Z conservé), ou est
+  ignoré s'il n'en contient pas ; il n'entre jamais dans la case. Le champ « Coller une coordonnée » garde son message
+  « Aucune coordonnée complète dans le presse-papiers » quand le texte n'a pas de MGRS ni d'autre coordonnée complète.
+  `LruCoordinatePasteTest` prend les textes que l'application produit elle-même (`MapPointCoordinate.messageText`, résultats
+  du convertisseur, sur 400 points du globe), le MGRS avec et sans espaces, et les variantes d'espaces et de sauts de
+  ligne. **Non vérifié** : si ce sont bien ces caractères que le presse-papiers du téléphone contient. Le texte copié par
+  l'application ne contient que des espaces ordinaires ; la correction couvre ce que le clavier ou le système peuvent y
+  ajouter. Si l'essai 18.9 échoue encore, relever ce que le champ « Fuseau » reçoit.
 - **Limite connue** : un refus qui arriverait plus de 2 s après l'envoi n'est pas vu par la file ; la partie reste alors en
   échec avec « Renvoyer », comme avant la correction.
 

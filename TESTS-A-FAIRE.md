@@ -259,6 +259,11 @@ en JVM, à voir à l'œil et au doigt. Fiche papier à côté pour la relecture.
       redémarrage ; un GDH illisible est signalé sans bloquer l'envoi.
 - [ ] « Envoyer » grisé avec sa raison : n° de tir vide ; décalage Rep sans direction ; plus de 9 parties ; radio
       déconnectée. Avertissement sous un champ saisi avec une espace (Rep, heures `..H..`, morceaux L R U).
+- [ ] **18.9 à refaire (D13, `fix/dt-coller-coordonnee`)** : lignes G **et** H, avec le texte copié par l'appui long sur la
+      carte (« Point carte · MGRS … ») **et** avec celui copié depuis le convertisseur (MGRS seul, puis sélection des deux
+      formats) : Fuseau, Bande, Carré, X, Y se remplissent. Coller le texte entier directement dans « Fuseau » : la ligne se
+      remplit aussi, le texte n'entre pas dans la case ; un texte sans coordonnée est ignoré. Si cela échoue encore, noter
+      exactement ce que le champ « Fuseau » contient après un collage à la main.
 - [ ] **Coller une coordonnée** : appui long sur la carte → Copier, ou copie depuis le convertisseur ; dans la case 7, coller
       dans le champ de la ligne G (puis H) : Fuseau, Bande, Carré, X, Y remplis ; texte sans MGRS : message d'erreur ; une
       ligne incomplète est signalée sous la ligne.
