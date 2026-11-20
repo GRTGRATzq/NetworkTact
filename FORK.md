@@ -1033,6 +1033,13 @@ du Réseau, ou bouton « Diagnostic » sous un envoi en échec. Le diagnostic n'
   `pmtiles verify` réussi ; **identique tuile par tuile à `pmtiles extract`** (6 822 tuiles, 14,65 Mo) ; détail au §15 du plan.
 - **CI** : `fork-apk` ne se lance plus pour une poussée qui ne change que des fichiers `.md`, ni pour les fichiers de la sonde et
   de l'essai d'interopérabilité ; le lancement manuel est inchangé.
+- **R3, accès à « Télécharger une carte »** (`fix/acces-telecharger-carte`, essai du 13 novembre) : l'entrée n'était que
+  dans le menu des styles › « Cartes sur le téléphone » et se cherchait dans « Gérer les calques ». Maintenant aussi : un
+  bouton « Télécharger une carte » en tête de « Gérer les calques », avec la phrase « Les cartes téléchargées se trouvent
+  dans le menu des styles de carte, sous Cartes sur le téléphone », et une entrée « Télécharger une carte » dans le menu
+  des styles, sous « Cartes sur le téléphone ». Les deux ferment ce qui est ouvert puis ouvrent le même cadre
+  (`MapDownloadController.openFrame`) ; ils n'apparaissent que là où l'hôte télécharge (fdroid). Pas de test Compose
+  ajouté : la carte MapLibre ne tourne pas en JVM ; compilation et 123 tests JVM du module verts.
 - **Licence** : `pmtiles-reader` (déjà dans l'APK) est BSD 3-Clause d'après son POM, « MIT » seulement dans des commentaires du
   dépôt ; les deux sont compatibles avec la GPL-3.0.
 - **A4, renommer une carte** (`feat/carte-renommer`, demande de l'essai du 13 novembre) : jusque-là, le nom ne se

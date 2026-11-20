@@ -254,6 +254,9 @@ produit est identique à `pmtiles extract` (CI) ; tout ce qui suit est à voir �
       se réimporte dans NetworkTact (« Importer un fichier .pmtiles »).
 - [ ] Aucune édition joignable (mode avion juste avant « Calculer la taille ») : « Impossible de joindre la source … » ;
       source réglée sur une adresse sans édition : « Aucune édition de carte n'a été trouvée … pour les 8 derniers jours ».
+- [ ] **R3 (`fix/acces-telecharger-carte`)** : carte, bouton « Gérer les calques » : « Télécharger une carte » en tête,
+      avec la phrase qui dit où retrouver les cartes ; le toucher ferme la fenêtre et ouvre le cadre de téléchargement.
+      Menu des styles de carte : « Télécharger une carte » sous « Cartes sur le téléphone », même effet, le menu se ferme.
 - [ ] Écran des licences : `pmtiles-reader` apparaît avec la licence BSD-3-Clause.
 - [ ] **D11 à refaire (`fix/ecran-licences`, release fdroid)** : Réglages › Information › « Licences des logiciels
       libres » ouvre la liste ; « Reader » (pmtiles-reader, Simon Poole) y figure, licence BSD-3-Clause, texte affiché en

@@ -16,9 +16,11 @@
  */
 package org.meshtastic.feature.map.maplibre.component
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -36,6 +38,8 @@ import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import org.meshtastic.core.resources.Res
 import org.meshtastic.core.resources.manage_map_layers
+import org.meshtastic.core.resources.offline_map_download
+import org.meshtastic.core.resources.offline_map_download_where
 import org.meshtastic.core.ui.icon.Layers
 import org.meshtastic.core.ui.icon.MeshtasticIcons
 import org.meshtastic.feature.map.component.MapButton
@@ -65,6 +69,7 @@ internal fun MapLayersButton(
     offlineTarget: OfflineMapTarget,
     offlineMapsSupported: Boolean,
     extra: @Composable () -> Unit,
+    onDownloadMap: (() -> Unit)? = null,
 ) {
     var sheetVisible by remember { mutableStateOf(false) }
     val opacityStore: LayerOpacityStore = koinInject()
@@ -87,6 +92,14 @@ internal fun MapLayersButton(
                 offlineMapsSupported = offlineMapsSupported,
                 onDismiss = { sheetVisible = false },
                 extra = extra,
+                onDownloadMap =
+                onDownloadMap?.let { download ->
+                    {
+                        // The frame goes over the map: the sheet closes first.
+                        sheetVisible = false
+                        download()
+                    }
+                },
             )
         }
     }
@@ -102,6 +115,7 @@ private fun MapLayersSheet(
     offlineMapsSupported: Boolean,
     onDismiss: () -> Unit,
     extra: @Composable () -> Unit,
+    onDownloadMap: (() -> Unit)?,
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
@@ -109,6 +123,12 @@ private fun MapLayersSheet(
             style = MaterialTheme.typography.titleMedium,
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
         )
+
+        // R3: downloading a map was only under the basemap menu › "Maps on this phone", and was looked for here.
+        if (onDownloadMap != null) {
+            DownloadMapHead(onDownloadMap)
+            HorizontalDivider()
+        }
 
         RasterOverlayToggles(
             available = MapTileCatalogue.overlays,
@@ -145,6 +165,24 @@ private fun MapLayersSheet(
         HorizontalDivider()
 
         extra()
+    }
+}
+
+/** "Download a map", and where downloaded maps are found afterwards. */
+@Composable
+private fun DownloadMapHead(onDownloadMap: () -> Unit) {
+    Column(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        Button(onClick = onDownloadMap, modifier = Modifier.fillMaxWidth()) {
+            Text(stringResource(Res.string.offline_map_download))
+        }
+        Text(
+            text = stringResource(Res.string.offline_map_download_where),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }
 
