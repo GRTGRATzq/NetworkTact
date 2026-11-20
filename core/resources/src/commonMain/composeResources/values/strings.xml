@@ -1598,6 +1598,9 @@
     <string name="offline_map_import">Import a .pmtiles file</string>
     <string name="offline_map_imported">“%1$s” is ready: choose it in the map style menu.</string>
     <string name="offline_map_progress">%1$s of %2$s</string>
+    <string name="offline_map_rename">Rename</string>
+    <string name="offline_map_rename_help">%1$d characters at most. Only the name changes, not the map.</string>
+    <string name="offline_map_rename_title">Rename the map</string>
     <string name="offline_map_size_mb">%1$s MB</string>
     <string name="offline_maps">Offline maps</string>
     <string name="offline_maps_empty">No areas downloaded yet</string>

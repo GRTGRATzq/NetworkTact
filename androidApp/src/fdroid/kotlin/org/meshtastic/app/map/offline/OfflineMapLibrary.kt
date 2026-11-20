@@ -42,6 +42,7 @@ import org.meshtastic.feature.map.maplibre.component.OfflineMapFile
 import org.meshtastic.feature.map.maplibre.component.OfflineMapFiles
 import org.meshtastic.feature.map.maplibre.component.OfflineMapImport
 import org.meshtastic.feature.map.maplibre.component.OfflineMapImportFailure
+import org.meshtastic.feature.map.maplibre.component.offlineMapName
 import org.meshtastic.feature.map.offline.PMTILES_EXTENSION
 import org.meshtastic.feature.map.offline.PmTilesCheck
 import org.meshtastic.feature.map.offline.PmTilesHeader
@@ -219,6 +220,20 @@ class OfflineMapLibrary(
                 File(mapsDir, "$id.$PMTILES_EXTENSION").delete()
                 File(mapsDir, "$id$NAME_SUFFIX").delete()
                 File(mapsDir, "$id$INFO_SUFFIX").delete()
+                refresh()
+            }
+        }
+    }
+
+    override fun rename(id: String, name: String) {
+        val tidy = offlineMapName(name) ?: return
+        scope.launch {
+            mutex.withLock {
+                // Only a map still there: a name file without its map would be dropped by the next refresh anyway.
+                if (File(mapsDir, "$id.$PMTILES_EXTENSION").exists()) {
+                    safeCatching { File(mapsDir, "$id$NAME_SUFFIX").writeText(tidy) }
+                        .onFailure { Logger.withTag(TAG).w(it) { "Could not rename an offline map" } }
+                }
                 refresh()
             }
         }

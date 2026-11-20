@@ -20,13 +20,20 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.stringResource
@@ -37,6 +44,7 @@ import org.meshtastic.core.resources.delete
 import org.meshtastic.core.resources.offline_map_delete_message
 import org.meshtastic.core.resources.offline_map_delete_title
 import org.meshtastic.core.resources.offline_map_download
+import org.meshtastic.core.resources.offline_map_download_name
 import org.meshtastic.core.resources.offline_map_download_pending
 import org.meshtastic.core.resources.offline_map_download_resume
 import org.meshtastic.core.resources.offline_map_downloaded_edition
@@ -45,7 +53,10 @@ import org.meshtastic.core.resources.offline_map_export_failed
 import org.meshtastic.core.resources.offline_map_exported
 import org.meshtastic.core.resources.offline_map_exporting
 import org.meshtastic.core.resources.offline_map_import
+import org.meshtastic.core.resources.offline_map_rename_help
+import org.meshtastic.core.resources.offline_map_rename_title
 import org.meshtastic.core.resources.okay
+import org.meshtastic.core.resources.save
 import org.meshtastic.core.ui.component.MeshtasticDialog
 import org.meshtastic.feature.map.offline.extract.DownloadArea
 import org.meshtastic.feature.map.offline.extract.DownloadedMapInfo
@@ -84,6 +95,56 @@ internal fun DeleteDialog(map: OfflineMapFile, onConfirm: () -> Unit, onDismiss:
         onConfirm = onConfirm,
         dismissText = stringResource(Res.string.cancel),
         onDismiss = onDismiss,
+    )
+}
+
+/** Shows [RenameDialog] for the map the returned function is called with; [onRename] gets the map and its new name. */
+@Composable
+internal fun rememberRenameDialog(onRename: (OfflineMapFile, String) -> Unit): (OfflineMapFile) -> Unit {
+    var pending by remember { mutableStateOf<OfflineMapFile?>(null) }
+    pending?.let { map ->
+        RenameDialog(
+            map = map,
+            onConfirm = { name ->
+                onRename(map, name)
+                pending = null
+            },
+            onDismiss = { pending = null },
+        )
+    }
+    return { pending = it }
+}
+
+/**
+ * A4: a new display name for [map], downloaded or imported. The field starts with the current name; "Save" is off while
+ * the name is empty, too long or unchanged.
+ */
+@Composable
+internal fun RenameDialog(map: OfflineMapFile, onConfirm: (String) -> Unit, onDismiss: () -> Unit) {
+    var text by remember(map.id) { mutableStateOf(map.name) }
+    val name = offlineMapName(text)
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(Res.string.offline_map_rename_title)) },
+        text = {
+            OutlinedTextField(
+                value = text,
+                onValueChange = { text = it },
+                label = { Text(stringResource(Res.string.offline_map_download_name)) },
+                singleLine = true,
+                isError = name == null,
+                supportingText = {
+                    Text(stringResource(Res.string.offline_map_rename_help, MAX_OFFLINE_MAP_NAME_CHARS))
+                },
+                modifier = Modifier.fillMaxWidth(),
+            )
+        },
+        confirmButton = {
+            TextButton(onClick = { name?.let(onConfirm) }, enabled = name != null && name != map.name) {
+                Text(stringResource(Res.string.save))
+            }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(Res.string.cancel)) } },
     )
 }
 

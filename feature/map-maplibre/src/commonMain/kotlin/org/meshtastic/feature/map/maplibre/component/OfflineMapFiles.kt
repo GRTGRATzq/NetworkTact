@@ -64,9 +64,11 @@ import org.meshtastic.core.resources.offline_map_files_empty
 import org.meshtastic.core.resources.offline_map_files_hint
 import org.meshtastic.core.resources.offline_map_imported
 import org.meshtastic.core.resources.offline_map_progress
+import org.meshtastic.core.resources.offline_map_rename
 import org.meshtastic.core.resources.offline_map_size_mb
 import org.meshtastic.core.resources.okay
 import org.meshtastic.core.ui.icon.Delete
+import org.meshtastic.core.ui.icon.Edit
 import org.meshtastic.core.ui.icon.MeshtasticIcons
 import org.meshtastic.core.ui.icon.Upload
 import org.meshtastic.feature.map.offline.extract.DownloadedMapInfo
@@ -141,7 +143,22 @@ interface OfflineMapFiles {
     fun clearExportOutcome()
 
     fun delete(id: String)
+
+    /** Gives the map [id] the display [name] (A4); the file itself and its downloaded details are left as they are. */
+    fun rename(id: String, name: String)
 }
+
+/** The longest display name of a map, in characters: it fits a row of the sheet on two lines. */
+const val MAX_OFFLINE_MAP_NAME_CHARS = 60
+
+/**
+ * The name [input] gives a map once tidied (runs of blanks become one space, ends trimmed), or null when nothing is
+ * left or it is longer than [MAX_OFFLINE_MAP_NAME_CHARS]: the map keeps its name.
+ */
+fun offlineMapName(input: String): String? =
+    input.trim().replace(BLANKS, " ").takeIf { it.isNotEmpty() && it.length <= MAX_OFFLINE_MAP_NAME_CHARS }
+
+private val BLANKS = Regex("""\s+""")
 
 /**
  * The basemap menu's entry for the maps stored on the device, and the sheet it opens.
@@ -201,6 +218,7 @@ fun OfflineMapFilesMenuItem(
                 onCancelImport = files::cancelImport,
                 onClearOutcome = files::clearImportOutcome,
                 onDelete = { map -> files.delete(map.id) },
+                onRename = { map, name -> files.rename(map.id, name) },
             )
         }
     }
@@ -218,7 +236,9 @@ private fun OfflineMapFilesSheet(
     onCancelImport: () -> Unit,
     onClearOutcome: () -> Unit,
     onDelete: (OfflineMapFile) -> Unit,
+    onRename: (OfflineMapFile, String) -> Unit,
 ) {
+    val askRename = rememberRenameDialog(onRename)
     var pendingDelete by remember { mutableStateOf<OfflineMapFile?>(null) }
     pendingDelete?.let { map ->
         DeleteDialog(
@@ -263,6 +283,7 @@ private fun OfflineMapFilesSheet(
             items(maps, key = { it.id }) { map ->
                 OfflineMapRow(
                     map = map,
+                    onRename = { askRename(map) },
                     onDelete = { pendingDelete = map },
                     // One copy at a time: the button waits for the current one.
                     onExport = onExport?.takeIf { export !is OfflineMapExport.Copying }?.let { { it(map) } },
@@ -300,7 +321,7 @@ private fun SheetHeader() {
 }
 
 @Composable
-private fun OfflineMapRow(map: OfflineMapFile, onDelete: () -> Unit, onExport: (() -> Unit)?) {
+private fun OfflineMapRow(map: OfflineMapFile, onRename: () -> Unit, onDelete: () -> Unit, onExport: (() -> Unit)?) {
     ListItem(
         headlineContent = { Text(map.name) },
         supportingContent = {
@@ -320,6 +341,9 @@ private fun OfflineMapRow(map: OfflineMapFile, onDelete: () -> Unit, onExport: (
         },
         trailingContent = {
             Row {
+                IconButton(onClick = onRename) {
+                    Icon(MeshtasticIcons.Edit, contentDescription = stringResource(Res.string.offline_map_rename))
+                }
                 if (onExport != null) {
                     IconButton(onClick = onExport) {
                         Icon(MeshtasticIcons.Upload, contentDescription = stringResource(Res.string.offline_map_export))
