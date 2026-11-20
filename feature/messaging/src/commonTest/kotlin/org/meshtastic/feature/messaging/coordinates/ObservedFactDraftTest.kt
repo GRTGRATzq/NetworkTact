@@ -164,4 +164,34 @@ class ObservedFactDraftTest {
         assertEquals(201, over.bytes)
         assertFalse(over.canInsert)
     }
+
+    @Test
+    fun enterTypedInTheDescriptionClosesTheKeyboardAndAddsNothing() {
+        assertEquals(
+            DescriptionEdit("deux véhicules", closeKeyboard = true),
+            descriptionEdit("deux véhicules", "deux véhicules\n"),
+        )
+        assertEquals(
+            DescriptionEdit("deux véhicules", closeKeyboard = true),
+            descriptionEdit("deux véhicules", "deux\n véhicules"),
+        )
+        assertEquals(DescriptionEdit("", closeKeyboard = true), descriptionEdit("", "\n"))
+    }
+
+    @Test
+    fun lineBreaksOfAPastedDescriptionBecomeSpaces() {
+        assertEquals(
+            DescriptionEdit("deux véhicules arrêtés", closeKeyboard = false),
+            descriptionEdit("", "deux véhicules\r\narrêtés"),
+        )
+        assertEquals(DescriptionEdit("a b", closeKeyboard = false), descriptionEdit("a", "a\n\nb"))
+    }
+
+    @Test
+    fun aDescriptionWithoutLineBreakIsTakenAsTyped() {
+        assertEquals(
+            DescriptionEdit("deux véhicules", closeKeyboard = false),
+            descriptionEdit("deux", "deux véhicules"),
+        )
+    }
 }

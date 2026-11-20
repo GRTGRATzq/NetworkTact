@@ -17,15 +17,20 @@
 package org.meshtastic.feature.messaging.coordinates
 
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.SemanticsNodeInteraction
+import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.assertIsNotFocused
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performImeAction
+import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.v2.runComposeUiTest
+import androidx.compose.ui.text.AnnotatedString
 import kotlin.test.Test
 
 /**
@@ -51,6 +56,18 @@ class ObservedFactKeyboardTest {
     @Test fun `the action key leaves the time field`() = runComposeUiTest { pressActionKeyIn(TIME) }
 
     @Test fun `the action key leaves the description field`() = runComposeUiTest { pressActionKeyIn(DESCRIPTION) }
+
+    @Test
+    fun `a keyboard that sends Enter as a line break in the description closes the keyboard`() = runComposeUiTest {
+        setContent { MaterialTheme { ObservedFactDialog(onInsert = {}, onDismiss = {}) } }
+        field(DESCRIPTION).performTextInput("deux véhicules")
+
+        field(DESCRIPTION).performTextInput("\n")
+
+        field(DESCRIPTION).assertIsNotFocused()
+        field(DESCRIPTION)
+            .assert(SemanticsMatcher.expectValue(SemanticsProperties.EditableText, AnnotatedString("deux véhicules")))
+    }
 
     private companion object {
         const val TIME = 0

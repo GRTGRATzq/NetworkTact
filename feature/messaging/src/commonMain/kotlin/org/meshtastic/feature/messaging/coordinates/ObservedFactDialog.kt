@@ -128,7 +128,11 @@ private fun DescriptionField(text: String, draft: ObservedFactDraft, onTextChang
     val onDone = rememberCloseKeyboard()
     OutlinedTextField(
         value = text,
-        onValueChange = onTextChange,
+        onValueChange = { new ->
+            val edit = descriptionEdit(text, new)
+            if (edit.text != text) onTextChange(edit.text)
+            if (edit.closeKeyboard) onDone()
+        },
         modifier = Modifier.fillMaxWidth(),
         label = { Text(stringResource(Res.string.coords_fact_description)) },
         placeholder = { Text(stringResource(Res.string.coords_fact_description_required)) },
