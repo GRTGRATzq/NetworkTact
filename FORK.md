@@ -1035,6 +1035,13 @@ du Réseau, ou bouton « Diagnostic » sous un envoi en échec. Le diagnostic n'
   de l'essai d'interopérabilité ; le lancement manuel est inchangé.
 - **Licence** : `pmtiles-reader` (déjà dans l'APK) est BSD 3-Clause d'après son POM, « MIT » seulement dans des commentaires du
   dépôt ; les deux sont compatibles avec la GPL-3.0.
+- **A4, renommer une carte** (`feat/carte-renommer`, demande de l'essai du 13 novembre) : jusque-là, le nom ne se
+  choisissait qu'avant le téléchargement, ou à l'export. Chaque carte de « Cartes sur le téléphone », téléchargée ou
+  importée, a maintenant un bouton « Renommer » (crayon) : la fenêtre part du nom actuel, « Enregistrer » reste grisé tant
+  que le nom est vide, inchangé ou dépasse 60 caractères ; les blancs sont réduits (`offlineMapName`). Seul `<id>.name`
+  est réécrit (`OfflineMapLibrary.rename`) : le fichier, ses détails de téléchargement et son choix comme fond de carte
+  ne changent pas. Tests : `OfflineMapNameTest`, `RenameDialogTest` (JVM). La bibliothèque Android (`androidApp`,
+  fdroid) n'a pas été testée ici, faute de SDK.
 
 ### 30. Demande de tir (`feat/demande-de-tir`)
 

@@ -1817,6 +1817,9 @@
     <string name="offline_map_downloaded_edition">Édition du %1$s, %2$s · %3$s × %4$s km</string>
     <string name="offline_map_downloaded_file">Depuis %1$s · %2$s × %3$s km</string>
     <string name="offline_map_export">Exporter</string>
+    <string name="offline_map_rename">Renommer</string>
+    <string name="offline_map_rename_help">%1$d caractères au plus. Seul le nom change, pas la carte.</string>
+    <string name="offline_map_rename_title">Renommer la carte</string>
     <string name="offline_map_export_failed">L'export a échoué. Rien n'a été écrit.</string>
     <string name="offline_map_exported">« %1$s » exportée.</string>
     <string name="offline_map_exporting">Export de « %1$s »…</string>

@@ -259,6 +259,11 @@ produit est identique à `pmtiles extract` (CI) ; tout ce qui suit est à voir �
       libres » ouvre la liste ; « Reader » (pmtiles-reader, Simon Poole) y figure, licence BSD-3-Clause, texte affiché en
       le touchant. « À propos » est écrit sans faute ; « Remerciements » y ouvre toujours la même liste. La recherche des
       Réglages (« licence ») trouve l'entrée.
+- [ ] **A4 (`feat/carte-renommer`)** : Cartes sur le téléphone, crayon d'une carte téléchargée : la fenêtre montre son
+      nom ; « Enregistrer » grisé tant qu'il est inchangé ou vide. Saisir `  Cincu   nord `, enregistrer : la carte
+      s'appelle « Cincu nord », garde sa ligne « Édition du … » et reste le fond de carte si elle l'était. Même chose avec
+      une carte importée. Redémarrer l'application : le nouveau nom est gardé. Exporter : le fichier proposé porte le
+      nouveau nom.
 
 ## 18. Demande de tir (tâche 8, FORK.md §30)
 

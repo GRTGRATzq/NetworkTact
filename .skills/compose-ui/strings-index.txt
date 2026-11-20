@@ -1562,6 +1562,9 @@ offline_map_files_hint
 offline_map_import
 offline_map_imported
 offline_map_progress
+offline_map_rename
+offline_map_rename_help
+offline_map_rename_title
 offline_map_size_mb
 offline_maps
 offline_maps_empty
