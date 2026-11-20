@@ -371,6 +371,7 @@ fun SettingsScreen(
                     onUnlockHiddenFeatures = { settingsViewModel.unlockHiddenFeatures() },
                     onShowAppIntro = { settingsViewModel.showAppIntro() },
                     onNavigateToAbout = { onNavigate(SettingsRoute.About) },
+                    onNavigateToLicenses = { onNavigate(SettingsRoute.Acknowledgements) },
                     demoActive = demoActive,
                 )
             }

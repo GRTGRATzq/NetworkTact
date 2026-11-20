@@ -29,7 +29,7 @@
     <string name="a11y_node_role">rôle %1$s</string>
     <string name="a11y_node_signal">signal %1$s</string>
     <string name="a11y_nodes_at_hop">Saut %1$d : %2$d nœuds</string>
-    <string name="about">A propros</string>
+    <string name="about">À propos</string>
     <string name="accept">Accepter</string>
     <string name="acknowledgements">Remerciements</string>
     <!-- ACTION -->
@@ -1029,6 +1029,7 @@
     <string name="open_settings">Ouvrir les paramètres</string>
     <string name="open_source_description">NetworkTact est construit avec les bibliothèques open source suivantes. Touchez une bibliothèque pour voir sa licence.</string>
     <string name="open_source_libraries">Bibliothèques Open Source</string>
+    <string name="open_source_licenses">Licences des logiciels libres</string>
     <string name="options">Options</string>
     <string name="orient_north">Orienter vers le nord</string>
     <string name="overflow_menu">Menu supplémentaire</string>

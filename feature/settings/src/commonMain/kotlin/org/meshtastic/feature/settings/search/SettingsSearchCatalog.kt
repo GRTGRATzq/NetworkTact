@@ -30,6 +30,7 @@ import org.meshtastic.core.resources.debug_panel
 import org.meshtastic.core.resources.device_links
 import org.meshtastic.core.resources.filter_settings
 import org.meshtastic.core.resources.node_layout_section_title
+import org.meshtastic.core.resources.open_source_licenses
 import org.meshtastic.core.resources.wifi_devices
 import org.meshtastic.feature.settings.navigation.ConfigRoute
 import org.meshtastic.feature.settings.navigation.ModuleRoute
@@ -141,6 +142,7 @@ object SettingsSearchCatalog {
             Res.string.debug_panel to SettingsRoute.DebugPanel,
             Res.string.about to SettingsRoute.About,
             Res.string.acknowledgements to SettingsRoute.Acknowledgements,
+            Res.string.open_source_licenses to SettingsRoute.Acknowledgements,
         )
 
     private fun appEntries(): List<SettingsSearchEntry> = appSettings.map { (title, route) ->

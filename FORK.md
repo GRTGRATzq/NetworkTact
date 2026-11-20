@@ -438,6 +438,12 @@ fichier sont conservés. Le firmware des radios, la configuration des radios et 
   « Basé sur Meshtastic-Android, © Meshtastic LLC, GPL-3.0. Modifié par le projet NetworkTact. »
   (`networktact_based_on`) au-dessus du copyright Meshtastic LLC et de l'avis de licence ;
   rangées « Besoin de matériel », « Site web » et « Documentation » (meshtastic.org) retirées.
+- **Écran des licences** (D11, `fix/ecran-licences`, essai du 13 novembre) : sur la release fdroid, il n'était
+  trouvable que par Information › « A propros » (coquille du texte français) › Applications › « Remerciements ». Il
+  existait bien dans cette variante : la liste générée pour fdroid (`exportLibraryDefinitionsFdroidRelease`) contient
+  `ch.poole.geo.pmtiles-reader:Reader` 0.3.7, licence `BSD-3-Clause` avec son texte. Maintenant : entrée « Licences des
+  logiciels libres » directement dans la section Information des Réglages (Android et bureau), vers le même écran ; la
+  recherche des Réglages la trouve ; « À propos » corrigé. « Remerciements » reste dans À propos.
 - **Visuels** : l'encart mPWRD-OS de l'écran Wi-Fi montre le symbole NetworkTact au lieu de la
   marque M-PWRD ; `img_mpwrd_logo.png`, `ic_meshtastic.xml` et `ic_launcher-114x114.png`,
   non référencés, sont supprimés ; `ic_launcher2-playstore.png` (512 px) est redessiné à partir

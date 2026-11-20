@@ -1585,6 +1585,7 @@ open_location_settings
 open_settings
 open_source_description
 open_source_libraries
+open_source_licenses
 open_wifi_settings
 options
 ### ORGCHART ###

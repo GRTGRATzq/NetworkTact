@@ -42,6 +42,7 @@ import org.meshtastic.core.resources.info
 import org.meshtastic.core.resources.intro_show
 import org.meshtastic.core.resources.modules_already_unlocked
 import org.meshtastic.core.resources.modules_unlocked
+import org.meshtastic.core.resources.open_source_licenses
 import org.meshtastic.core.resources.system_settings
 import org.meshtastic.core.ui.component.DemoLocked
 import org.meshtastic.core.ui.component.ListItem
@@ -50,6 +51,7 @@ import org.meshtastic.core.ui.icon.ChevronRight
 import org.meshtastic.core.ui.icon.Info
 import org.meshtastic.core.ui.icon.Memory
 import org.meshtastic.core.ui.icon.MeshtasticIcons
+import org.meshtastic.core.ui.icon.Notes
 import org.meshtastic.core.ui.icon.Notifications
 import org.meshtastic.core.ui.icon.WavingHand
 import org.meshtastic.core.ui.theme.AppTheme
@@ -67,6 +69,7 @@ fun AppInfoSection(
     onUnlockHiddenFeatures: () -> Unit,
     onShowAppIntro: () -> Unit,
     onNavigateToAbout: () -> Unit,
+    onNavigateToLicenses: () -> Unit,
     demoActive: Boolean = false,
 ) {
     ExpressiveSection(title = stringResource(Res.string.info)) {
@@ -78,6 +81,15 @@ fun AppInfoSection(
             trailingIcon = MeshtasticIcons.ChevronRight,
         ) {
             onNavigateToAbout()
+        }
+
+        // NetworkTact (D11): the licences of the libraries, otherwise only under About › Acknowledgements.
+        ListItem(
+            text = stringResource(Res.string.open_source_licenses),
+            leadingIcon = MeshtasticIcons.Notes,
+            trailingIcon = MeshtasticIcons.ChevronRight,
+        ) {
+            onNavigateToLicenses()
         }
 
         DemoLocked(locked = demoActive) {
@@ -182,6 +194,7 @@ fun AppInfoSectionPreview() {
             onUnlockHiddenFeatures = {},
             onShowAppIntro = {},
             onNavigateToAbout = {},
+            onNavigateToLicenses = {},
         )
     }
 }
