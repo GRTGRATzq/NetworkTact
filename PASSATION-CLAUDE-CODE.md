@@ -35,17 +35,16 @@ Les fusions vers `test/…` se sont faites sans conflit. Chaque `fix/…` ou `fe
 | 110 | `fix/dt-espacement`, `172acc2` (D12) | vert ; APK `apk-fdroid-release` |
 | 111 | `fix/dt-coller-coordonnee`, `15dfaa8` (D12 + D13), lancé à la main | vert ; APK `apk-fdroid-release` |
 | 112 | `test/correctifs-13-11`, `a07e96b` (D9 à D13), lancé à la main | **échec à l'étape « Tests »** (lint et compilation fdroid verts) ; pas d'APK |
-| 113 | `test/correctifs-13-11-b`, `03fc34e` (tout), lancé à la main à 20 h 37 UTC | **en cours** au moment de la passation |
+| 113 | `test/correctifs-13-11-b`, `03fc34e` (tout), lancé à la main à 20 h 37 UTC | **vert** (32 min) ; **APK à essayer sur les radios** : `apk-fdroid-release` du run 113 |
 
-**Run 112, à élucider en premier** : le journal complet n'a pas pu être lu ici (l'hôte des journaux et des artefacts,
+**Run 112, probablement un incident** : le run 113 contient tout ce qu'avait 112 et passe les mêmes tests ; l'échec de
+112 n'est donc pas dû au code, sauf test instable. Le journal complet n'a pas pu être lu ici (l'hôte des journaux et des artefacts,
 `*.blob.core.windows.net`, est refusé par le proxy de la session ; la fin du journal ne montre que les diagnostics).
 L'étape « Tests » lance `feature:messaging`, `feature:node`, `feature:settings`, `core:model`, `core:prefs`,
 `core:service` en `jvmTest`, plus `testAndroidHostTest` (Robolectric) pour `feature:node`, `core:model`, `core:prefs`,
 `core:service`. Tous les `jvmTest` de cette liste passent en local sur `test/correctifs-13-11-b`, qui contient 112 : le
 défaut est donc soit un test Android hôte (impossible ici sans SDK), soit un incident du runner (déjà vu, runs 45 et 47).
-À faire : lire « Tests » du run 112 dans l'interface GitHub, regarder si 113 échoue au même endroit ; si oui, corriger
-sur la branche fautive puis refusionner dans les deux `test/…`. Tant que ce n'est pas réglé, **l'APK à essayer est celui
-du run 113 s'il est vert**, sinon celui du run 111 (D12 et D13 seulement).
+Facultatif : lire « Tests » du run 112 dans l'interface GitHub pour nommer le test, s'il s'agit d'un test instable.
 
 ### 00.3 À essayer sur les radios (APK du run 113)
 
