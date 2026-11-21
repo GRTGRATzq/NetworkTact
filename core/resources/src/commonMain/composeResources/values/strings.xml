@@ -746,8 +746,12 @@
     <string name="filter_words_summary">Messages containing these words will be hidden</string>
     <string name="firebase_link" translatable="false">Firebase: https://firebase.google.com/</string>
     <!-- FIREREQ -->
+    <string name="firereq_ack_incomplete">Available once the sheet is complete (%1$d / %2$d).</string>
     <string name="firereq_ack_line">DT acknowledgement: %1$s %2$s</string>
     <string name="firereq_ack_none">No DT acknowledgement received yet.</string>
+    <string name="firereq_ack_note">Sends a direct message to the writer.</string>
+    <string name="firereq_ack_send">DT acknowledgement</string>
+    <string name="firereq_ack_sent">Acknowledgement sent %1$s</string>
     <string name="firereq_allocated_to">Fire allocated to: %1$s</string>
     <string name="firereq_block_disconnected">Radio not connected: cannot send.</string>
     <string name="firereq_block_number">Type the fire number to send.</string>

@@ -59,11 +59,15 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.launch
 import org.meshtastic.core.common.util.isSameLocalDay
+import org.meshtastic.core.common.util.nowSeconds
+import org.meshtastic.core.common.util.systemTimeZone
 import org.meshtastic.core.model.ContactKey
 import org.meshtastic.core.model.Message
 import org.meshtastic.core.model.Node
 import org.meshtastic.core.model.NodeAddress
 import org.meshtastic.core.model.Reaction
+import org.meshtastic.core.model.firerequest.Gdh
+import org.meshtastic.core.model.firerequest.GdhZone
 import org.meshtastic.core.model.team.TeamSuffix
 import org.meshtastic.core.ui.util.MapFocusPoint
 import org.meshtastic.feature.messaging.component.DateSeparator
@@ -75,6 +79,7 @@ import org.meshtastic.feature.messaging.component.rememberCurrentTimeMillis
 import org.meshtastic.feature.messaging.firerequest.FireRequestCard
 import org.meshtastic.feature.messaging.firerequest.FireRequestCardActions
 import org.meshtastic.feature.messaging.firerequest.FireRequestView
+import org.meshtastic.feature.messaging.firerequest.directContactKey
 import kotlin.math.abs
 
 private const val HEX_RADIX = 16
@@ -99,6 +104,8 @@ internal data class MessageListHandlers(
     val onSendMessage: (String, String) -> Unit,
     /** Sends a fire request's parts to a conversation, one after the other, spaced. */
     val onSendParts: (List<String>, String) -> Unit = { _, _ -> },
+    /** The date-time group of now in the zone chosen for fire requests. */
+    val fireRequestGdh: () -> String = { Gdh.of(nowSeconds, GdhZone.LOCAL, systemTimeZone).format() },
     val onReply: (Message?) -> Unit,
     val onTranslate: (Message) -> Unit = {},
     val onToggleTranslation: (Message) -> Unit = {},
@@ -434,6 +441,12 @@ private fun RenderPagedChatMessageRow(
                 showOnMap = handlers.onShowOnMap,
                 sendParts = handlers.onSendParts,
                 contactKey = state.contactKey,
+                sendDirect = { text, nodeId ->
+                    state.nodes
+                        .firstOrNull { it.user.id == nodeId }
+                        ?.let { node -> handlers.onSendMessage(text, directContactKey(node, state.ourNode)) }
+                },
+                gdhNow = handlers.fireRequestGdh,
             ),
             modifier = modifier,
         )

@@ -716,8 +716,12 @@ filter_words
 filter_words_summary
 firebase_link
 ### FIREREQ ###
+firereq_ack_incomplete
 firereq_ack_line
 firereq_ack_none
+firereq_ack_note
+firereq_ack_send
+firereq_ack_sent
 firereq_allocated_to
 firereq_block_disconnected
 firereq_block_number

@@ -29,9 +29,9 @@ import org.meshtastic.core.ui.util.MapFocusPoint
 import kotlin.time.Duration.Companion.days
 
 /**
- * What a request's card can do: send a text in the conversation, resend a part, open the map on a point, and send
- * several parts one after the other, spaced as the form sends them, to the conversation [contactKey] names
- * ([sendParts]).
+ * What a request's card can do: send a text in the conversation, resend a part, open the map on a point, send several
+ * parts one after the other, spaced as the form sends them, to the conversation [contactKey] names ([sendParts]), and
+ * send a text in a direct message to one radio ([sendDirect]).
  */
 internal class FireRequestCardActions(
     val send: (String) -> Unit,
@@ -39,6 +39,10 @@ internal class FireRequestCardActions(
     val showOnMap: ((MapFocusPoint) -> Unit)?,
     val sendParts: (texts: List<String>, contactKey: String) -> Unit = { _, _ -> },
     val contactKey: String = "",
+    /** Sends a text in a direct message to the node whose id is given (« Accusé DT », attribution, GDH fin). */
+    val sendDirect: (text: String, nodeId: String) -> Unit = { _, _ -> },
+    /** The date-time group of now, in the zone the operator chose. */
+    val gdhNow: () -> String = { "" },
 )
 
 /**

@@ -79,7 +79,7 @@ internal fun FireRequestCard(
             } else if (thread.fromLocal) {
                 SentRequest(thread, view, recipientName, canSend, actions)
             } else {
-                ReceivedRequest(thread, canSend, actions)
+                ReceivedRequest(thread, canSend, actions, onChannel = channelName != null)
             }
             TextButton(onClick = { showRaw = true }) {
                 Text(stringResource(Res.string.firereq_raw, thread.messages.size))
@@ -149,34 +149,39 @@ internal fun ReplyState(kind: ReplyKind, reply: FireRequestReply?) =
 
 /** The recipient's sheet: header, then boxes 1 to 11 in clear, and the two date-time groups to send back. */
 @Composable
-private fun ReceivedRequest(thread: FireRequestThread, canSend: Boolean, actions: FireRequestCardActions) =
-    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        val read = thread.read()
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            FireRequestBadge()
-            Text(
-                stringResource(Res.string.firereq_card_title, thread.number),
-                style = MaterialTheme.typography.titleSmall,
-                modifier = Modifier.weight(1f),
-            )
-            Text(
-                stringResource(Res.string.firereq_received_count, thread.received.size, thread.count),
-                style = MaterialTheme.typography.labelMedium,
-            )
-        }
-        HeaderLine(Sheet.ORIGIN, read.request.origin)
-        HeaderLine(Sheet.RECIPIENT, read.request.recipient)
-        HeaderLine(Sheet.REQUEST_GDH, read.request.requestGdh)
-        HeaderLine(Sheet.ALLOCATION_GDH, thread.allocation?.gdh.orEmpty())
-        HeaderLine(Sheet.END_GDH, thread.end?.gdh.orEmpty())
-        if (canSend) ReplyButtons(thread, actions.send)
-        MissingParts(thread, read)
-        SheetBoxes(read, actions.showOnMap)
+private fun ReceivedRequest(
+    thread: FireRequestThread,
+    canSend: Boolean,
+    actions: FireRequestCardActions,
+    onChannel: Boolean,
+) = Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+    val read = thread.read()
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        FireRequestBadge()
+        Text(
+            stringResource(Res.string.firereq_card_title, thread.number),
+            style = MaterialTheme.typography.titleSmall,
+            modifier = Modifier.weight(1f),
+        )
+        Text(
+            stringResource(Res.string.firereq_received_count, thread.received.size, thread.count),
+            style = MaterialTheme.typography.labelMedium,
+        )
     }
+    HeaderLine(Sheet.ORIGIN, read.request.origin)
+    HeaderLine(Sheet.RECIPIENT, read.request.recipient)
+    HeaderLine(Sheet.REQUEST_GDH, read.request.requestGdh)
+    HeaderLine(Sheet.ALLOCATION_GDH, thread.allocation?.gdh.orEmpty())
+    HeaderLine(Sheet.END_GDH, thread.end?.gdh.orEmpty())
+    if (onChannel) AckButton(thread, canSend, actions)
+    if (canSend) ReplyButtons(thread, actions.send)
+    MissingParts(thread, read)
+    SheetBoxes(read, actions.showOnMap)
+}
 
 @Composable
 private fun HeaderLine(label: String, value: String) {

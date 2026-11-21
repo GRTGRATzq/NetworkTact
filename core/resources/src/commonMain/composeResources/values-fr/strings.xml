@@ -2068,4 +2068,8 @@
     <string name="firereq_ack_none">Aucun accusé DT reçu pour l'instant.</string>
     <string name="firereq_resend_sheet">Renvoyer la fiche</string>
     <string name="firereq_allocated_to">Tir attribué à : %1$s</string>
+    <string name="firereq_ack_send">Accusé DT</string>
+    <string name="firereq_ack_sent">Accusé envoyé %1$s</string>
+    <string name="firereq_ack_note">Envoie un message direct à l'émetteur.</string>
+    <string name="firereq_ack_incomplete">Possible quand la fiche est complète (%1$d / %2$d).</string>
 </resources>
