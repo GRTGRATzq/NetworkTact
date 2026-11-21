@@ -205,6 +205,24 @@ interface PacketDao {
     )
     fun getMessagesFrom(contact: String, includeFiltered: Boolean): Flow<List<PacketEntity>>
 
+    /**
+     * The text messages of every direct conversation that start with [prefix] (`[DT `), received since [sinceMillis]:
+     * the acknowledgements and allocations of fire requests sent on a channel, in one query whatever the number of
+     * conversations. A new query on existing columns: no schema change, no migration.
+     */
+    @Transaction
+    @Query(
+        """
+    SELECT * FROM packet
+    WHERE (myNodeNum = 0 OR myNodeNum = (SELECT myNodeNum FROM my_node))
+        AND port_num = 1 AND contact_key NOT LIKE '%^all'
+        AND substr(message_text, 1, length(:prefix)) = :prefix
+        AND received_time >= :sinceMillis
+    ORDER BY received_time DESC
+    """,
+    )
+    fun getDirectMessagesStartingWith(prefix: String, sinceMillis: Long): Flow<List<PacketEntity>>
+
     @Transaction
     @Query(
         """

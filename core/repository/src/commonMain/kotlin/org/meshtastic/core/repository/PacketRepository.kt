@@ -18,6 +18,7 @@ package org.meshtastic.core.repository
 
 import androidx.paging.PagingData
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import org.meshtastic.core.model.ContactSettings
 import org.meshtastic.core.model.DataPacket
 import org.meshtastic.core.model.Message
@@ -261,6 +262,18 @@ interface PacketRepository {
      * demo's, which never waits on a radio).
      */
     suspend fun getOutgoingOutcome(packetId: Int): OutgoingOutcome? = null
+
+    /**
+     * The text messages of all direct conversations that start with [prefix], received since [sinceMillis], newest
+     * first, in one query: a fire request sent on a channel gets its acknowledgements and allocations in direct
+     * messages. Each comes with the key of its conversation, which names the other radio. Empty where no database is
+     * kept.
+     */
+    fun getDirectMessagesStartingWith(
+        prefix: String,
+        sinceMillis: Long,
+        getNode: suspend (String?) -> Node,
+    ): Flow<List<Pair<String, Message>>> = flowOf(emptyList())
 
     /** Returns a packet by mesh-layer ID only when exactly one row has that ID in the current node database. */
     suspend fun getPacketByPacketIdIfUnique(packetId: Int): DataPacket?

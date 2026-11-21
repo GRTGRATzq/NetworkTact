@@ -193,6 +193,15 @@ class ScreenPacketRepository(
 
     override suspend fun getOutgoingOutcome(packetId: Int): OutgoingOutcome? = current().getOutgoingOutcome(packetId)
 
+    override fun getDirectMessagesStartingWith(
+        prefix: String,
+        sinceMillis: Long,
+        getNode: suspend (String?) -> Node,
+    ): Flow<List<Pair<String, Message>>> = switch.flow(
+        { real.getDirectMessagesStartingWith(prefix, sinceMillis, getNode) },
+        { demo.getDirectMessagesStartingWith(prefix, sinceMillis, getNode) },
+    )
+
     override suspend fun getPacketByPacketIdIfUnique(packetId: Int): DataPacket? =
         current().getPacketByPacketIdIfUnique(packetId)
 
