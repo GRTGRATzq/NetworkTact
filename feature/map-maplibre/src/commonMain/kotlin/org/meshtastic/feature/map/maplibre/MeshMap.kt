@@ -134,6 +134,8 @@ fun rememberMeshMapState(
     frameOnNodes: Boolean = true,
     /** A point another screen asked to show (a coordinate read from a message), marked until the user clears it. */
     markedPoint: Position? = null,
+    /** The radio the user tapped, ringed on the map until its card is closed. */
+    selectedNodeNum: Int? = null,
 ): MapState {
     val nodes by viewModel.nodesWithPosition.collectAsStateWithLifecycle()
     val waypoints by viewModel.waypoints.collectAsStateWithLifecycle()
@@ -180,6 +182,7 @@ fun rememberMeshMapState(
                 navigateToNodeDetails = navigateToNodeDetails,
                 onClusterMembers = onClusterMembers,
                 scope = scope,
+                selectedNodeNum = selectedNodeNum,
             )
 
             // Declared last so the asked-for point, the user's own position and an in-progress box corner draw above
@@ -275,9 +278,11 @@ private fun MeshMapNodeLayers(
     navigateToNodeDetails: (Int) -> Unit,
     onClusterMembers: (List<ClusterMember>) -> Unit,
     scope: CoroutineScope,
+    selectedNodeNum: Int?,
 ) {
     NodeLayers(
         nodes = visibleNodes,
+        selectedNodeNum = selectedNodeNum,
         // Padded so a modest pan keeps the same nodes in view, and the chips are not redrawn for every frame of a
         // drag. Without a viewport at all — the first composition — every node is a candidate, as before.
         visibleBounds = viewportBounds?.padded(CHIP_VIEW_PADDING),

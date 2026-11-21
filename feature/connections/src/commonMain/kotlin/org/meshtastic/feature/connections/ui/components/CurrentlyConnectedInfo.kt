@@ -126,7 +126,7 @@ fun CurrentlyConnectedInfo(
             }
         }
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            NodeChip(node = node, onClick = { onNavigateToNodeDetails(it.num) })
+            NodeChip(node = node, onClick = { onNavigateToNodeDetails(it.num) }, offline = false)
 
             Column(modifier = Modifier.weight(1f, fill = true)) {
                 Text(text = node.user.long_name, style = MaterialTheme.typography.titleMediumEmphasized)

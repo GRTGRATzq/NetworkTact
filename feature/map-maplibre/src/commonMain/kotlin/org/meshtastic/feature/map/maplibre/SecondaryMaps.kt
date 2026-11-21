@@ -79,6 +79,7 @@ import org.meshtastic.feature.map.maplibre.layers.MapChipLayer
 import org.meshtastic.feature.map.maplibre.layers.NodeChipLayer
 import org.meshtastic.feature.map.maplibre.layers.NodePrecisionLayer
 import org.meshtastic.feature.map.maplibre.layers.TracerouteLayers
+import org.meshtastic.feature.map.maplibre.layers.rememberOfflineNodes
 import org.meshtastic.feature.map.maplibre.layers.rememberPositionAlerts
 import org.meshtastic.feature.map.maplibre.style.Basemap
 import org.meshtastic.feature.map.maplibre.style.MapColors
@@ -108,12 +109,16 @@ fun MapLibreInlineMap(
     val mapState =
         rememberSecondaryMapState(basemaps, CameraPosition(target = target, zoom = INLINE_ZOOM)) {
             val alerts = rememberPositionAlerts(listOf(node))
-            val source = rememberFeatureSource(node, alerts) { nodesToFeatureCollection(listOf(node), alerts = alerts) }
+            val offline = rememberOfflineNodes(listOf(node))
+            val source =
+                rememberFeatureSource(node, alerts, offline) {
+                    nodesToFeatureCollection(listOf(node), alerts = alerts, offline = offline)
+                }
 
             // The node-detail sheet is where a degraded position matters most — it is the screen a user opens to ask
             // how precisely this node is placed. The Google mini-map draws the circle; this one left it out.
             NodePrecisionLayer(id = "inline-precision", nodes = listOf(node))
-            NodeChipLayer(id = "inline-node", source = source, nodes = listOf(node), alerts = alerts)
+            NodeChipLayer(id = "inline-node", source = source, nodes = listOf(node), alerts = alerts, offline = offline)
         }
 
     // Follows the node as fresh positions arrive, as the Google mini-map does. Guarded on the current target so the
@@ -177,8 +182,12 @@ fun MapLibreTracerouteMap(
 @Composable
 private fun TracerouteHopLayers(hops: List<Node>) {
     val alerts = rememberPositionAlerts(hops)
-    val hopSource = rememberFeatureSource(hops, alerts) { nodesToFeatureCollection(hops, alerts = alerts) }
-    NodeChipLayer(id = "traceroute-hops", source = hopSource, nodes = hops, alerts = alerts)
+    val offline = rememberOfflineNodes(hops)
+    val hopSource =
+        rememberFeatureSource(hops, alerts, offline) {
+            nodesToFeatureCollection(hops, alerts = alerts, offline = offline)
+        }
+    NodeChipLayer(id = "traceroute-hops", source = hopSource, nodes = hops, alerts = alerts, offline = offline)
 }
 
 /**

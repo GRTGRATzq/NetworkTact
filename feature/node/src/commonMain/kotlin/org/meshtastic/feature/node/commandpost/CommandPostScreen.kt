@@ -73,6 +73,7 @@ import org.meshtastic.core.resources.ic_cell_tower
 import org.meshtastic.core.resources.ic_tactnav_orgchart
 import org.meshtastic.core.resources.message
 import org.meshtastic.core.resources.orgchart_open
+import org.meshtastic.core.ui.component.FriendlyUnitFrame
 import org.meshtastic.core.ui.component.MainAppBar
 import org.meshtastic.core.ui.diagnostic.LinkAlertBannerHost
 import org.meshtastic.core.ui.icon.MeshtasticIcons
@@ -171,15 +172,16 @@ fun CommandPostContent(
 private fun CommandPostCard(row: CommandPostRow, onOpenNode: (Int) -> Unit, onOpenMessages: (String) -> Unit) {
     Card(modifier = Modifier.fillMaxWidth().testTag("command_post_row_${row.num}").clickable { onOpenNode(row.num) }) {
         Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                // The radio itself: its friend frame, short name only. Long name and team are text beside it.
+                FriendlyUnitFrame(shortName = row.shortName, offline = row.offline)
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = row.shortName.ifBlank { row.longName },
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                    )
                     if (row.longName.isNotBlank() && row.longName != row.shortName) {
-                        Text(text = nameWithTeam(row.longName), style = MaterialTheme.typography.bodySmall)
+                        Text(
+                            text = nameWithTeam(row.longName),
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold,
+                        )
                     }
                 }
                 row.directMessageKey?.let { key ->

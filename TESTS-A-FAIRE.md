@@ -371,6 +371,23 @@ en JVM, à voir à l'œil et au doigt. Fiche papier à côté pour la relecture.
 - [ ] Mode démo actif : ses sections restent verrouillées comme avant une fois ouvertes. TalkBack : « Étendu » ou
       « Réduit » annoncé sur le titre.
 
+## 22. Radios dans le cadre ami APP-6(C) (FORK.md §33, point 4)
+
+- [ ] Liste des nœuds (normale et compacte), barre du haut, vue PC, carte : chaque radio est un rectangle à coins
+      droits, bord noir, fond bleu clair, nom court seul (4 caractères au plus), le même pour Drone, CDS TIR, PC…
+      Aucune couleur par nœud, aucun émoji ajouté, pas de nom long dans le cadre.
+- [ ] Vue PC et liste : nom long et équipe en texte à côté du cadre.
+- [ ] Thème clair puis sombre, carte claire puis satellite ou sombre : contour du cadre toujours visible (liseré
+      blanc), nom lisible.
+- [ ] Hors ligne : éteindre une radio, attendre 2 h (ou prendre une radio connue jamais entendue) : bord en tirets
+      nets, tirets aux quatre coins, fond plus pâle, dans la liste, la vue PC et sur la carte (en 15 s au plus sur la
+      carte une fois le délai passé). La radio du téléphone n'est jamais en tirets. TalkBack annonce « hors-ligne ».
+- [ ] Carte : toucher une radio : anneau orange autour de son cadre, au-dessus des voisines ; fermer la fiche : l'anneau
+      part. Marque « ancienne » toujours à droite du cadre.
+- [ ] Nom court de 4 lettres larges (`MMMM`, `WWWW`) : tient dans le cadre (police réduite). Radio ignorée : nom barré.
+- [ ] Carte avec 50 radios et plus (mode démo si possible) : défilement et zoom fluides, bulles de regroupement comme
+      avant, radios proches qui se chevauchent comme avant.
+
 ## Avant fusion dans `main`
 - [ ] Les runs 70 et 71 ont été annulés par une poussée plus récente (rien à corriger).
 - [ ] Compiler la variante google et lancer `core:ui` / `core:navigation` à la main si nécessaire.

@@ -1149,6 +1149,36 @@ du Réseau, ou bouton « Diagnostic » sous un envoi en échec. Le diagnostic n'
 - **Code** : `ExpressiveSection(collapsible, initiallyExpanded)` (`feature:settings`), utilisé dans `RadioConfig`,
   `PermissionsSection`, `SettingsScreen` et `AppInfoSection`. Test : `ExpressiveSectionCollapseTest`.
 
+### 33. Radios dans le cadre « ami » APP-6(C) (`feat/radios-cadre-ami`, point 4)
+
+- **Demande** : partout où une radio du réseau est représentée (carte, vue PC, liste des nœuds), le cadre « ami »
+  d'APP-6(C) pour une unité terrestre, le même pour toutes les radios (Drone compris), avec le nom court seulement.
+- **Cadre** : rectangle à coins droits, proportions 3:2 (48 × 32 dp), fond bleu ami « cristal » `#80E0FF`, bord noir de
+  2 dp, nom court en noir gras centré : 4 caractères au plus (une paire de substitution compte pour un), « ??? » sans
+  nom, taille de 14 à 10 sp selon la largeur des lettres. Liseré blanc de 1 dp autour du bord noir, pour que le cadre
+  garde son contour sur une carte ou un thème sombres. La couleur propre à chaque nœud n'est plus dans le cadre (elle
+  reste sur les cercles de précision de la carte).
+- **Hors ligne** (radio non entendue depuis 2 h, la règle de la liste des nœuds ; jamais la radio de ce téléphone) :
+  bord en tirets (convention APP-6 d'un statut supposé) et fond plus pâle `#C0F0FF`. Tirets de 5 dp, écart de 3 dp au
+  moins ; chaque côté commence et finit par un tiret (coins pleins) ; tout est tracé en pixels entiers (rectangles
+  pleins, pas de trait), donc net à toute densité. TalkBack lit « hors-ligne ».
+- **Sélection** : anneau orange `#FF8C00` (orange de la carte) de 3 dp autour du cadre ; la place est toujours
+  réservée (image de 56 × 40 dp), rien ne bouge. Sur la carte, la radio dont la fiche est ouverte est cerclée et
+  passe au-dessus des autres.
+- **Radio ignorée** : nom barré dans le cadre. **Marques « ancienne » / « incohérente »** (carte) : en texte à droite du
+  cadre, comme avant.
+- **Vue PC et listes** : nom long et équipe en texte à côté du cadre, jamais dedans.
+- **Carte, 50 radios et plus** : une image par apparence (nom, hors ligne, sélection, marque) ; sans la couleur par
+  nœud, deux radios de même nom partagent la même image. Regroupement en bulles, plafond de 250 images et ordre
+  d'affichage inchangés. État hors ligne recalculé toutes les 15 s, comme les marques.
+- **Pas changé** : la carte « Découverte » (résultat d'un balayage) garde ses pastilles colorées, dont la couleur est
+  une mesure.
+- **Code** : `FriendlyUnitFrame` et `drawFriendlyFrame` (`core:ui`, `component/FriendlyUnitFrame.kt`) ; `NodeChip`
+  l'appelle (liste, liste compacte, barre du haut, connexions, carte Google). Carte MapLibre : `MapChipKey.friendly`,
+  `offline`, `selected`, `FriendlyChipPainter` (`NodeChipLayer.kt`), `offlineNodes`, `IS_SELECTED`. Vue PC :
+  `CommandPostRow.offline`. Tests : `FriendlyFrameLabelTest`, `DashRunsTest`, `NodeChipKeyTest`, `CommandPostRowsTest`,
+  `CommandPostContentTest`.
+
 ## État d'avancement au 11 novembre 2026
 
 - **Branches** : les sections 1 à 20 sont chacune sur une branche `feat/…`, empilées les unes

@@ -27,6 +27,9 @@ object NodeFeatureKeys {
     const val IS_FAVORITE = "isFavorite"
     const val IS_ONLINE = "isOnline"
     const val IS_SELF = "isSelf"
+
+    /** The radio the user tapped: its frame is ringed and drawn above every other. */
+    const val IS_SELECTED = "isSelected"
     const val FOREGROUND = "fg"
     const val BACKGROUND = "bg"
     const val LAST_HEARD = "lastHeard"

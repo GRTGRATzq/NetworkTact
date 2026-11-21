@@ -280,6 +280,8 @@ private fun rememberMapScreenMapState(
         frameOnNodes = restored.position == null && !focused,
         // The long-pressed point while its card is open, otherwise the point another screen asked to show.
         markedPoint = pressedPoint ?: marked?.let { Position(longitude = it.longitude, latitude = it.latitude) },
+        // The radio whose card is open is ringed on the map.
+        selectedNodeNum = screen.selectedNodeNum,
     )
 }
 
