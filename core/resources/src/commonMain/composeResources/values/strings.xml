@@ -774,7 +774,7 @@
     <string name="firereq_end_refused_resent">« GDH fin » not available: the fire chief resent this sheet, so the radio of its writer, %1$s, is not known here. Send the end DTG to the writer in a direct message.</string>
     <string name="firereq_end_refused_unknown">« GDH fin » not available: the radio that sent this sheet (%1$s) is not among the radios of the network.</string>
     <string name="firereq_gdh_invalid">Unreadable DTG: DDHHMM loc MON YY, DDHHMMZ MON YY or DDHHMM fra MON YY.</string>
-    <string name="firereq_intro">Each box follows the 68e RAA sheet, in the same order, with its labels and codes. Green background: filled in by the app, editable. « Renouveler » brings back the last request sent.</string>
+    <string name="firereq_intro">Each box follows the 68e RAA sheet, in the same order, with its labels and codes. Green background: filled in by the app, editable. « Renew » brings back the last request sent.</string>
     <string name="firereq_line">%1$s, line %2$s</string>
     <string name="firereq_lru_help">MGRS, written 35T LL 33000 - 90300: 35 UTM zone · T latitude band · LL 100 km square · X easting and Y northing on 5 digits (1 m) · Z altitude, optional.</string>
     <string name="firereq_missing">Missing part(s) %1$s (boxes %2$s). The sheet will be complete once they arrive; the boxes received stay readable.</string>

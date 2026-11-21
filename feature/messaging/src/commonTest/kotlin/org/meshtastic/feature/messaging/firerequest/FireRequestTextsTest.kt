@@ -17,6 +17,8 @@
 package org.meshtastic.feature.messaging.firerequest
 
 import org.meshtastic.core.resources.Res
+import org.meshtastic.core.resources.firereq_intro
+import org.meshtastic.core.resources.firereq_renew
 import org.meshtastic.core.resources.firereq_target_form_note
 import org.meshtastic.core.resources.firereq_target_title
 import org.meshtastic.core.resources.getString
@@ -32,5 +34,13 @@ class FireRequestTextsTest {
         val note = getString(Res.string.firereq_target_form_note)
 
         assertTrue(note.contains("« $title »"), "« $title » expected in: $note")
+    }
+
+    @Test
+    fun `the form intro names the Renew button by its own label`() {
+        val renew = getString(Res.string.firereq_renew)
+        val intro = getString(Res.string.firereq_intro)
+
+        assertTrue(intro.contains("« $renew »"), "« $renew » expected in: $intro")
     }
 }
