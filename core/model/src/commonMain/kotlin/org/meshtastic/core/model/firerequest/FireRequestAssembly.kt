@@ -27,6 +27,8 @@ data class FireRequestMessage(
     val sender: String,
     val timeMillis: Long,
     val text: String,
+    /** The radio a direct message went to; empty for a channel message or when unknown. */
+    val to: String = "",
 )
 
 /**
@@ -78,6 +80,46 @@ data class FireRequestThread(
             FireRequestPart.parse(messages.first().text)?.lines.orEmpty()
         },
     )
+
+    /**
+     * The « Accusé DT » received for this request, the latest of each post (by [FireRequestMessage.sender]), oldest
+     * post first: on the writer's card, one line per post.
+     */
+    val acknowledgements: List<Pair<FireRequestMessage, FireRequestAck>>
+        get() =
+            replies
+                .filterNot { it.fromLocal }
+                .sortedBy { it.timeMillis }
+                .mapNotNull { message -> FireRequestAck.parse(message.text)?.let { message to it } }
+                .associateBy { it.first.sender }
+                .values
+                .sortedBy { it.first.timeMillis }
+
+    /** The « Accusé DT » this phone sent for this request, if any: one per request and post. */
+    val ownAcknowledgement: FireRequestAck?
+        get() = replies.filter { it.fromLocal }.firstNotNullOfOrNull { FireRequestAck.parse(it.text) }
+
+    /** The latest allocation of this request to this phone's radio, received from the fire chief. */
+    val designation: Pair<FireRequestMessage, FireRequestDesignation>?
+        get() =
+            replies
+                .filterNot { it.fromLocal }
+                .sortedBy { it.timeMillis }
+                .mapNotNull { message -> FireRequestDesignation.parse(message.text)?.let { message to it } }
+                .lastOrNull()
+
+    /**
+     * The latest allocation this phone made as fire chief: the message to the designated radio (its
+     * [FireRequestMessage.to] names that radio) or, failing it, the one to the writer.
+     */
+    val ownAllocation: FireRequestMessage?
+        get() =
+            replies
+                .filter { it.fromLocal && FireRequestDesignation.parse(it.text) != null }
+                .maxByOrNull { it.timeMillis }
+                ?: replies
+                    .filter { it.fromLocal && FireRequestReply.parse(it.text)?.designated != null }
+                    .maxByOrNull { it.timeMillis }
 
     private fun latestReply(kind: ReplyKind): FireRequestReply? =
         replies.sortedBy { it.timeMillis }.mapNotNull { FireRequestReply.parse(it.text) }.lastOrNull { it.kind == kind }
@@ -131,11 +173,20 @@ data class FireRequestAssembly(val threads: List<FireRequestThread>, val orphanR
             }
             val orphans = mutableListOf<FireRequestMessage>()
             for (message in sorted) {
-                val reply = FireRequestReply.parse(message.text) ?: continue
+                val designation = FireRequestDesignation.parse(message.text)
+                val number =
+                    designation?.number
+                        ?: FireRequestReply.parse(message.text)?.number
+                        ?: FireRequestAck.parse(message.text)?.number
+                        ?: continue
+                // An allocation goes to the request as received; the fire chief who wrote the request has only theirs.
                 val candidates =
-                    threads.withIndex().filter { (_, t) ->
-                        t.number == reply.number && t.fromLocal != message.fromLocal
-                    }
+                    threads
+                        .withIndex()
+                        .filter { (_, t) ->
+                            t.number == number && (t.fromLocal != message.fromLocal || designation != null)
+                        }
+                        .let { all -> all.filterNot { designation != null && it.value.fromLocal }.ifEmpty { all } }
                 val target =
                     candidates.lastOrNull { (_, t) -> t.firstTimeMillis <= message.timeMillis }
                         ?: candidates.lastOrNull()

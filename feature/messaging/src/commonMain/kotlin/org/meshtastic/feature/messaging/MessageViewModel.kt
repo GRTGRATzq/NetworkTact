@@ -33,6 +33,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
@@ -41,11 +42,14 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import org.koin.core.annotation.KoinViewModel
 import org.koin.core.annotation.Named
 import org.meshtastic.core.common.util.currentLocaleCode
 import org.meshtastic.core.common.util.ioDispatcher
+import org.meshtastic.core.common.util.nowMillis
 import org.meshtastic.core.common.util.nowSeconds
 import org.meshtastic.core.common.util.systemTimeZone
 import org.meshtastic.core.model.ContactKey
@@ -84,6 +88,7 @@ import org.meshtastic.core.ui.viewmodel.stateInWhileSubscribed
 import org.meshtastic.feature.messaging.coordinates.SharePointOffer
 import org.meshtastic.feature.messaging.coordinates.sharePointOffer
 import org.meshtastic.feature.messaging.filter.ThreadFilter
+import org.meshtastic.feature.messaging.firerequest.FireRequestSender
 import org.meshtastic.feature.messaging.firerequest.FireRequestView
 import org.meshtastic.feature.messaging.status.sentStatusOf
 import org.meshtastic.feature.messaging.translation.DownloadResult
@@ -256,8 +261,30 @@ class MessageViewModel(
     val fireRequests: StateFlow<FireRequestView> =
         contactKeyForPagedMessages
             .filterNotNull()
-            .flatMapLatest { key -> flow { emitAll(packetRepository.getMessagesFrom(key, getNode = ::getNode)) } }
-            .map { FireRequestView.of(it) }
+            .flatMapLatest { key ->
+                val messages = flow { emitAll(packetRepository.getMessagesFrom(key, getNode = ::getNode)) }
+                if (ContactKey(key).addressString == NodeAddress.ID_BROADCAST) {
+                    // On a channel, acknowledgements and allocations come in direct messages: one query for all,
+                    // from the first part of the oldest request of the channel (7 days back at most). It starts again
+                    // only when that oldest request changes, not at every new message.
+                    val direct =
+                        messages
+                            .map { FireRequestView.firstPartTime(it) }
+                            .distinctUntilChanged()
+                            .flatMapLatest { first ->
+                                first?.let {
+                                    packetRepository.getDirectMessagesStartingWith(
+                                        FIRE_REQUEST_PREFIX,
+                                        FireRequestView.answersSince(it, nowMillis),
+                                        ::getNode,
+                                    )
+                                } ?: flowOf(emptyList())
+                            }
+                    combine(messages, direct) { inChannel, answers -> FireRequestView.of(inChannel, answers) }
+                } else {
+                    messages.map { FireRequestView.of(it) }
+                }
+            }
             .stateInWhileSubscribed(FireRequestView.EMPTY)
 
     /**
@@ -469,6 +496,30 @@ class MessageViewModel(
         }
     }
 
+    private var fireRequestSendingTo = ""
+    private val fireRequestQueue = Mutex()
+
+    /** Spaces out the parts a fire request card sends again, as the form does (« envoi trop rapide »). */
+    private val fireRequestSender =
+        FireRequestSender(
+            send = { text -> sendMessageUseCase(text, fireRequestSendingTo) },
+            outcome = packetRepository::getOutgoingOutcome,
+            discard = { uuid -> packetRepository.deleteMessages(listOf(uuid)) },
+        )
+
+    /**
+     * Sends [texts], parts of a fire request, to [contactKey] one after the other: « Renvoyer la fiche » on a channel,
+     * « Renvoyer la fiche à <radio> » in direct messages. A second call waits for the first to end.
+     */
+    fun sendFireRequestParts(texts: List<String>, contactKey: String) {
+        safeLaunch(errorEvents = sendErrorEvents, tag = "sendFireRequestParts") {
+            fireRequestQueue.withLock {
+                fireRequestSendingTo = contactKey
+                fireRequestSender.sendAll(texts)
+            }
+        }
+    }
+
     private val _sharePointOffer = MutableStateFlow<SharePointOffer?>(null)
 
     /**
@@ -612,6 +663,9 @@ class MessageViewModel(
         private const val MIN_SEARCH_LENGTH = 2
         private const val DRAFT_PERSISTENCE_DELAY_MS = 300L
         private const val KEY_DRAFT_MESSAGE_PREFIX = "draftMessage:"
+
+        /** The tag every fire request message starts with. */
+        private const val FIRE_REQUEST_PREFIX = "[DT "
 
         /** Saved-state drafts are keyed per conversation; one shared entry would leak text between them. */
         private fun draftKey(contactKey: String) = KEY_DRAFT_MESSAGE_PREFIX + contactKey

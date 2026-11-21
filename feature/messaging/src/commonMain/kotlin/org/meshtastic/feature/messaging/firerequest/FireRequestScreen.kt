@@ -17,7 +17,6 @@
 package org.meshtastic.feature.messaging.firerequest
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -27,11 +26,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -58,15 +54,14 @@ import org.meshtastic.core.resources.firereq_block_number
 import org.meshtastic.core.resources.firereq_block_recipient
 import org.meshtastic.core.resources.firereq_block_reference
 import org.meshtastic.core.resources.firereq_block_too_long
-import org.meshtastic.core.resources.firereq_direct_note
 import org.meshtastic.core.resources.firereq_draft_kept
 import org.meshtastic.core.resources.firereq_gdh_invalid
 import org.meshtastic.core.resources.firereq_intro
 import org.meshtastic.core.resources.firereq_origin_help
-import org.meshtastic.core.resources.firereq_recipient_choose
 import org.meshtastic.core.resources.firereq_renew
 import org.meshtastic.core.resources.firereq_renew_replace
 import org.meshtastic.core.resources.firereq_size
+import org.meshtastic.core.resources.firereq_target_form_note
 import org.meshtastic.core.resources.firereq_title
 import org.meshtastic.core.resources.firereq_zone
 import org.meshtastic.core.resources.firereq_zone_help
@@ -90,10 +85,7 @@ fun FireRequestScreen(
     val request by viewModel.request.collectAsStateWithLifecycle()
     val canRenew by viewModel.canRenew.collectAsStateWithLifecycle()
     val zone by viewModel.gdhZone.collectAsStateWithLifecycle()
-    val recipient by viewModel.recipient.collectAsStateWithLifecycle()
-    val recipients by viewModel.recipients.collectAsStateWithLifecycle()
-    val actions =
-        remember(viewModel) { FormActions(viewModel::edit, viewModel::chooseZone, viewModel::chooseRecipient) }
+    val actions = remember(viewModel) { FormActions(viewModel::edit, viewModel::chooseZone) }
     var confirmRenew by remember { mutableStateOf(false) }
     Scaffold(
         modifier = modifier,
@@ -118,12 +110,7 @@ fun FireRequestScreen(
         },
         bottomBar = bottomBar,
     ) { padding ->
-        FireRequestForm(
-            request,
-            HeaderState(zone, recipient, recipients),
-            actions,
-            Modifier.fillMaxSize().padding(padding),
-        )
+        FireRequestForm(request, HeaderState(zone), actions, Modifier.fillMaxSize().padding(padding))
     }
     if (confirmRenew) {
         AlertDialog(
@@ -146,19 +133,14 @@ fun FireRequestScreen(
     }
 }
 
-/** What the header shows besides the request: the DTG zone, the recipient chosen and the nodes to choose from. */
-internal data class HeaderState(
-    val zone: GdhZone,
-    val recipient: RecipientOption?,
-    val recipients: List<RecipientOption>,
-)
+/**
+ * What the header shows besides the request: the DTG zone. Where the request goes is chosen in the preview (« Envoyer à
+ * »).
+ */
+internal data class HeaderState(val zone: GdhZone)
 
-/** What the form does: change the request, choose the DTG zone, choose the recipient. */
-internal class FormActions(
-    val edit: ((FireRequest) -> FireRequest) -> Unit,
-    val chooseZone: (GdhZone) -> Unit,
-    val chooseRecipient: (RecipientOption) -> Unit,
-)
+/** What the form does: change the request, choose the DTG zone. */
+internal class FormActions(val edit: ((FireRequest) -> FireRequest) -> Unit, val chooseZone: (GdhZone) -> Unit)
 
 @Composable
 private fun FireRequestForm(
@@ -201,7 +183,6 @@ private fun HeaderCard(request: FireRequest, header: HeaderState, actions: FormA
                 width = 200.dp,
             )
             Help(stringResource(Res.string.firereq_origin_help))
-            RecipientChooser(header.recipient, header.recipients, actions.chooseRecipient)
             SheetField(
                 Sheet.RECIPIENT,
                 request.recipient,
@@ -228,37 +209,12 @@ private fun HeaderCard(request: FireRequest, header: HeaderState, actions: FormA
                 }
             }
             Help(stringResource(Res.string.firereq_zone_help))
-            Help(stringResource(Res.string.firereq_direct_note))
+            Help(stringResource(Res.string.firereq_target_form_note))
         }
     }
 }
 
 private const val GDH_MAX = 24
-
-@Composable
-private fun RecipientChooser(
-    recipient: RecipientOption?,
-    options: List<RecipientOption>,
-    onChoose: (RecipientOption) -> Unit,
-) {
-    var open by remember { mutableStateOf(false) }
-    Box {
-        OutlinedButton(onClick = { open = true }) {
-            Text(recipient?.name ?: stringResource(Res.string.firereq_recipient_choose))
-        }
-        DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
-            options.forEach { option ->
-                DropdownMenuItem(
-                    text = { Text(option.name) },
-                    onClick = {
-                        open = false
-                        onChoose(option)
-                    },
-                )
-            }
-        }
-    }
-}
 
 /** Under the form: the size the request would be sent as, and why it cannot be sent yet. */
 @Composable

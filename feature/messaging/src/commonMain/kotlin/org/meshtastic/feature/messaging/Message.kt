@@ -95,13 +95,18 @@ import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import org.koin.core.qualifier.named
 import org.meshtastic.core.common.util.HomoglyphCharacterStringTransformer
+import org.meshtastic.core.common.util.nowSeconds
+import org.meshtastic.core.common.util.systemTimeZone
 import org.meshtastic.core.database.entity.QuickChatAction
 import org.meshtastic.core.model.ConnectionState
 import org.meshtastic.core.model.ContactKey
 import org.meshtastic.core.model.MENTION_TOKEN_REGEX
 import org.meshtastic.core.model.Node
 import org.meshtastic.core.model.NodeAddress
+import org.meshtastic.core.model.firerequest.Gdh
 import org.meshtastic.core.model.util.getChannel
+import org.meshtastic.core.repository.FireRequestPrefs
+import org.meshtastic.core.repository.OrgChartPrefs
 import org.meshtastic.core.repository.SCREEN_DATA
 import org.meshtastic.core.repository.TeamRosterPrefs
 import org.meshtastic.core.resources.Res
@@ -232,6 +237,8 @@ fun MessageScreen(
     val sharePointOffer by viewModel.sharePointOffer.collectAsStateWithLifecycle()
     val isDemoActive by viewModel.isDemoActive.collectAsStateWithLifecycle()
     val mapFocusRequests = koinInject<MapFocusRequests>()
+    val fireRequestPrefs = koinInject<FireRequestPrefs>(named(SCREEN_DATA))
+    val orgChart by koinInject<OrgChartPrefs>(named(SCREEN_DATA)).current.collectAsStateWithLifecycle()
 
     // Seed the composer once the draft arrives, unless the screen was opened with a message to prefill.
     LaunchedEffect(storedDraft) {
@@ -595,6 +602,7 @@ fun MessageScreen(
                         canReact = !isRetiredChannel,
                         canSend = !isRetiredChannel,
                         channelName = channelName,
+                        fireChief = orgChart?.chart?.fireChief.orEmpty(),
                         fireRequests = fireRequests,
                     ),
                     handlers =
@@ -613,6 +621,12 @@ fun MessageScreen(
                         onClickChip = { onEvent(MessageScreenEvent.NodeDetails(it)) },
                         onDeleteMessages = { viewModel.deleteMessages(it) },
                         onSendMessage = { text, key -> if (!isRetiredChannel) viewModel.sendMessage(text, key) },
+                        fireRequestGdh = {
+                            Gdh.of(nowSeconds, fireRequestPrefs.gdhZone.value, systemTimeZone).format()
+                        },
+                        onSendParts = { texts, key ->
+                            if (!isRetiredChannel) viewModel.sendFireRequestParts(texts, key)
+                        },
                         onReply = { message -> if (!isRetiredChannel) replyingToPacketId = message?.packetId },
                         onTranslate = { onEvent(MessageScreenEvent.TranslateMessage(it)) },
                         onToggleTranslation = { onEvent(MessageScreenEvent.ToggleShowTranslated(it)) },

@@ -27,6 +27,7 @@ import org.meshtastic.core.demo.data.DemoDataSet
 import org.meshtastic.core.demo.repository.DemoPacketRepository
 import org.meshtastic.core.demo.store.DemoStore
 import org.meshtastic.core.model.MessageStatus
+import org.meshtastic.core.model.firerequest.FireRequestAck
 import org.meshtastic.core.model.firerequest.FireRequestReply
 import org.meshtastic.core.model.firerequest.Gdh
 import org.meshtastic.core.model.firerequest.GdhZone
@@ -169,6 +170,25 @@ class DemoSendMessageUseCaseTest {
 
         at(endAt * 2)
         assertEquals(emptyList(), repliesIn(DemoDataSet.GENERAL_KEY))
+    }
+
+    @Test
+    fun aFireRequestOnAChannelGetsTheDtAcknowledgementsOfAlpha1ThenBravo2InDirectMessages() = runTest {
+        sendFireRequest(DemoDataSet.GENERAL_KEY)
+        val ackAt = DemoFireRequestReplies.ACK_AFTER_BROADCAST
+
+        fun acksIn(key: String) = store.packets.value
+            .filter { it.contactKey == key && it.packet.from != MY_ID }
+            .mapNotNull { FireRequestAck.parse(it.packet.text.orEmpty()) }
+
+        at(ackAt)
+        assertEquals(listOf("AB1234"), acksIn(DemoDataSet.ALPHA1_DIRECT_KEY).map { it.number })
+        assertEquals(emptyList(), acksIn(DemoDataSet.BRAVO2_DIRECT_KEY))
+
+        at(ackAt * 2)
+        assertEquals(1, acksIn(DemoDataSet.BRAVO2_DIRECT_KEY).size)
+        at(ackAt * 10)
+        assertEquals(emptyList(), acksIn(DemoDataSet.CHARLIE3_DIRECT_KEY))
     }
 
     @Test

@@ -44,6 +44,7 @@ import org.meshtastic.core.resources.Res
 import org.meshtastic.core.resources.message
 import org.meshtastic.core.resources.orgchart_declares_no_team
 import org.meshtastic.core.resources.orgchart_declares_team
+import org.meshtastic.core.resources.orgchart_fire_chief
 import org.meshtastic.core.resources.orgchart_my_radio
 import org.meshtastic.core.resources.orgchart_no_radio
 import org.meshtastic.core.resources.orgchart_origin
@@ -149,6 +150,14 @@ internal fun MemberCard(
                     )
                     if (row.member.role.isNotBlank()) {
                         Text(text = row.member.role, style = MaterialTheme.typography.bodyMedium)
+                    }
+                    if (row.fireChief) {
+                        Text(
+                            text = stringResource(Res.string.orgchart_fire_chief),
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary,
+                        )
                     }
                 }
                 single?.directMessageKey?.let { key -> MessageButton { onOpenMessages(key) } }

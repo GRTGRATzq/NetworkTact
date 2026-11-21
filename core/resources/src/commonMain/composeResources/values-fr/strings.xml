@@ -1684,6 +1684,7 @@
     <string name="orgchart_unlisted">Radios hors organigramme</string>
     <string name="orgchart_add_member">Ajouter un membre</string>
     <string name="orgchart_edit_member">Modifier le membre</string>
+    <string name="orgchart_fire_chief">Chef de tir</string>
     <string name="orgchart_remove_member">Retirer</string>
     <string name="orgchart_move_up">Monter</string>
     <string name="orgchart_known_radios">Radios connues (touchez-en une, ou saisissez un autre indicatif)</string>
@@ -1849,7 +1850,6 @@
     <string name="firereq_recipient_choose">Choisir le destinataire</string>
     <string name="firereq_zone">Format</string>
     <string name="firereq_zone_help">loc : heure locale · Z : heure zoulou · fra : heure française. Le choix est gardé pour les demandes suivantes.</string>
-    <string name="firereq_direct_note">Message direct au destinataire : accusé de réception obligatoire. GDH attribution et GDH fin sont renvoyés par le destinataire.</string>
     <string name="firereq_gdh_invalid">GDH illisible : JJHHMM loc MOIS AA, JJHHMMZ MOIS AA ou JJHHMM fra MOIS AA.</string>
     <string name="firereq_number_help">Lettres et chiffres, 10 au plus. Obligatoire pour l'envoi.</string>
     <string name="firereq_type_help">Plusieurs choix possibles, lettres comme types. Les lettres renvoient aux lignes de localisation de la case 7.</string>
@@ -2055,4 +2055,29 @@
     <string name="security_verified_contact_help">Vous avez vérifié la clé de ce nœud en personne, en échangeant les codes QR de contact : son identité est confirmée. C'est la confiance la plus forte que la liste affiche, quelle que soit la version du micrologiciel.</string>
     <string name="share_connected_node">Partager le nœud connecté</string>
     <string name="shared_contact_no_public_key">Ce contact n'a pas de clé publique : il ne peut pas être importé. Un contact sans clé effacerait celle que votre radio connaît déjà pour ce nœud. Demandez à l'expéditeur de le partager de nouveau une fois que son nœud aura échangé ses clés.</string>
+    <string name="firereq_target_title">Envoyer à</string>
+    <string name="firereq_target_both">Les deux</string>
+    <string name="firereq_target_both_warning">Les deux canaux : la demande part deux fois, trafic radio doublé.</string>
+    <string name="firereq_target_channel_note">Diffusée sur le canal, sans accusé par destinataire. Chaque poste renvoie un accusé DT quand la fiche est complète.</string>
+    <string name="firereq_target_radio_note">Message direct à cette radio, avec accusé de réception (comme avant).</string>
+    <string name="firereq_target_no_fire_team">Pas de canal « Équipe TIR » sur cette radio : Principal par défaut.</string>
+    <string name="firereq_target_form_note">Où part la demande se choisit dans l'aperçu, sous « Envoyer à » : canal de l'équipe TIR par défaut.</string>
+    <string name="firereq_preview_subtitle_channel">Sur %1$s · diffusée</string>
+    <string name="firereq_broadcast_on">Diffusée sur %1$s : pas d'accusé par destinataire.</string>
+    <string name="firereq_ack_line">Accusé DT : %1$s %2$s</string>
+    <string name="firereq_ack_none">Aucun accusé DT reçu pour l'instant.</string>
+    <string name="firereq_resend_sheet">Renvoyer la fiche</string>
+    <string name="firereq_allocated_to">Tir attribué à : %1$s</string>
+    <string name="firereq_ack_send">Accusé DT</string>
+    <string name="firereq_ack_sent">Accusé envoyé %1$s</string>
+    <string name="firereq_ack_note">Envoie un message direct à l'émetteur.</string>
+    <string name="firereq_ack_incomplete">Possible quand la fiche est complète (%1$d / %2$d).</string>
+    <string name="firereq_allocate">Attribuer</string>
+    <string name="firereq_allocate_title">Tir attribué à :</string>
+    <string name="firereq_allocate_choose">Choisir une radio</string>
+    <string name="firereq_allocate_done">Attribué à %1$s, %2$s</string>
+    <string name="firereq_no_fire_chief">Aucun chef de tir dans l'organigramme.</string>
+    <string name="firereq_resend_to">Renvoyer la fiche à %1$s</string>
+    <string name="firereq_resend_to_note">En messages directs, pour une radio absente de ce canal.</string>
+    <string name="firereq_designated_to_you">Tir attribué à vous (demande de %1$s), GDH attribution %2$s.</string>
 </resources>

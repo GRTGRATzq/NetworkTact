@@ -51,7 +51,6 @@ import org.meshtastic.core.resources.firereq_preview
 import org.meshtastic.core.resources.firereq_preview_note
 import org.meshtastic.core.resources.firereq_preview_part
 import org.meshtastic.core.resources.firereq_preview_part_size
-import org.meshtastic.core.resources.firereq_preview_subtitle
 import org.meshtastic.core.resources.firereq_preview_summary
 import org.meshtastic.core.resources.firereq_preview_title
 import org.meshtastic.core.resources.firereq_send
@@ -61,7 +60,8 @@ import org.meshtastic.core.ui.component.MainAppBar
 
 /**
  * The fire request, from the form to its sending: the form, then the preview of every part as it will go by radio, then
- * « Envoyer la demande », which sends them all and calls [onShowConversation] with the direct conversation.
+ * « Envoyer la demande », which sends them all and calls [onShowConversation] with the conversation it went to (the
+ * first channel's for « Les deux »).
  */
 @Composable
 fun FireRequestRoute(
@@ -87,14 +87,16 @@ fun FireRequestRoute(
         )
     } else {
         val request by viewModel.request.collectAsStateWithLifecycle()
-        val recipient by viewModel.recipient.collectAsStateWithLifecycle()
+        val target by viewModel.target.collectAsStateWithLifecycle()
+        val channels by viewModel.channels.collectAsStateWithLifecycle()
+        val radios by viewModel.recipients.collectAsStateWithLifecycle()
         val scope = rememberCoroutineScope()
         var sending by remember { mutableStateOf(false) }
         val progress by viewModel.progress.collectAsStateWithLifecycle()
         FireRequestPreviewScreen(
             number = request.number,
-            recipient = recipient?.name.orEmpty(),
             preview = preview,
+            destination = PreviewDestination(target, channels, radios, viewModel::chooseTarget),
             progress = progress,
             canSend = block == null && !sending,
             onEdit = { previewing = false },
@@ -111,12 +113,23 @@ fun FireRequestRoute(
     }
 }
 
-/** Every part exactly as it goes by radio, with its size; « Modifier » goes back to the form. */
+/** « Envoyer à » in the preview: the [target] chosen among the [channels] and the [radios], and how to change it. */
+class PreviewDestination(
+    val target: SendTarget?,
+    val channels: SendChannels?,
+    val radios: List<RecipientOption>,
+    val onChoose: (SendTarget) -> Unit,
+)
+
+/**
+ * Every part exactly as it goes by radio, with its size, under « Envoyer à » ([destination]); « Modifier » goes back to
+ * the form.
+ */
 @Composable
 fun FireRequestPreviewScreen(
     number: String,
-    recipient: String,
     preview: FireRequestPreview,
+    destination: PreviewDestination,
     canSend: Boolean,
     onEdit: () -> Unit,
     onSend: () -> Unit,
@@ -128,7 +141,7 @@ fun FireRequestPreviewScreen(
         topBar = {
             MainAppBar(
                 title = stringResource(Res.string.firereq_preview_title),
-                subtitle = stringResource(Res.string.firereq_preview_subtitle, recipient),
+                subtitle = targetSubtitle(destination.target, ""),
                 ourNode = null,
                 showNodeChip = false,
                 canNavigateUp = true,
@@ -165,6 +178,7 @@ fun FireRequestPreviewScreen(
             contentPadding = PaddingValues(12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
+            item { TargetChooser(destination.target, destination.channels, destination.radios, destination.onChoose) }
             item { Text(stringResource(Res.string.firereq_preview_summary, number, preview.bytes, preview.parts.size)) }
             itemsIndexed(preview.parts) { index, part -> PartCard(index + 1, preview.parts.size, part) }
             item { Help(stringResource(Res.string.firereq_preview_note)) }

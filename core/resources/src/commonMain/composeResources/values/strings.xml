@@ -746,15 +746,27 @@
     <string name="filter_words_summary">Messages containing these words will be hidden</string>
     <string name="firebase_link" translatable="false">Firebase: https://firebase.google.com/</string>
     <!-- FIREREQ -->
+    <string name="firereq_ack_incomplete">Available once the sheet is complete (%1$d / %2$d).</string>
+    <string name="firereq_ack_line">DT acknowledgement: %1$s %2$s</string>
+    <string name="firereq_ack_none">No DT acknowledgement received yet.</string>
+    <string name="firereq_ack_note">Sends a direct message to the writer.</string>
+    <string name="firereq_ack_send">DT acknowledgement</string>
+    <string name="firereq_ack_sent">Acknowledgement sent %1$s</string>
+    <string name="firereq_allocate">Allocate</string>
+    <string name="firereq_allocate_choose">Choose a radio</string>
+    <string name="firereq_allocate_done">Allocated to %1$s, %2$s</string>
+    <string name="firereq_allocate_title">Fire allocated to:</string>
+    <string name="firereq_allocated_to">Fire allocated to: %1$s</string>
     <string name="firereq_block_disconnected">Radio not connected: cannot send.</string>
     <string name="firereq_block_number">Type the fire number to send.</string>
     <string name="firereq_block_recipient">Choose the recipient to send.</string>
     <string name="firereq_block_reference">Rep: choose the direction of each shift.</string>
     <string name="firereq_block_too_long">Too long: %1$d messages, 9 at most.</string>
+    <string name="firereq_broadcast_on">Broadcast on %1$s: no acknowledgement per recipient.</string>
     <string name="firereq_card_sent">DT %1$s · %2$d messages</string>
     <string name="firereq_card_title">Fire request %1$s</string>
     <string name="firereq_close">Close</string>
-    <string name="firereq_direct_note">Direct message to the recipient, with acknowledgement. The allocation and end DTGs are sent back by the recipient.</string>
+    <string name="firereq_designated_to_you">Fire allocated to you (request from %1$s), allocation DTG %2$s.</string>
     <string name="firereq_draft_kept">Draft kept on the phone</string>
     <string name="firereq_edit">Edit</string>
     <string name="firereq_empty_box">Empty box: it is sent anyway, as « %1$d non rempli ».</string>
@@ -763,6 +775,7 @@
     <string name="firereq_line">%1$s, line %2$s</string>
     <string name="firereq_lru_help">MGRS, written 35T LL 33000 - 90300: 35 UTM zone · T latitude band · LL 100 km square · X easting and Y northing on 5 digits (1 m) · Z altitude, optional.</string>
     <string name="firereq_missing">Missing part(s) %1$s (boxes %2$s). The sheet will be complete once they arrive; the boxes received stay readable.</string>
+    <string name="firereq_no_fire_chief">No fire chief in the organisation chart.</string>
     <string name="firereq_no_space">No spaces here: « %1$s » will be sent.</string>
     <string name="firereq_not_received">not received</string>
     <string name="firereq_number_help">Letters and digits, 10 at most. Required to send.</string>
@@ -776,6 +789,7 @@
     <string name="firereq_preview_part">Message %1$d / %2$d</string>
     <string name="firereq_preview_part_size">%1$d bytes of 200</string>
     <string name="firereq_preview_subtitle">To %1$s · direct · acknowledged</string>
+    <string name="firereq_preview_subtitle_channel">On %1$s · broadcast</string>
     <string name="firereq_preview_summary">Request %1$s: %2$d bytes, split into %3$d messages between two boxes. This is exactly what goes out by radio.</string>
     <string name="firereq_preview_title">Preview before sending</string>
     <string name="firereq_raw">Show the %1$d raw messages</string>
@@ -791,10 +805,20 @@
     <string name="firereq_reply_title">Send the %1$s</string>
     <string name="firereq_reply_waiting">%1$s: waiting</string>
     <string name="firereq_resend_part">Resend part %1$d</string>
+    <string name="firereq_resend_sheet">Resend the sheet</string>
+    <string name="firereq_resend_to">Resend the sheet to %1$s</string>
+    <string name="firereq_resend_to_note">In direct messages, for a radio that is not on this channel.</string>
     <string name="firereq_send">Send the request</string>
     <string name="firereq_sending_part">Sending part %1$d / %2$d…</string>
     <string name="firereq_shortcut">Fire request</string>
     <string name="firereq_size">%1$d bytes · %2$d messages</string>
+    <string name="firereq_target_both">Both</string>
+    <string name="firereq_target_both_warning">Both channels: the request goes out twice, radio traffic doubled.</string>
+    <string name="firereq_target_channel_note">Broadcast on the channel, no acknowledgement per recipient. Each station sends back a DT acknowledgement once the sheet is complete.</string>
+    <string name="firereq_target_form_note">Where the request goes is chosen in the preview, under « Envoyer à »: the fire team's channel by default.</string>
+    <string name="firereq_target_no_fire_team">No « Équipe TIR » channel on this radio: Principal by default.</string>
+    <string name="firereq_target_radio_note">Direct message to this radio, with acknowledgement (as before).</string>
+    <string name="firereq_target_title">Send to</string>
     <string name="firereq_title">Fire request</string>
     <string name="firereq_type_help">Several choices allowed, letters as well as types. The letters refer to the location lines of box 7.</string>
     <string name="firereq_waiting_part">Part %1$d / %2$d waiting (the radio refused it as too fast), new try %3$d / 3…</string>
@@ -1645,6 +1669,7 @@
     <string name="orgchart_error_empty">Enter a call sign</string>
     <string name="orgchart_error_role_long">Role too long: %1$d bytes, %2$d at most</string>
     <string name="orgchart_error_too_large">Org chart too large for a readable QR code (%1$d characters, %2$d at most). Shorten call signs or roles, or remove a member.</string>
+    <string name="orgchart_fire_chief">Fire chief</string>
     <string name="orgchart_ignore">Ignore</string>
     <string name="orgchart_known_radios">Known radios (touch one, or type another call sign)</string>
     <string name="orgchart_move_down">Move down</string>

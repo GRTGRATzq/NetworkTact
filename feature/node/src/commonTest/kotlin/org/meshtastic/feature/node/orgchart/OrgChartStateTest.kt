@@ -120,6 +120,13 @@ class OrgChartStateTest {
     }
 
     @Test
+    fun onlyTheDesignatedMemberIsMarkedFireChief() {
+        val state = build(listOf(pc), record = chart.copy(chart = chart.chart.copy(fireChief = "ALPHA-1")))
+        val chiefs = state.sections.flatMap { it.members }.filter { it.fireChief }
+        assertEquals(listOf("ALPHA-1"), chiefs.map { it.member.callsign })
+    }
+
+    @Test
     fun aMemberWithoutRadioHasNone() {
         assertTrue(build(listOf(pc)).member("CHARLIE-3").radios.isEmpty())
     }

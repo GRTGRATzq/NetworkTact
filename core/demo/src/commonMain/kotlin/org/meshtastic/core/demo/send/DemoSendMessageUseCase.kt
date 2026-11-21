@@ -73,7 +73,11 @@ class DemoSendMessageUseCase(
             )
         val session = store.session
         scope.launch { simulate(stored.uuid, session, isDirect, destination) }
-        if (isDirect) fireRequestReplies.onSent(text, contactKey, destination, channel ?: 0)
+        if (isDirect) {
+            fireRequestReplies.onSent(text, contactKey, destination, channel ?: 0)
+        } else {
+            fireRequestReplies.onBroadcast(text)
+        }
         return packetId
     }
 

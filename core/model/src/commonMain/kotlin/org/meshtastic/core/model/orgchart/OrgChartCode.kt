@@ -33,9 +33,18 @@ import org.meshtastic.core.model.utf8Size
  * `A` gives the author and the time of the last change (Unix seconds), `P` a command post member, `T` a team and `M` a
  * member of the team above it. The text is plain ASCII: `%`, `|` and every byte outside printable ASCII are written as
  * `%XX` of their UTF-8 bytes, so no scanner can misread the character set.
+ *
+ * A chart with a fire chief starts with [HEADER_WITH_CHIEF] instead, and its second line after the author's is `F|` and
+ * the chief's call sign (`F|ALPHA-1`). The line names the chief by call sign only and is read on its own, apart from
+ * the member lines, so it stays as it is whatever form the member lines take later. Without a chief the code is the
+ * [HEADER] one, byte for byte, which phones older than the fire chief still read; they refuse the other whole.
+ * `NTORGA2` is kept for the expected LoRa setting (not written yet), hence the jump to 3.
  */
 object OrgChartCode {
     const val HEADER = "NTORGA1"
+
+    /** The header of a chart that designates a fire chief. */
+    const val HEADER_WITH_CHIEF = "NTORGA3"
 
     /**
      * Longest code, in characters. With the medium error correction the screen uses, it stays a version 22 QR code (105
@@ -49,11 +58,12 @@ object OrgChartCode {
     private val FORBIDDEN_IN_TEAM = charArrayOf('[', ']', TeamRoster.SEPARATOR)
 
     /** Whether [text] is meant as an organisation chart. */
-    fun isOrgChartCode(text: String): Boolean = text.startsWith(HEADER)
+    fun isOrgChartCode(text: String): Boolean = text.startsWith(HEADER) || text.startsWith(HEADER_WITH_CHIEF)
 
     fun encode(chart: OrgChart): String = buildList {
-        add(HEADER)
+        add(if (chart.fireChief.isEmpty()) HEADER else HEADER_WITH_CHIEF)
         add(line('A', chart.author, chart.createdSeconds.toString()))
+        if (chart.fireChief.isNotEmpty()) add(line('F', chart.fireChief))
         chart.commandPost.forEach { add(line('P', it.callsign, it.role)) }
         chart.teams.forEach { team ->
             add(line('T', team.name))
@@ -70,19 +80,45 @@ object OrgChartCode {
      * half a chart.
      */
     fun decode(text: String): OrgChart? {
-        val lines = text.split('\n').takeIf { text.length <= MAX_CODE_CHARS && it.size >= 2 && it[0] == HEADER }
+        val withChief = text.startsWith(HEADER_WITH_CHIEF)
+        val header = if (withChief) HEADER_WITH_CHIEF else HEADER
+        val headerLines = if (withChief) HEAD_LINES_WITH_CHIEF else HEAD_LINES
+        val lines =
+            text.split('\n').takeIf { text.length <= MAX_CODE_CHARS && it.size >= headerLines && it[0] == header }
         val head = lines?.let { fields(it[1], 'A', 2) }
         val author = head?.get(0)?.takeIf { it.utf8Size() <= OrgChart.MAX_CALLSIGN_BYTES }
         val created = head?.get(1)?.takeIf { it.length in 1..MAX_TIME_DIGITS && it.all { c -> c in '0'..'9' } }
-        val body = lines?.let { BodyParser().takeIf { parser -> it.drop(2).all(parser::add) } }
+        val chief = if (withChief) lines?.let { chiefLine(it[2]) } else ""
+        val body = lines?.let { BodyParser().takeIf { parser -> it.drop(headerLines).all(parser::add) } }
         val chart =
-            if (author != null && created != null && body != null) {
-                OrgChart(OrgChart.clean(author), created.toLong(), body.commandPost, body.teams)
+            if (author != null && created != null && chief != null && body != null) {
+                OrgChart(OrgChart.clean(author), created.toLong(), body.commandPost, body.teams).withChief(chief)
             } else {
                 null
             }
         return chart?.takeIf(::isConsistent)
     }
+
+    /** The call sign an `F|` line names, or null when the line is anything else. */
+    private fun chiefLine(raw: String): String? = fields(raw, 'F', 1)?.single()?.let(OrgChart::clean)?.takeIf {
+        it.isNotEmpty() && it.utf8Size() <= OrgChart.MAX_CALLSIGN_BYTES
+    }
+
+    /**
+     * [this] with the member called [chief] (case ignored) as fire chief, spelled as the member is; null when no member
+     * has that call sign: a chief outside the chart refuses the whole code.
+     */
+    private fun OrgChart.withChief(chief: String): OrgChart? = if (chief.isEmpty()) {
+        this
+    } else {
+        allMembers
+            .firstOrNull { Callsign.sameAs(it.second.callsign, chief) }
+            ?.let { copy(fireChief = it.second.callsign) }
+    }
+
+    /** The header line and the author's, then the chief's when there is one. */
+    private const val HEAD_LINES = 2
+    private const val HEAD_LINES_WITH_CHIEF = 3
 
     /** Reads the lines after the author's, in order: command post members first, then each team and its members. */
     private class BodyParser {

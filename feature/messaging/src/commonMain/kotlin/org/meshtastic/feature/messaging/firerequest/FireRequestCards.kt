@@ -39,6 +39,7 @@ import org.meshtastic.core.model.firerequest.FireRequestReply
 import org.meshtastic.core.model.firerequest.FireRequestThread
 import org.meshtastic.core.model.firerequest.ReplyKind
 import org.meshtastic.core.resources.Res
+import org.meshtastic.core.resources.firereq_allocated_to
 import org.meshtastic.core.resources.firereq_card_sent
 import org.meshtastic.core.resources.firereq_card_title
 import org.meshtastic.core.resources.firereq_part_status
@@ -65,6 +66,8 @@ internal fun FireRequestCard(
     canSend: Boolean,
     actions: FireRequestCardActions,
     modifier: Modifier = Modifier,
+    channelName: String? = null,
+    network: FireRequestNetwork = FireRequestNetwork(),
 ) {
     var showRaw by remember { mutableStateOf(false) }
     Card(
@@ -72,10 +75,17 @@ internal fun FireRequestCard(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
     ) {
         Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            if (thread.fromLocal) {
+            if (thread.fromLocal && channelName != null) {
+                BroadcastRequest(thread, view, channelName, canSend, actions)
+                AllocationPart(thread, network.role, network.allocationOf(thread, view), canSend, actions)
+            } else if (thread.fromLocal) {
                 SentRequest(thread, view, recipientName, canSend, actions)
             } else {
-                ReceivedRequest(thread, canSend, actions)
+                ReceivedRequest(thread, canSend, actions, onChannel = channelName != null)
+                if (channelName != null) {
+                    DesignatedPart(thread, network.radios, canSend, actions)
+                    AllocationPart(thread, network.role, network.allocationOf(thread, view), canSend, actions)
+                }
             }
             TextButton(onClick = { showRaw = true }) {
                 Text(stringResource(Res.string.firereq_raw, thread.messages.size))
@@ -127,48 +137,58 @@ private fun SentRequest(
 }
 
 @Composable
-private fun ReplyState(kind: ReplyKind, reply: FireRequestReply?) {
-    Text(
-        text =
-        if (reply != null) {
-            stringResource(Res.string.firereq_reply_received, kind.label, reply.gdh)
-        } else {
-            stringResource(Res.string.firereq_reply_waiting, kind.label)
-        },
-        style = MaterialTheme.typography.bodySmall,
-    )
-}
+internal fun ReplyState(kind: ReplyKind, reply: FireRequestReply?) =
+    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        Text(
+            text =
+            if (reply != null) {
+                stringResource(Res.string.firereq_reply_received, kind.label, reply.gdh)
+            } else {
+                stringResource(Res.string.firereq_reply_waiting, kind.label)
+            },
+            style = MaterialTheme.typography.bodySmall,
+        )
+        reply?.designated?.let {
+            Text(stringResource(Res.string.firereq_allocated_to, it), style = MaterialTheme.typography.bodySmall)
+        }
+    }
 
 /** The recipient's sheet: header, then boxes 1 to 11 in clear, and the two date-time groups to send back. */
 @Composable
-private fun ReceivedRequest(thread: FireRequestThread, canSend: Boolean, actions: FireRequestCardActions) =
-    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        val read = thread.read()
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            FireRequestBadge()
-            Text(
-                stringResource(Res.string.firereq_card_title, thread.number),
-                style = MaterialTheme.typography.titleSmall,
-                modifier = Modifier.weight(1f),
-            )
-            Text(
-                stringResource(Res.string.firereq_received_count, thread.received.size, thread.count),
-                style = MaterialTheme.typography.labelMedium,
-            )
-        }
-        HeaderLine(Sheet.ORIGIN, read.request.origin)
-        HeaderLine(Sheet.RECIPIENT, read.request.recipient)
-        HeaderLine(Sheet.REQUEST_GDH, read.request.requestGdh)
-        HeaderLine(Sheet.ALLOCATION_GDH, thread.allocation?.gdh.orEmpty())
-        HeaderLine(Sheet.END_GDH, thread.end?.gdh.orEmpty())
-        if (canSend) ReplyButtons(thread, actions.send)
-        MissingParts(thread, read)
-        SheetBoxes(read, actions.showOnMap)
+private fun ReceivedRequest(
+    thread: FireRequestThread,
+    canSend: Boolean,
+    actions: FireRequestCardActions,
+    onChannel: Boolean,
+) = Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+    val read = thread.read()
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        FireRequestBadge()
+        Text(
+            stringResource(Res.string.firereq_card_title, thread.number),
+            style = MaterialTheme.typography.titleSmall,
+            modifier = Modifier.weight(1f),
+        )
+        Text(
+            stringResource(Res.string.firereq_received_count, thread.received.size, thread.count),
+            style = MaterialTheme.typography.labelMedium,
+        )
     }
+    HeaderLine(Sheet.ORIGIN, read.request.origin)
+    HeaderLine(Sheet.RECIPIENT, read.request.recipient)
+    HeaderLine(Sheet.REQUEST_GDH, read.request.requestGdh)
+    HeaderLine(Sheet.ALLOCATION_GDH, thread.allocation?.gdh.orEmpty())
+    HeaderLine(Sheet.END_GDH, thread.end?.gdh.orEmpty())
+    // On a channel, allocation is the fire chief's and « GDH fin » the designated radio's, in direct messages.
+    if (onChannel) AckButton(thread, canSend, actions)
+    if (canSend && !onChannel) ReplyButtons(thread, actions.send)
+    MissingParts(thread, read)
+    SheetBoxes(read, actions.showOnMap)
+}
 
 @Composable
 private fun HeaderLine(label: String, value: String) {

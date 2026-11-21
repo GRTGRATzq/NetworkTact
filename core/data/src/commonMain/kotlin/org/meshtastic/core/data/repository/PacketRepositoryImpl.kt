@@ -218,6 +218,17 @@ class PacketRepositoryImpl(private val dbManager: DatabaseProvider, private val 
         }
     }
 
+    override fun getDirectMessagesStartingWith(
+        prefix: String,
+        sinceMillis: Long,
+        getNode: suspend (String?) -> Node,
+    ): Flow<List<Pair<String, Message>>> = dbManager.observeCurrentDb { db ->
+        db.packetDao().getDirectMessagesStartingWith(prefix, sinceMillis).mapLatest { packets ->
+            val cachedGetNode = memoize(getNode)
+            packets.map { it.packet.contact_key to it.toMessage(cachedGetNode) }
+        }
+    }
+
     override fun getMessagesFromPaged(contact: String, getNode: suspend (String?) -> Node): Flow<PagingData<Message>> =
         Pager(
             config =

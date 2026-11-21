@@ -42,13 +42,17 @@ data class OrgRadioRow(
     val directMessageKey: String?,
 )
 
-/** A member in its place. [index] is its position in its list, [rank] the number shown (index + 1). */
+/**
+ * A member in its place. [index] is its position in its list, [rank] the number shown (index + 1). [fireChief]: the
+ * member designated « chef de tir ».
+ */
 data class OrgMemberRow(
     val team: String?,
     val index: Int,
     val rank: Int,
     val member: OrgMember,
     val radios: List<OrgRadioRow>,
+    val fireChief: Boolean = false,
 )
 
 /** The command post ([team] null) or a team. [inTeamList] is false for a team the adopted team list no longer holds. */
@@ -98,7 +102,14 @@ fun buildOrgChartState(
                     inTeamList = team == null || team in teamList,
                     members =
                     members[team].orEmpty().map { link ->
-                        OrgMemberRow(team, link.rank - 1, link.rank, link.member, link.radios.map(::row))
+                        OrgMemberRow(
+                            team,
+                            link.rank - 1,
+                            link.rank,
+                            link.member,
+                            link.radios.map(::row),
+                            fireChief = chart?.isFireChief(link.member.callsign) == true,
+                        )
                     },
                 )
             }

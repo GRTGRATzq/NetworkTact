@@ -49,7 +49,7 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 /** The validated example of `docs/SPEC-DEMANDE-DE-TIR.md` § 4, and messages carrying it. */
-private object Example {
+internal object Example {
     val request =
         FireRequest(
             origin = "OA",

@@ -42,20 +42,34 @@ enum class ReplyKind(val label: String) {
 
 /**
  * The recipient's answer to request [number]: `[DT AB1234] GDH attribution 112252 loc NOV 26`, or `GDH fin`. [gdh] is
- * the date-time group as written; it is shown as it came, even when it does not read as a [Gdh].
+ * the date-time group as written; it is shown as it came, even when it does not read as a [Gdh]. [designated] is the
+ * short name of the radio the fire chief allocated the fire to, written after the allocation's date-time group (`…
+ * 112252 loc NOV 26 · Tir attribué à CDS`); null in a direct reply, which names nobody.
  */
-data class FireRequestReply(val number: String, val kind: ReplyKind, val gdh: String) {
+data class FireRequestReply(val number: String, val kind: ReplyKind, val gdh: String, val designated: String? = null) {
 
     /** The message sent. */
-    fun text(): String = "[${FireRequestSheet.TAG} $number] ${kind.label} ${FireRequestText.clean(gdh)}"
+    fun text(): String {
+        val base = "[${FireRequestSheet.TAG} $number] ${kind.label} ${FireRequestText.clean(gdh)}"
+        return designated?.let { "$base$SEPARATOR$ALLOCATED_TO ${FireRequestText.clean(it)}" } ?: base
+    }
 
     companion object {
+        const val ALLOCATED_TO = "Tir attribué à"
+        private const val SEPARATOR = " · "
         private val REPLY = Regex("""^\[DT ([A-Z0-9]{1,10})] GDH (attribution|fin) (\S.*)$""")
+        private val DESIGNATED = Regex("""^(.*?) · $ALLOCATED_TO (\S.*)$""")
 
         fun parse(text: String): FireRequestReply? {
             val match = REPLY.find(text.trim()) ?: return null
-            val (number, kind, gdh) = match.destructured
-            return FireRequestReply(number, if (kind == "fin") ReplyKind.END else ReplyKind.ALLOCATION, gdh.trim())
+            val (number, kind, rest) = match.destructured
+            val replyKind = if (kind == "fin") ReplyKind.END else ReplyKind.ALLOCATION
+            val named = DESIGNATED.find(rest).takeIf { replyKind == ReplyKind.ALLOCATION }
+            return if (named == null) {
+                FireRequestReply(number, replyKind, rest.trim())
+            } else {
+                FireRequestReply(number, replyKind, named.groupValues[1].trim(), named.groupValues[2].trim())
+            }
         }
     }
 }
