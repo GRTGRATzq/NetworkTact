@@ -1,53 +1,46 @@
 # Passation Claude Code : où en est NetworkTact
 
-État au **20 novembre 2026** (corrections des essais du 13 novembre : § 00 ; tâche 8, demande de tir : § 0 ; tâche 7
+État au **21 novembre 2026** (point 1, demande de tir sur un canal : § 000 ; corrections des essais du 13 novembre : § 00 ; tâche 8, demande de tir : § 0 ; tâche 7
 inchangée depuis le 11 novembre, 20 h 45 UTC),
 pour reprendre dans une conversation neuve. À lire avec `FORK.md` (section de
 chaque tâche, état d'avancement), `TESTS-A-FAIRE.md` et, pour la tâche 7, `docs/PLAN-CARTE-TELECHARGEMENT.md`.
 
-## 000. État au 21 novembre 2026, vers 20 h 30 UTC : À LIRE EN PREMIER (point 1, `feat/dt-canal`, en cours)
+## 000. État au 21 novembre 2026, vers 21 h UTC : À LIRE EN PREMIER (point 1, `feat/dt-canal`, fait, à essayer)
 
-Remplace le § 00 là où ils diffèrent. Passation faite vers 70 % de contexte, tâche **non finie**.
+Remplace le § 00 là où ils diffèrent. Détail de ce qui est fait, décisions et écarts : **FORK.md § 34**. Essais :
+**`TESTS-A-FAIRE.md` § 23**. Spécification : `docs/SPEC-DT-CANAL-ET-ATTRIBUTION.md`.
 
-**Reprise demandée par l'utilisateur (à faire dans une session neuve)**, dans cet ordre, **un commit puis un push sur
-`wip/dt-canal` par point** (jamais plusieurs commits d'un coup), Gradle avec `--max-workers=2` :
-1. Sélecteur « Envoyer à » dans l'aperçu (Équipe TIR par défaut, sinon Principal ; Principal ; Les deux avec
-   avertissement ; Une radio). `FireRequestViewModel.chooseTarget`, `target`, `channels` existent déjà.
-2. Carte de l'émetteur : « diffusée sur <canal> », une ligne d'accusé par poste, renvoi de la fiche sur le canal.
-3. Bouton « Accusé DT » : actif à N / N, un seul par fiche et par poste, grisé ensuite.
-4. Chez le chef : « Tir attribué à : », menu des radios, « Attribuer » ; « Renvoyer la fiche à <radio> » en direct.
-5. « GDH fin » chez la radio désignée.
-6. Textes EN/FR, tests des cartes, mode démo ; FORK.md et TESTS-A-FAIRE.md.
-Puis : `test/correctifs-13-11-d` depuis `test/correctifs-13-11-c`, `git merge --no-ff feat/dt-canal`, pousser, lancer
-`fork-apk` à la main, donner le n° du run.
-
-**Nom du canal Équipe TIR : non confirmé** (l'utilisateur le donnera). Ne pas le figer : garder la reconnaissance
-tolérante par nom (`SendChannels.isFireTeam`) et le repli sur Principal.
-
-**Fait pendant la reprise** : fenêtre des réponses directes partant de la première partie de la plus ancienne demande
-du canal, 7 jours au plus (`1c45495`, FORK § 34) ; essai de mesure de la requête sur 50 conversations
-(`a733bd8`, `TESTS-A-FAIRE.md` § 23).
-
-- **Branche** `feat/dt-canal`, base `test/correctifs-13-11-c` (`101742a`), poussée sur `wip/dt-canal`. Spécification :
-  `docs/SPEC-DT-CANAL-ET-ATTRIBUTION.md`. Fait, reste à faire, temps d'antenne et écarts avec l'audit : **FORK.md § 34**.
-  Essais : `TESTS-A-FAIRE.md` § 23.
-- **Décisions du 21/11 par l'utilisateur** : format du chef validé (champ `fireChief`, ligne `F|<indicatif>` après `A`,
-  nouvelle version seulement avec un chef, `NTORGA1` octet pour octet sinon) ; nom de version choisi : **`NTORGA3`**
-  (`NTORGA2` réservé au réglage LoRa, FORK § 19) ; un seul chef ; accusés DT manuels, sans restriction, un par fiche et
-  par poste, grisé ensuite (« Accusé envoyé <GDH> ») avec un texte discret ; en direct, un poste qui n'est pas le chef
-  garde GDH attribution / GDH fin ; seul le chef voit « Tir attribué à : ».
-- **Pas encore fait** : `feat/dt-canal` n'est pas copiée en `feat/dt-canal` distante (seulement `wip/dt-canal`) ;
-  `test/correctifs-13-11-d` **pas créée**, `fork-apk` **pas lancé** : l'interface (aperçu « Envoyer à », cartes, accusé,
-  attribution) manque encore, un APK n'aurait rien à essayer. À faire à la fin : créer `test/correctifs-13-11-d` depuis
-  `test/correctifs-13-11-c`, `git merge --no-ff feat/dt-canal`, pousser, lancer `fork-apk` à la main, donner le n° du
-  run.
-- **Comportement intermédiaire à connaître** : ouvert depuis un canal, le formulaire envoie maintenant **sur un canal**
-  par défaut (Équipe TIR sinon Principal) ; le choix d'une radio dans le formulaire (`RecipientChooser`) envoie toujours
-  en direct.
-- **Session** : le cache Gradle était vide, le premier lancement l'a rempli (≈ 5 min). Lancer Gradle avec
-  `--max-workers=2` : un lancement de 7 modules a été tué faute de mémoire. Un crochet relance detekt sur tout l'arbre
-  avant chaque `git push` (et bloque si un fichier non commité échoue). Les 5 commits de code sont partis en une seule
-  poussée.
+- **Point 1 terminé** : les six points restants sont faits, un commit puis un push sur `wip/dt-canal` chacun :
+  sélecteur « Envoyer à » (`af6f439`), carte de l'émetteur (`ed98104`), « Accusé DT » (`fb83395`), attribution chez le
+  chef et « Renvoyer la fiche à <radio> » (`562f8a2`), « GDH fin » chez la radio désignée (`973b3c4`), textes EN/FR,
+  tests des cartes, mode démo, FORK.md et TESTS-A-FAIRE.md (`e59a6ec`).
+- **Branches** : `feat/dt-canal` (locale) = `wip/dt-canal` (distante), base `test/correctifs-13-11-c` (`101742a`).
+  `test/correctifs-13-11-d` créée depuis `test/correctifs-13-11-c`, fusion `--no-ff` de `feat/dt-canal` (`9f588d0`),
+  poussée. `feat/dt-canal` n'existe toujours pas sur GitHub (seulement `wip/dt-canal`).
+- **Run `fork-apk` 115** : `test/correctifs-13-11-d`, `9f588d0`, lancé à la main le 21 novembre à 20 h 25 UTC :
+  **vert**. **APK à essayer sur les radios** : `apk-fdroid-release` du run 115 (contient tout le run 114 plus le point 1).
+- **Trois décisions prises sans l'utilisateur, à confirmer aux essais** :
+  1. **« Choisir le destinataire » retiré du formulaire** : un seul endroit pour choisir, « Envoyer à » dans l'aperçu.
+     Ouvert depuis une conversation directe, le formulaire choisit toujours cette radio (v1).
+  2. **« Renvoyer la fiche à <radio> » toujours affiché chez le chef** après une attribution : Meshtastic ne dit pas si
+     une radio est sur le canal. Écart avec la spécification (qui le réserve à une radio absente du canal).
+  3. **Boutons GDH de la v1 masqués sur un canal** : sur un canal, l'attribution est au chef et « GDH fin » à la radio
+     désignée ; en conversation directe, les boutons v1 restent.
+- **Reste à faire** :
+  - **Essais sur téléphone** (`TESTS-A-FAIRE.md` § 23, au moins 3 téléphones plus un 4ᵉ poste témoin) : rien du point 1
+    n'a tourné sur un téléphone.
+  - **Nom du canal Équipe TIR à confirmer** par l'utilisateur : reconnaissance tolérante par nom
+    (`SendChannels.isFireTeam` : « Équipe TIR » ou « TIR », casse, accents et espaces ignorés) et repli sur Principal,
+    à ne pas figer avant.
+  - **Mesure de la requête des réponses directes** (`PacketDao.getDirectMessagesStartingWith`, sans index sur le texte)
+    sur une base chargée, au moins 50 conversations directes (`TESTS-A-FAIRE.md` § 23).
+- **Limites de vérification** : vérifié en local spotless, detekt, compilation JVM, tests JVM de `feature:messaging` en
+  entier et `DemoSendMessageUseCaseTest` ; le code Android et les tests Android hôtes ne sont vérifiés que par la CI
+  (run 115 vert). Le menu déroulant du chef ne s'ouvre pas dans les tests de bureau : les messages d'« Attribuer » sont
+  testés à part (`FireRequestAllocationTest`).
+- **Session** : `git fetch --depth=50 origin main` nécessaire avant spotless (« ratchet » sur `origin/main`). Gradle
+  avec `--max-workers=2` a encore été tué une fois faute de mémoire : `--max-workers=1` après `./gradlew --stop`. Un nom
+  de test avec « » fait échouer la compilation (nom de fichier `.class` invalide) : noms de tests en ASCII.
 
 ## 00. État au 20 novembre 2026, vers 20 h 40 UTC (corrections des essais du 13 novembre)
 
