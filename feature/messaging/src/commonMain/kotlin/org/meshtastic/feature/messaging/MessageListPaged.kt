@@ -68,6 +68,7 @@ import org.meshtastic.core.model.NodeAddress
 import org.meshtastic.core.model.Reaction
 import org.meshtastic.core.model.firerequest.Gdh
 import org.meshtastic.core.model.firerequest.GdhZone
+import org.meshtastic.core.model.orgchart.Callsign
 import org.meshtastic.core.model.team.TeamSuffix
 import org.meshtastic.core.ui.util.MapFocusPoint
 import org.meshtastic.feature.messaging.component.DateSeparator
@@ -76,8 +77,11 @@ import org.meshtastic.feature.messaging.component.MessageStatusDialog
 import org.meshtastic.feature.messaging.component.ReactionDialog
 import org.meshtastic.feature.messaging.component.UnreadMessagesDivider
 import org.meshtastic.feature.messaging.component.rememberCurrentTimeMillis
+import org.meshtastic.feature.messaging.firerequest.AllocationRadio
+import org.meshtastic.feature.messaging.firerequest.FireChiefRole
 import org.meshtastic.feature.messaging.firerequest.FireRequestCard
 import org.meshtastic.feature.messaging.firerequest.FireRequestCardActions
+import org.meshtastic.feature.messaging.firerequest.FireRequestNetwork
 import org.meshtastic.feature.messaging.firerequest.FireRequestView
 import org.meshtastic.feature.messaging.firerequest.directContactKey
 import kotlin.math.abs
@@ -137,7 +141,25 @@ internal data class MessageListPagedState(
     val channelName: String = "",
     /** The fire requests of the conversation: each is shown as one card, at the latest of its messages. */
     val fireRequests: FireRequestView = FireRequestView.EMPTY,
+    /** The call sign of the chart's fire chief, empty without a chief or a chart. */
+    val fireChief: String = "",
 )
+
+/** This post's role for fire requests and the radios a fire chief can allocate to. */
+internal fun fireRequestNetwork(nodes: List<Node>, ourNode: Node, fireChief: String): FireRequestNetwork {
+    val role =
+        when {
+            fireChief.isBlank() -> FireChiefRole.NONE
+            Callsign.sameAs(fireChief, Callsign.ofLongName(ourNode.user.long_name)) -> FireChiefRole.CHIEF
+            else -> FireChiefRole.OTHER
+        }
+    val radios =
+        nodes
+            .filter { it.user.id.isNotBlank() }
+            .map { AllocationRadio(it.user.id, it.user.short_name, TeamSuffix.displayName(it.user.long_name)) }
+            .sortedBy { it.label.lowercase() }
+    return FireRequestNetwork(role, radios, ourNode.user.id, ourNode.user.short_name)
+}
 
 /** The addressed node's name in a direct conversation (its id when unknown), or null for a channel. */
 internal fun directRecipientName(contactKey: String, nodes: List<Node>): String? {
@@ -429,6 +451,7 @@ private fun RenderPagedChatMessageRow(
             view = state.fireRequests,
             recipientName = directRecipientName(state.contactKey, state.nodes),
             channelName = state.channelName.takeIf { directRecipientName(state.contactKey, state.nodes) == null },
+            network = fireRequestNetwork(state.nodes, ourNode, state.fireChief),
             canSend = state.canSend,
             actions =
             FireRequestCardActions(
@@ -447,6 +470,11 @@ private fun RenderPagedChatMessageRow(
                         ?.let { node -> handlers.onSendMessage(text, directContactKey(node, state.ourNode)) }
                 },
                 gdhNow = handlers.fireRequestGdh,
+                sendPartsTo = { texts, nodeId ->
+                    state.nodes
+                        .firstOrNull { it.user.id == nodeId }
+                        ?.let { node -> handlers.onSendParts(texts, directContactKey(node, state.ourNode)) }
+                },
             ),
             modifier = modifier,
         )

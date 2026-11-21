@@ -2072,4 +2072,11 @@
     <string name="firereq_ack_sent">Accusé envoyé %1$s</string>
     <string name="firereq_ack_note">Envoie un message direct à l'émetteur.</string>
     <string name="firereq_ack_incomplete">Possible quand la fiche est complète (%1$d / %2$d).</string>
+    <string name="firereq_allocate">Attribuer</string>
+    <string name="firereq_allocate_title">Tir attribué à :</string>
+    <string name="firereq_allocate_choose">Choisir une radio</string>
+    <string name="firereq_allocate_done">Attribué à %1$s, %2$s</string>
+    <string name="firereq_no_fire_chief">Aucun chef de tir dans l'organigramme.</string>
+    <string name="firereq_resend_to">Renvoyer la fiche à %1$s</string>
+    <string name="firereq_resend_to_note">En messages directs, pour une radio absente de ce canal.</string>
 </resources>

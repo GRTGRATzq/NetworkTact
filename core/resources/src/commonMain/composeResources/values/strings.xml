@@ -752,6 +752,10 @@
     <string name="firereq_ack_note">Sends a direct message to the writer.</string>
     <string name="firereq_ack_send">DT acknowledgement</string>
     <string name="firereq_ack_sent">Acknowledgement sent %1$s</string>
+    <string name="firereq_allocate">Allocate</string>
+    <string name="firereq_allocate_choose">Choose a radio</string>
+    <string name="firereq_allocate_done">Allocated to %1$s, %2$s</string>
+    <string name="firereq_allocate_title">Fire allocated to:</string>
     <string name="firereq_allocated_to">Fire allocated to: %1$s</string>
     <string name="firereq_block_disconnected">Radio not connected: cannot send.</string>
     <string name="firereq_block_number">Type the fire number to send.</string>
@@ -770,6 +774,7 @@
     <string name="firereq_line">%1$s, line %2$s</string>
     <string name="firereq_lru_help">MGRS, written 35T LL 33000 - 90300: 35 UTM zone · T latitude band · LL 100 km square · X easting and Y northing on 5 digits (1 m) · Z altitude, optional.</string>
     <string name="firereq_missing">Missing part(s) %1$s (boxes %2$s). The sheet will be complete once they arrive; the boxes received stay readable.</string>
+    <string name="firereq_no_fire_chief">No fire chief in the organisation chart.</string>
     <string name="firereq_no_space">No spaces here: « %1$s » will be sent.</string>
     <string name="firereq_not_received">not received</string>
     <string name="firereq_number_help">Letters and digits, 10 at most. Required to send.</string>
@@ -800,6 +805,8 @@
     <string name="firereq_reply_waiting">%1$s: waiting</string>
     <string name="firereq_resend_part">Resend part %1$d</string>
     <string name="firereq_resend_sheet">Resend the sheet</string>
+    <string name="firereq_resend_to">Resend the sheet to %1$s</string>
+    <string name="firereq_resend_to_note">In direct messages, for a radio that is not on this channel.</string>
     <string name="firereq_send">Send the request</string>
     <string name="firereq_sending_part">Sending part %1$d / %2$d…</string>
     <string name="firereq_shortcut">Fire request</string>

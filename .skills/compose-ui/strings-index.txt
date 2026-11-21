@@ -722,6 +722,10 @@ firereq_ack_none
 firereq_ack_note
 firereq_ack_send
 firereq_ack_sent
+firereq_allocate
+firereq_allocate_choose
+firereq_allocate_done
+firereq_allocate_title
 firereq_allocated_to
 firereq_block_disconnected
 firereq_block_number
@@ -740,6 +744,7 @@ firereq_intro
 firereq_line
 firereq_lru_help
 firereq_missing
+firereq_no_fire_chief
 firereq_no_space
 firereq_not_received
 firereq_number_help
@@ -770,6 +775,8 @@ firereq_reply_title
 firereq_reply_waiting
 firereq_resend_part
 firereq_resend_sheet
+firereq_resend_to
+firereq_resend_to_note
 firereq_send
 firereq_sending_part
 firereq_shortcut

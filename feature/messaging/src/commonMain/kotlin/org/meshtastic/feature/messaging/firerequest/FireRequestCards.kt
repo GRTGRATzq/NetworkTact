@@ -67,6 +67,7 @@ internal fun FireRequestCard(
     actions: FireRequestCardActions,
     modifier: Modifier = Modifier,
     channelName: String? = null,
+    network: FireRequestNetwork = FireRequestNetwork(),
 ) {
     var showRaw by remember { mutableStateOf(false) }
     Card(
@@ -76,10 +77,14 @@ internal fun FireRequestCard(
         Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             if (thread.fromLocal && channelName != null) {
                 BroadcastRequest(thread, view, channelName, canSend, actions)
+                AllocationPart(thread, network.role, network.allocationOf(thread, view), canSend, actions)
             } else if (thread.fromLocal) {
                 SentRequest(thread, view, recipientName, canSend, actions)
             } else {
                 ReceivedRequest(thread, canSend, actions, onChannel = channelName != null)
+                if (channelName != null) {
+                    AllocationPart(thread, network.role, network.allocationOf(thread, view), canSend, actions)
+                }
             }
             TextButton(onClick = { showRaw = true }) {
                 Text(stringResource(Res.string.firereq_raw, thread.messages.size))
@@ -177,8 +182,9 @@ private fun ReceivedRequest(
     HeaderLine(Sheet.REQUEST_GDH, read.request.requestGdh)
     HeaderLine(Sheet.ALLOCATION_GDH, thread.allocation?.gdh.orEmpty())
     HeaderLine(Sheet.END_GDH, thread.end?.gdh.orEmpty())
+    // On a channel, allocation is the fire chief's and « GDH fin » the designated radio's, in direct messages.
     if (onChannel) AckButton(thread, canSend, actions)
-    if (canSend) ReplyButtons(thread, actions.send)
+    if (canSend && !onChannel) ReplyButtons(thread, actions.send)
     MissingParts(thread, read)
     SheetBoxes(read, actions.showOnMap)
 }

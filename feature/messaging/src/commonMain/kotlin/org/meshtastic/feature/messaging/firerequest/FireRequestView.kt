@@ -43,6 +43,8 @@ internal class FireRequestCardActions(
     val sendDirect: (text: String, nodeId: String) -> Unit = { _, _ -> },
     /** The date-time group of now, in the zone the operator chose. */
     val gdhNow: () -> String = { "" },
+    /** Sends parts in direct messages to the node whose id is given, spaced (« Renvoyer la fiche à <radio> »). */
+    val sendPartsTo: (texts: List<String>, nodeId: String) -> Unit = { _, _ -> },
 )
 
 /**
