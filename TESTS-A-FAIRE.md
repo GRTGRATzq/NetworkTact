@@ -400,6 +400,14 @@ faire »). Essais prévus, à compléter quand l'interface sera faite :
 - [ ] Demande ouverte depuis un canal, avec un canal nommé « Équipe TIR » (ou « TIR ») : elle part sur ce canal,
       Destinataire = nom du canal. Sans ce canal : sur Principal. Noter le vrai nom des canaux des radios.
 - [ ] Ouverte depuis une conversation directe : part en direct à cette radio, comme en v1.
+- [ ] **Temps de la requête des réponses directes** (`PacketDao.getDirectMessagesStartingWith`, relue à chaque changement
+      de la table des paquets, sans index sur le texte) : sur une base bien remplie, au moins **50 conversations
+      directes** et quelques milliers de messages (mode démo ou base d'essai), plus quelques demandes de tir sur un
+      canal. Ouvrir ce canal, puis recevoir des messages à la suite (un toutes les quelques secondes) : noter la durée de
+      la requête (Android Studio › App Inspection › Database Inspector, ou trace `adb shell setprop log.tag.SQLiteTime
+      VERBOSE` puis `logcat`), la fluidité du défilement et l'arrivée des lignes d'accusé. Seuil à juger : au-delà
+      d'environ 50 ms par requête, ou un défilement saccadé, ajouter un index ou une colonne marquant les messages
+      `[DT …]` (cette fois avec migration de la base).
 
 ## Avant fusion dans `main`
 - [ ] Les runs 70 et 71 ont été annulés par une poussée plus récente (rien à corriger).
