@@ -274,7 +274,8 @@ sont mesurées sur la palette fixe.
 
   Les longueurs sont celles du protobuf (`name` 30 et `description` 100 octets, fin de chaîne
   comprise), coupées par point de code. Le point est valable 24 h, verrouillé à son auteur
-  (lui seul peut le modifier ou le retirer), avec l'icône 👁, 📍 ou 📌. Son identifiant est
+  (lui seul peut le modifier ou le retirer), avec l'icône 👁, 📍 ou 📌 (remplacées au § 35 par les cadres
+  Inconnu, Ami et Inconnu). Son identifiant est
   dérivé de l'auteur et du texte : un même message partagé deux fois met à jour le même point.
   Un point partagé par erreur se retire par la fonction existante de la carte (Supprimer, puis
   « pour tout le monde », avec confirmation).
@@ -1262,6 +1263,36 @@ du Réseau, ou bouton « Diagnostic » sous un envoi en échec. Le diagnostic n'
   v1 (2,3 s par partie avec son accusé, environ 14 s pour 3 parties en 2 sauts) : ni la diffusion sur un canal, ni les
   accusés DT, qui sont nouveaux. Il rappelle la limite légale de 10 % d'émission par heure et par radio (EU_868) et le
   seuil de 25 % d'occupation du canal qui retient positions et télémétrie : 49 accusés en pire cas y mènent seuls.
+
+### 35. Points de repère : cadres d'affiliation APP-6(C), lot 1 (`feat/reperes-affiliation`, point 3) : À ESSAYER
+
+Spécification : `docs/SPEC-REPERES-AFFILIATION-LOT1.md` (décidée le 21/11, décisions après relevé incluses).
+
+- **Quatre cadres, vides** : Ami rectangle 3:2 `#80E0FF` ; Ennemi (hostile) losange `#FF8080` ; Neutre carré `#AAFFAA` ;
+  Inconnu trèfle à quatre lobes `#FFFF80`. Bord noir 2 dp, liseré blanc 1 dp, place du halo orange de sélection (3 dp)
+  toujours réservée. **Les trois couleurs hors Ami sont à confirmer dans l'APP-6(C) avant la fusion.**
+- **Dimensions** (forme / image) : rectangle 36 × 24 / 44 × 32 ; losange 40 × 40 pointe à pointe / 48 × 48 ; carré
+  28 × 28 / 36 × 36 ; trèfle 32 × 32 / 40 × 40. Couleurs, tailles et rayon des lobes : une seule constante,
+  `AffiliationFrames` (`core:ui`, `component/AffiliationFrame.kt`), à ajuster sur le téléphone.
+- **Transmission** : champ `icon` du point de repère, U+E001 Ami, U+E002 Ennemi, U+E003 Neutre, U+E004 Inconnu (zone à
+  usage privé d'Unicode ; `WaypointAffiliation`, `core:model`). Ni protocole ni micrologiciel changés ; une autre
+  application Meshtastic affiche un carré vide. Toute autre valeur (0, émoji, valeur cassée) s'affiche Inconnu et
+  repart comme Inconnu si le point est modifié ici.
+- **Sélecteur** : quatre boutons (un seul choix) à la place de la liste d'émojis dans « Nouveau / Modifier le repère »,
+  Inconnu par défaut. Commun aux deux variantes.
+- **Usages automatiques** (§ 12) : fait observé → Inconnu, toute `[POS]` → Ami, autre message avec coordonnée →
+  Inconnu, tous modifiables ensuite. Plus aucun 👁, 📍 ni 📌.
+- **Carte MapLibre** (fdroid, bureau) : une seule couche, huit images en tout (quatre cadres, entourés ou non), quel
+  que soit le nombre de points ; le point dont la fiche est ouverte est entouré d'orange et passe au-dessus. Nom à
+  droite du cadre, jamais dedans. Regroupement et plafond des radios inchangés (les repères n'y entrent pas).
+- **Fiche d'un point** (`WaypointInfoDialog`) : le cadre devant le nom, à la place de l'émoji.
+- **Variante Google** : pas de cadres sur la carte ; le nom de l'affiliation en texte noir sur sa couleur (« Ami »,
+  « Inconnu »…). Le 🔒 du titre devient « (verrouillé) » après le nom. `convertIntToEmoji` retiré.
+- **Tests** : `WaypointAffiliationTest`, `SharedPointTest` (affiliation par usage), `AffiliationFrameGeometryTest`,
+  `WaypointFeaturesTest` (affiliation et sélection).
+- **Limites** : vérifié en local spotless, detekt et tests JVM de `core:model`, `core:ui`, `feature:map`,
+  `feature:map-maplibre` ; le rendu réel (netteté du losange et du trèfle, lisibilité sur satellite), la variante
+  Google et le code Android : CI et essais seulement.
 
 ## État d'avancement au 11 novembre 2026 (historique)
 

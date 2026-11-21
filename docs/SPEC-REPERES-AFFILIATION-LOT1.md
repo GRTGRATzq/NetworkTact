@@ -54,6 +54,15 @@ sont dans une constante unique, faciles à changer.
   firmware.
 - Une autre application Meshtastic affiche un carré vide (accepté).
 
-## Décisions après le relevé
+## Décisions après le relevé (21 novembre)
 
-(À compléter après l'accord de l'utilisateur : cadre de chaque usage automatique, codage des 4 codes, dimensions.)
+- **Usages automatiques** (`SharedPoint`) : fait observé (`FO …`, ancien 👁) → Inconnu ; toute `[POS]` (`POS …`,
+  ancien 📍) → Ami ; autre message avec coordonnée (`PT …`, ancien 📌) → Inconnu ; point créé à la main, valeur 0 ou
+  inconnue → Inconnu. Le 🔒 du titre (carte Google) devient le mot « verrouillé » à côté du nom.
+- **Codes** : U+E001 Ami, U+E002 Ennemi, U+E003 Neutre, U+E004 Inconnu (zone à usage privé d'Unicode). Valeurs valides,
+  donc pas remises à 0 à la réception. Le champ fait 4 octets quel que soit le code.
+- **Dimensions** (forme, bord noir compris / image avec liseré 1 dp et halo 3 dp réservés) : rectangle 36 × 24 / 44 × 32 ;
+  losange 40 × 40 pointe à pointe / 48 × 48 ; carré 28 × 28 / 36 × 36 ; trèfle 32 × 32 / 40 × 40. Bord noir 2 dp. Toutes
+  dans `AffiliationFrames` (`core:ui`), ainsi que les couleurs.
+- **Variante Google** : pas de cadres sur la carte ; le nom de l'affiliation en texte sur sa couleur, jamais d'émoji ni
+  de caractère cassé. Le sélecteur et la fiche (communs aux deux variantes) montrent les cadres.
