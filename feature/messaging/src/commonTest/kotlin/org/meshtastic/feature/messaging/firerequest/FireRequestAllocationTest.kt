@@ -63,6 +63,62 @@ class FireRequestAllocationTest {
         assertEquals(listOf("!writer"), toChief.map { it.second })
     }
 
+    private val known = setOf("!writer", "!chief", "!cds")
+
+    @Test
+    fun `an allocation to known ids is ready with the same messages`() {
+        val check = checkAllocation(thread(fromLocal = false), cds, "OA", gdh, "!chief", known)
+
+        assertEquals(
+            AllocationCheck.Ready(allocationMessages(thread(fromLocal = false), cds, "OA", gdh, "!chief")),
+            check,
+        )
+    }
+
+    @Test
+    fun `an allocation to a radio no longer in the network is refused`() {
+        val gone = AllocationRadio("!gone", "CDS", "CDS TIR")
+
+        assertEquals(
+            AllocationCheck.Refused("!gone"),
+            checkAllocation(thread(fromLocal = false), gone, "OA", gdh, "!chief", known),
+        )
+    }
+
+    @Test
+    fun `an allocation whose writer is unknown is refused, nothing goes to the designated radio`() {
+        assertEquals(
+            AllocationCheck.Refused("!writer"),
+            checkAllocation(thread(fromLocal = false), cds, "OA", gdh, "!chief", setOf("!chief", "!cds")),
+        )
+    }
+
+    private fun own(text: String, to: String) = FireRequestMessage(3, true, "!chief", 2, text, to)
+
+    @Test
+    fun `the allocation made names the designated radio by its id, never by its short name`() {
+        val twins = listOf(AllocationRadio("!cds1", "CDS", "CDS 1"), AllocationRadio("!cds2", "CDS", "CDS 2"))
+        val message = own("[DT AB1234] Tir attribué à vous par OA · GDH attribution $gdh", to = "!cds2")
+
+        val made = madeAllocation(message, twins)
+
+        assertEquals(MadeAllocation("CDS · CDS 2", gdh, twins[1]), made)
+    }
+
+    @Test
+    fun `an allocation made to an unknown id shows the id and offers no resend`() {
+        val message = own("[DT AB1234] Tir attribué à vous par OA · GDH attribution $gdh", to = "!gone")
+
+        assertEquals(MadeAllocation("!gone", gdh, null), madeAllocation(message, listOf(cds)))
+    }
+
+    @Test
+    fun `an allocation told to the writer only is shown as sent, without looking up a radio by name`() {
+        val message = own("[DT AB1234] GDH attribution $gdh · Tir attribué à CDS", to = "!writer")
+
+        assertEquals(MadeAllocation("CDS", gdh, null), madeAllocation(message, listOf(cds)))
+    }
+
     private fun designated(requester: String) = thread(fromLocal = false)
         .copy(
             replies =

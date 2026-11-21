@@ -755,6 +755,7 @@
     <string name="firereq_allocate">Allocate</string>
     <string name="firereq_allocate_choose">Choose a radio</string>
     <string name="firereq_allocate_done">Allocated to %1$s, %2$s</string>
+    <string name="firereq_allocate_refused">Allocation refused: radio %1$s is not among the radios of the network. Nothing was sent.</string>
     <string name="firereq_allocate_title">Fire allocated to:</string>
     <string name="firereq_allocated_to">Fire allocated to: %1$s</string>
     <string name="firereq_block_disconnected">Radio not connected: cannot send.</string>

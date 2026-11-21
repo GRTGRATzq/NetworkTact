@@ -36,6 +36,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.stringResource
 import org.meshtastic.core.model.firerequest.FireRequestDesignation
+import org.meshtastic.core.model.firerequest.FireRequestMessage
 import org.meshtastic.core.model.firerequest.FireRequestReply
 import org.meshtastic.core.model.firerequest.FireRequestThread
 import org.meshtastic.core.model.firerequest.ReplyKind
@@ -43,6 +44,7 @@ import org.meshtastic.core.resources.Res
 import org.meshtastic.core.resources.firereq_allocate
 import org.meshtastic.core.resources.firereq_allocate_choose
 import org.meshtastic.core.resources.firereq_allocate_done
+import org.meshtastic.core.resources.firereq_allocate_refused
 import org.meshtastic.core.resources.firereq_allocate_title
 import org.meshtastic.core.resources.firereq_no_fire_chief
 import org.meshtastic.core.resources.firereq_resend_to
@@ -91,6 +93,58 @@ internal fun allocationMessages(
     }
 }
 
+/** Whether an allocation can go out: [Ready] with its messages, or [Refused] because [nodeId] is not a known radio. */
+internal sealed interface AllocationCheck {
+    data class Ready(val messages: List<Pair<String, String>>) : AllocationCheck
+
+    data class Refused(val nodeId: String) : AllocationCheck
+}
+
+/**
+ * [allocationMessages], checked before anything is sent: every message goes to a node id among [knownIds] (the radios
+ * of the network), never to a radio found by its short name. One unknown id refuses the whole allocation, so the writer
+ * and the designated radio are never told different things.
+ */
+internal fun checkAllocation(
+    thread: FireRequestThread,
+    radio: AllocationRadio,
+    writerShortName: String,
+    gdh: String,
+    ourId: String,
+    knownIds: Set<String>,
+): AllocationCheck {
+    if (radio.id !in knownIds) return AllocationCheck.Refused(radio.id)
+    val messages = allocationMessages(thread, radio, writerShortName, gdh, ourId)
+    val unknown = messages.map { it.second }.firstOrNull { it.isBlank() || it !in knownIds }
+    return if (unknown != null) AllocationCheck.Refused(unknown) else AllocationCheck.Ready(messages)
+}
+
+/**
+ * The allocation this phone made, as shown on its card: the [label] of the designated radio, the [gdh], and the radio
+ * that "Renvoyer la fiche à" can reach ([resendTo]).
+ */
+internal data class MadeAllocation(val label: String, val gdh: String, val resendTo: AllocationRadio?)
+
+/**
+ * What [message] (the chief's latest allocation) says, the designated radio identified by its node id only. The message
+ * to the designated radio names it by its [FireRequestMessage.to]: an id among [radios] gives its label and the resend,
+ * an unknown id is shown as it is, without resend. The message to the writer alone (radio of the writer or of the
+ * chief) is shown as sent, without resend: both already hold the sheet.
+ */
+internal fun madeAllocation(message: FireRequestMessage, radios: List<AllocationRadio>): MadeAllocation? {
+    val designation = FireRequestDesignation.parse(message.text)
+    return if (designation != null) {
+        val radio = radios.firstOrNull { it.id.isNotBlank() && it.id == message.to }
+        MadeAllocation(radio?.label ?: message.to.ifBlank { UNKNOWN_RADIO }, designation.gdh, radio)
+    } else {
+        FireRequestReply.parse(message.text)?.let { reply ->
+            reply.designated?.let { MadeAllocation(it, reply.gdh, null) }
+        }
+    }
+}
+
+private const val UNKNOWN_RADIO = "?"
+
 /**
  * The fire chief's part of a card on a channel: « Tir attribué à : » with the menu of the radios and « Attribuer », the
  * allocation made, and « Renvoyer la fiche à <radio> » in direct messages for a radio that is not on the channel. Any
@@ -115,18 +169,12 @@ internal fun AllocationPart(
         FireChiefRole.CHIEF -> Unit
     }
     var chosen by remember(thread.number) { mutableStateOf<AllocationRadio?>(null) }
-    val made =
-        thread.ownAllocation?.let { message ->
-            val designated = allocation.radios.firstOrNull { it.id == message.to }
-            val gdh =
-                FireRequestDesignation.parse(message.text)?.gdh ?: FireRequestReply.parse(message.text)?.gdh.orEmpty()
-            val named = FireRequestReply.parse(message.text)?.designated
-            (designated ?: allocation.radios.firstOrNull { it.shortName == named }) to gdh
-        }
+    var refused by remember(thread.number) { mutableStateOf<String?>(null) }
+    val made = thread.ownAllocation?.let { madeAllocation(it, allocation.radios) }
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        made?.let { (radio, gdh) ->
+        made?.let {
             Text(
-                stringResource(Res.string.firereq_allocate_done, radio?.label ?: "?", gdh),
+                stringResource(Res.string.firereq_allocate_done, it.label, it.gdh),
                 style = MaterialTheme.typography.bodySmall,
             )
         }
@@ -138,14 +186,30 @@ internal fun AllocationPart(
             enabled = canSend && chosen != null,
             onClick = {
                 val radio = chosen ?: return@Button
-                allocationMessages(thread, radio, allocation.writerShortName, actions.gdhNow(), allocation.ourId)
-                    .forEach { (text, to) -> actions.sendDirect(text, to) }
-                chosen = null
+                val knownIds = allocation.radios.map { it.id }.toSet()
+                val gdh = actions.gdhNow()
+                val check = checkAllocation(thread, radio, allocation.writerShortName, gdh, allocation.ourId, knownIds)
+                when (check) {
+                    is AllocationCheck.Ready -> {
+                        check.messages.forEach { (text, to) -> actions.sendDirect(text, to) }
+                        chosen = null
+                        refused = null
+                    }
+
+                    is AllocationCheck.Refused -> refused = check.nodeId.ifBlank { UNKNOWN_RADIO }
+                }
             },
         ) {
             Text(stringResource(Res.string.firereq_allocate))
         }
-        val designated = made?.first
+        refused?.let {
+            Text(
+                stringResource(Res.string.firereq_allocate_refused, it),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.error,
+            )
+        }
+        val designated = made?.resendTo
         if (canSend && designated != null) {
             TextButton(onClick = { actions.sendPartsTo(partTexts(thread).map { it.second }, designated.id) }) {
                 Text(stringResource(Res.string.firereq_resend_to, designated.shortName.ifBlank { designated.label }))

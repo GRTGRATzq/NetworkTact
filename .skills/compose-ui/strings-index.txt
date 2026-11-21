@@ -725,6 +725,7 @@ firereq_ack_sent
 firereq_allocate
 firereq_allocate_choose
 firereq_allocate_done
+firereq_allocate_refused
 firereq_allocate_title
 firereq_allocated_to
 firereq_block_disconnected
