@@ -40,7 +40,7 @@ class SharedPointTest {
             assertNotNull(share("[CR] FAIT OBSERVÉ · 14:05 · Lieu MGRS 31U DQ 48251 11932 · deux véhicules arrêtés"))
         assertEquals("FO 14:05 ALPHA-1", point.name)
         assertEquals("deux véhicules arrêtés", point.description)
-        assertEquals(SharedPoint.ICON_OBSERVED_FACT, point.icon)
+        assertEquals(WaypointAffiliation.UNKNOWN, WaypointAffiliation.fromIcon(point.icon))
     }
 
     @Test
@@ -62,7 +62,7 @@ class SharedPointTest {
             assertNotNull(share("[POS] ALPHA-1 · MGRS 31U DQ 48251 11932 · UTM 31U 448251 5411932 · relevée 14:28"))
         assertEquals("POS 14:28 ALPHA-1", point.name)
         assertEquals("relevée 14:28", point.description)
-        assertEquals(SharedPoint.ICON_POSITION, point.icon)
+        assertEquals(WaypointAffiliation.FRIEND, WaypointAffiliation.fromIcon(point.icon))
     }
 
     @Test
@@ -106,7 +106,7 @@ class SharedPointTest {
         val point = assertNotNull(share("Regroupement 31U DQ 48251 11932"))
         assertEquals("PT ALPHA-1", point.name)
         assertEquals("envoyé 14:30 · Regroupement 31U DQ 48251 11932", point.description)
-        assertEquals(SharedPoint.ICON_POINT, point.icon)
+        assertEquals(WaypointAffiliation.UNKNOWN, WaypointAffiliation.fromIcon(point.icon))
     }
 
     @Test
