@@ -61,6 +61,7 @@ import org.meshtastic.feature.map.maplibre.geojson.featureValue
 import org.meshtastic.feature.map.maplibre.geojson.rememberFeatureSource
 import org.meshtastic.feature.map.maplibre.geojson.toNodeChip
 import org.meshtastic.feature.map.maplibre.layers.NodeChipLayer
+import org.meshtastic.feature.map.maplibre.layers.rememberOfflineNodes
 import org.meshtastic.feature.map.maplibre.style.Basemap
 import org.meshtastic.feature.map.maplibre.style.MapColors
 import org.maplibre.spatialk.geojson.Position as GeoPosition
@@ -290,8 +291,10 @@ private fun SelectedTrackPointLayer(points: List<TrackPoint>, selectedTime: Int)
 /** The node's own chip, at the head of the track. */
 @Composable
 private fun NewestPositionChip(node: Node, newest: TrackPoint) {
+    val offline = rememberOfflineNodes(listOf(node))
+    val isOffline = node.num in offline
     val source =
-        rememberFeatureSource(node, newest) {
+        rememberFeatureSource(node, newest, isOffline) {
             FeatureCollection(
                 listOf(
                     Feature<Point, JsonObject?>(
@@ -299,13 +302,13 @@ private fun NewestPositionChip(node: Node, newest: TrackPoint) {
                         properties =
                         buildJsonObject {
                             put(NodeFeatureKeys.NODE_NUM, node.num)
-                            put(NodeFeatureKeys.CHIP, node.toNodeChip().featureValue())
+                            put(NodeFeatureKeys.CHIP, node.toNodeChip(offline = isOffline).featureValue())
                         },
                     ),
                 ),
             )
         }
-    NodeChipLayer(id = "track-head", source = source, nodes = listOf(node))
+    NodeChipLayer(id = "track-head", source = source, nodes = listOf(node), offline = offline)
 }
 
 /** Alpha the oldest end of a track fades to. */

@@ -70,6 +70,10 @@ import org.meshtastic.core.model.freshness.FreshnessThresholds
 import org.meshtastic.core.resources.Res
 import org.meshtastic.core.resources.map_chip_inconsistent
 import org.meshtastic.core.resources.map_chip_old
+import org.meshtastic.core.ui.component.FriendlyFrame
+import org.meshtastic.core.ui.component.FriendlyFrameGeometry
+import org.meshtastic.core.ui.component.drawFriendlyFrame
+import org.meshtastic.core.ui.component.measureFriendlyLabel
 import org.meshtastic.core.ui.icon.MeshtasticIcons
 import org.meshtastic.core.ui.icon.Person
 import org.meshtastic.core.ui.icon.Temperature
@@ -79,6 +83,7 @@ import org.meshtastic.feature.map.maplibre.geojson.MapChipGlyph
 import org.meshtastic.feature.map.maplibre.geojson.MapChipKey
 import org.meshtastic.feature.map.maplibre.geojson.NodeFeatureKeys
 import org.meshtastic.feature.map.maplibre.geojson.featureValue
+import org.meshtastic.feature.map.maplibre.geojson.offlineNodes
 import org.meshtastic.feature.map.maplibre.geojson.positionAlerts
 import org.meshtastic.feature.map.maplibre.geojson.toNodeChip
 
@@ -111,12 +116,23 @@ internal fun NodeChipLayer(
     onNodeClick: ((Int) -> Unit)? = null,
     chipFilter: Expression<BooleanValue>? = null,
     alerts: Map<Int, ChipAlert> = emptyMap(),
+    offline: Set<Int> = emptySet(),
+    selectedNodeNum: Int? = null,
 ) = MapChipLayer(
     id = id,
     source = source,
     // Already ordered by how likely each node is to be drawn on its own; MapChipLayer keeps as many as it can
-    // afford.
-    chips = remember(nodes, alerts) { nodes.map { it.toNodeChip(alerts[it.num]) } },
+    // afford. Must match what nodesToFeatureCollection writes, or a feature names an image nobody drew.
+    chips =
+    remember(nodes, alerts, offline, selectedNodeNum) {
+        nodes.map {
+            it.toNodeChip(
+                alert = alerts[it.num],
+                offline = it.num in offline,
+                selected = it.num == selectedNodeNum,
+            )
+        }
+    },
     filter = chipFilter,
     onClick =
     onNodeClick?.let { click ->
@@ -153,11 +169,28 @@ internal fun rememberPositionAlerts(nodes: List<Node>): Map<Int, ChipAlert> {
 }
 
 /**
+ * The radios drawn offline ([offlineNodes]), re-read on the same timer as [rememberPositionAlerts]: a radio that stops
+ * transmitting changes nothing in the node list, so only the clock can turn its frame dashed.
+ */
+@Composable
+internal fun rememberOfflineNodes(nodes: List<Node>, myNodeNum: Int? = null): Set<Int> {
+    val now by
+        produceState(nowSeconds) {
+            while (true) {
+                delay(FreshnessThresholds.Default.refreshInterval)
+                value = nowSeconds
+            }
+        }
+    return remember(nodes, myNodeNum, now) { offlineNodes(nodes, myNodeNum) }
+}
+
+/**
  * How far up the stack a node's chip is drawn, mirroring the Google flavor's `NodeClusterItem.zIndex`: this node and
  * favorites ride above everything else, and nothing distinguishes the rest.
  */
 internal fun JsonObject?.chipRank(): Int = when {
     this == null -> MapNodePolicy.PRIORITY_ORDINARY
+    this[NodeFeatureKeys.IS_SELECTED]?.jsonPrimitive?.booleanOrNull == true -> PRIORITY_SELECTED
     this[NodeFeatureKeys.IS_SELF]?.jsonPrimitive?.booleanOrNull == true -> MapNodePolicy.PRIORITY_PROMINENT
     this[NodeFeatureKeys.IS_FAVORITE]?.jsonPrimitive?.booleanOrNull == true -> MapNodePolicy.PRIORITY_PROMINENT
     else -> MapNodePolicy.PRIORITY_ORDINARY
@@ -171,6 +204,7 @@ internal fun JsonObject?.chipRank(): Int = when {
  * order, so which of two overlapping chips is legible was arbitrary and could change on any data refresh.
  */
 private fun chipSortKey(): Expression<FloatValue> = switch(
+    condition(feature[NodeFeatureKeys.IS_SELECTED].asBoolean(), const(PRIORITY_SELECTED.toFloat())),
     condition(feature[NodeFeatureKeys.IS_SELF].asBoolean(), const(MapNodePolicy.PRIORITY_PROMINENT.toFloat())),
     condition(feature[NodeFeatureKeys.IS_FAVORITE].asBoolean(), const(MapNodePolicy.PRIORITY_PROMINENT.toFloat())),
     fallback = const(MapNodePolicy.PRIORITY_ORDINARY.toFloat()),
@@ -247,7 +281,85 @@ private fun rememberChipImages(chips: List<MapChipKey>): Map<String, ChipImage> 
         )
 
     return remember(chips, measurer, density, textStyle, glyphs, tag) {
-        chips.associate { chip -> chip.featureValue() to chip.rasterize(measurer, textStyle, density, glyphs, tag) }
+        val frame = FriendlyFrameGeometry(density)
+        chips.associate { chip ->
+            chip.featureValue() to
+                if (chip.friendly) {
+                    chip.rasterizeFriendly(measurer, textStyle, density, frame, tag)
+                } else {
+                    chip.rasterize(measurer, textStyle, density, glyphs, tag)
+                }
+        }
+    }
+}
+
+/**
+ * A radio's marker: the friend frame [org.meshtastic.core.ui.component.FriendlyUnitFrame] draws in the lists, drawn by
+ * the same [drawFriendlyFrame], with the alert tag — if any — just right of it.
+ */
+private fun MapChipKey.rasterizeFriendly(
+    measurer: TextMeasurer,
+    textStyle: TextStyle,
+    density: Density,
+    frame: FriendlyFrameGeometry,
+    tag: ChipTagStyle,
+): ChipImage {
+    val layout = measureFriendlyLabel(measurer, label, struckThrough, textStyle, density, frame)
+    val tagLayout =
+        alert?.let {
+            val text = if (it == ChipAlert.OLD) tag.oldText else tag.inconsistentText
+            measurer.measure(AnnotatedString(text), tag.textStyle, density = density)
+        }
+    val tagWidth = with(density) { tagLayout?.let { it.size.width.toDp() + TAG_PADDING_DP.dp * 2 } ?: 0.dp }
+    return ChipImage(
+        painter =
+        FriendlyChipPainter(
+            label = layout,
+            offline = offline,
+            selected = selected,
+            frame = frame,
+            tag = tagLayout?.let { ChipTag(it, tag.background, with(density) { tagWidth.toPx() }) },
+            tagPaddingPx = with(density) { TAG_PADDING_DP.dp.toPx() },
+            tagRadiusPx = with(density) { (CORNER_RADIUS_DP - TAG_INSET_DP).dp.toPx() },
+        ),
+        size = DpSize(FriendlyFrame.OuterSize.width + tagWidth, FriendlyFrame.OuterSize.height),
+    )
+}
+
+/** Draws the friend frame at the left of the image and the alert tag, vertically centred, right of it. */
+private class FriendlyChipPainter(
+    private val label: TextLayoutResult,
+    private val offline: Boolean,
+    private val selected: Boolean,
+    private val frame: FriendlyFrameGeometry,
+    private val tag: ChipTag?,
+    private val tagPaddingPx: Float,
+    private val tagRadiusPx: Float,
+) : Painter() {
+    // Never read: the caller always names an explicit size.
+    override val intrinsicSize: Size = Size.Unspecified
+
+    override fun DrawScope.onDraw() {
+        drawFriendlyFrame(label = label, offline = offline, selected = selected, geometry = frame)
+        tag?.let { tag ->
+            val left = frame.outerWidthPx.toFloat()
+            val height = tag.layout.size.height + tagPaddingPx
+            val top = (frame.outerHeightPx - height) / 2f
+            drawRoundRect(
+                color = tag.background,
+                topLeft = Offset(left, top),
+                size = Size(tag.widthPx, height),
+                cornerRadius = CornerRadius(tagRadiusPx),
+            )
+            drawText(
+                textLayoutResult = tag.layout,
+                topLeft =
+                Offset(
+                    x = left + (tag.widthPx - tag.layout.size.width) / 2f,
+                    y = top + (height - tag.layout.size.height) / 2f,
+                ),
+            )
+        }
     }
 }
 
@@ -405,3 +517,6 @@ private const val GLYPH_DP = 16
  * what it degrades to is the plain coloured dot `NodeLayers` draws underneath, which stays visible and tappable.
  */
 private const val MAX_CHIP_IMAGES = 250
+
+/** The tapped radio rides above this node and the favorites. */
+private const val PRIORITY_SELECTED = MapNodePolicy.PRIORITY_PROMINENT + 1

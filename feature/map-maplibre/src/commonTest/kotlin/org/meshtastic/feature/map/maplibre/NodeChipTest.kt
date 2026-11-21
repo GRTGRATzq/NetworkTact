@@ -16,13 +16,17 @@
  */
 package org.meshtastic.feature.map.maplibre
 
+import kotlinx.serialization.json.jsonPrimitive
 import org.maplibre.spatialk.geojson.BoundingBox
 import org.maplibre.spatialk.geojson.Position
 import org.meshtastic.core.model.Node
 import org.meshtastic.feature.map.maplibre.component.boundingBoxFromCorners
 import org.meshtastic.feature.map.maplibre.geojson.MapChipGlyph
 import org.meshtastic.feature.map.maplibre.geojson.MapChipKey
+import org.meshtastic.feature.map.maplibre.geojson.NodeFeatureKeys
 import org.meshtastic.feature.map.maplibre.geojson.featureValue
+import org.meshtastic.feature.map.maplibre.geojson.nodesToFeatureCollection
+import org.meshtastic.feature.map.maplibre.geojson.offlineNodes
 import org.meshtastic.feature.map.maplibre.geojson.toNodeChip
 import org.meshtastic.proto.User
 import kotlin.test.Test
@@ -41,13 +45,63 @@ class NodeChipKeyTest {
         Node(num = num, user = User.Builder().also { wb -> wb.short_name = shortName }.build(), isIgnored = isIgnored)
 
     @Test
-    fun `two nodes with the same name and different colours get different keys`() {
+    fun `two radios with the same name share one friend frame whatever their node colour`() {
         val a = chipNode(num = 1, shortName = "SWAR")
         val b = chipNode(num = 2, shortName = "SWAR")
 
-        // Colours derive from the node number, so these two differ in colour alone.
+        // Colours derive from the node number, so these two differ in colour alone — which the frame ignores.
         assertNotEquals(a.colors, b.colors, "the fixture must actually differ in colour")
-        assertNotEquals(a.toNodeChip().featureValue(), b.toNodeChip().featureValue())
+        assertEquals(a.toNodeChip().featureValue(), b.toNodeChip().featureValue())
+        assertTrue(a.toNodeChip().friendly, "every radio of the mesh is drawn in the friend frame")
+    }
+
+    @Test
+    fun `offline and selected radios each get their own image`() {
+        val node = chipNode(num = 1, shortName = "TIR")
+        val keys =
+            listOf(
+                node.toNodeChip(),
+                node.toNodeChip(offline = true),
+                node.toNodeChip(selected = true),
+                node.toNodeChip(offline = true, selected = true),
+            )
+                .map { it.featureValue() }
+
+        assertEquals(4, keys.distinct().size)
+    }
+
+    @Test
+    fun `the frame shows four characters of the short name at most`() {
+        assertEquals("DRON", chipNode(num = 6, shortName = "DRONE").toNodeChip().label)
+    }
+
+    @Test
+    fun `the feature names the same image the chip layer draws`() {
+        val node =
+            Node(
+                num = 9,
+                user = User.Builder().also { wb -> wb.short_name = "OBS" }.build(),
+                position =
+                org.meshtastic.proto.Position.Builder()
+                    .also { wb ->
+                        wb.latitude_i = 450000000
+                        wb.longitude_i = -1220000000
+                    }
+                    .build(),
+            )
+        val collection = nodesToFeatureCollection(listOf(node), offline = setOf(9), selectedNodeNum = 9)
+        val chip = collection.features.single().properties?.get(NodeFeatureKeys.CHIP)?.jsonPrimitive?.content
+
+        assertEquals(node.toNodeChip(offline = true, selected = true).featureValue(), chip)
+    }
+
+    @Test
+    fun `this phone's own radio is never offline`() {
+        // Never heard: offline for anyone, except for the radio this phone is connected to.
+        val own = chipNode(num = 1, shortName = "PC")
+        val other = chipNode(num = 2, shortName = "OBS")
+
+        assertEquals(setOf(2), offlineNodes(listOf(own, other), myNodeNum = 1))
     }
 
     @Test

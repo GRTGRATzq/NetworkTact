@@ -85,6 +85,7 @@ private const val CLUSTER_MIN_POINTS = 10
  *   MapLibre reports a sentinel when a cluster cannot compute an expansion zoom, so the caller must clamp against the
  *   current zoom rather than trusting the value.
  * @param visibleBounds what the camera can see, padded. Chips are only drawn for nodes inside it — see [NodeChipLayer].
+ * @param selectedNodeNum the radio the user tapped, whose frame is ringed and drawn on top.
  */
 @Composable
 @Suppress("LongMethod")
@@ -97,6 +98,7 @@ fun NodeLayers(
     onClusterMembers: (List<ClusterMember>) -> Unit,
     visibleBounds: BoundingBox? = null,
     zoom: Int = 0,
+    selectedNodeNum: Int? = null,
 ) {
     // What clustering will leave standing on its own. Both the precision circles and the chips are only wanted for
     // these: a node folded into a cluster is not drawn, so decorating it paints something nobody asked about — at
@@ -142,12 +144,17 @@ fun NodeLayers(
 
     // Old positions carry a tag on their chip; recomputed on a timer, the feature set rebuilds only when one changes.
     val alerts = rememberPositionAlerts(nodes)
+    // Dashed frames, on the same timer; the selected radio is ringed. Either change rebuilds the features, as an
+    // alert does: the image a feature picks is named in its properties.
+    val offline = rememberOfflineNodes(nodes, myNodeNum)
 
     val nodeSource =
         rememberFeatureSource(
             nodes,
             myNodeNum,
             alerts,
+            offline,
+            selectedNodeNum,
             options =
             GeoJsonOptions(
                 cluster = true,
@@ -156,7 +163,7 @@ fun NodeLayers(
                 clusterMinPoints = CLUSTER_MIN_POINTS,
             ),
         ) {
-            nodesToFeatureCollection(nodes, myNodeNum, alerts)
+            nodesToFeatureCollection(nodes, myNodeNum, alerts, offline, selectedNodeNum)
         }
 
     CircleLayer(
@@ -217,7 +224,8 @@ fun NodeLayers(
     // Under the chips, so a pulse reads as a halo around the node rather than covering it.
     NodePulseLayer(nodes = nodes, source = nodeSource)
 
-    // Under the chips, and normally invisible behind them: a chip is 64x28dp and covers this entirely. It exists for
+    // Under the chips, and normally invisible behind them: a friend frame is 48x32dp and covers this entirely. It
+    // exists for
     // the node whose chip image did not fit under NodeChipLayer's ceiling — without it such a node resolves to a
     // transparent sprite and is both unseeable and untappable, which is worse than the plain dot chips replaced.
     CircleLayer(
@@ -243,6 +251,8 @@ fun NodeLayers(
         onNodeClick = onNodeClick,
         chipFilter = !feature.has("point_count"),
         alerts = alerts,
+        offline = offline,
+        selectedNodeNum = selectedNodeNum,
     )
 }
 
