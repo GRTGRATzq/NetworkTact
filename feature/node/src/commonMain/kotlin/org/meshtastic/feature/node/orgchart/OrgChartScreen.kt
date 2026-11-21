@@ -49,12 +49,14 @@ import org.jetbrains.compose.resources.stringResource
 import org.meshtastic.core.common.util.nowSeconds
 import org.meshtastic.core.model.freshness.ContactState
 import org.meshtastic.core.model.freshness.PositionState
+import org.meshtastic.core.model.orgchart.EditResult
 import org.meshtastic.core.model.orgchart.OrgChart
 import org.meshtastic.core.model.orgchart.OrgChartEdit
 import org.meshtastic.core.model.orgchart.OrgChartRecord
 import org.meshtastic.core.model.orgchart.OrgMember
 import org.meshtastic.core.resources.Res
 import org.meshtastic.core.resources.cancel
+import org.meshtastic.core.resources.okay
 import org.meshtastic.core.resources.orgchart_command_post
 import org.meshtastic.core.resources.orgchart_empty
 import org.meshtastic.core.resources.orgchart_no_member
@@ -90,20 +92,16 @@ fun OrgChartScreen(
     var memberDialog by remember { mutableStateOf<MemberDialogTarget?>(null) }
     var removing by remember { mutableStateOf<OrgMemberRow?>(null) }
     var qrCode by remember { mutableStateOf<QrCodeState?>(null) }
+    var chiefResult by remember { mutableStateOf<EditResult?>(null) }
     val editActions =
         remember(state.commandPostMode) {
-            if (state.commandPostMode) {
-                OrgChartEditActions(
-                    onAdd = { team -> memberDialog = MemberDialogTarget(team, index = null) },
-                    onEdit = { row ->
-                        memberDialog = MemberDialogTarget(row.team, row.index, row.member.callsign, row.member.role)
-                    },
-                    onMove = { row, up -> viewModel.edit(OrgChartEdit.Move(row.team, row.index, up)) },
-                    onRemove = { row -> removing = row },
-                )
-            } else {
-                null
-            }
+            editActions(
+                state.commandPostMode,
+                edit = viewModel::edit,
+                openDialog = { memberDialog = it },
+                remove = { removing = it },
+                refused = { chiefResult = it },
+            )
         }
     Scaffold(
         modifier = modifier,
@@ -140,6 +138,7 @@ fun OrgChartScreen(
         )
     }
     qrCode?.let { OrgChartQrDialog(state = it, nowSeconds = nowSeconds, onDismiss = { qrCode = null }) }
+    chiefResult?.let { RefusedDialog(it) { chiefResult = null } }
     val scan by viewModel.scan.collectAsStateWithLifecycle()
     ScanDialogs(scan = scan, onAdopt = viewModel::adoptScanned, onDismiss = viewModel::clearScan)
     val previous = state.previous
@@ -153,6 +152,38 @@ fun OrgChartScreen(
             onDismiss = { askRevert = false },
         )
     }
+}
+
+/** What the command post can do on its chart; null on the other phones, which only read it. */
+private fun editActions(
+    commandPostMode: Boolean,
+    edit: (OrgChartEdit) -> EditResult,
+    openDialog: (MemberDialogTarget) -> Unit,
+    remove: (OrgMemberRow) -> Unit,
+    refused: (EditResult) -> Unit,
+): OrgChartEditActions? = if (commandPostMode) {
+    OrgChartEditActions(
+        onAdd = { team -> openDialog(MemberDialogTarget(team, index = null)) },
+        onEdit = { row ->
+            openDialog(MemberDialogTarget(row.team, row.index, row.member.callsign, row.member.role))
+        },
+        onMove = { row, up -> edit(OrgChartEdit.Move(row.team, row.index, up)) },
+        onRemove = remove,
+        onFireChief = { row, chief -> refused(edit(OrgChartEdit.SetFireChief(row.team, row.index, chief))) },
+    )
+} else {
+    null
+}
+
+/** Why an edit was refused (a designation that would no longer fit in the QR code); nothing when it went through. */
+@Composable
+private fun RefusedDialog(result: EditResult, onDismiss: () -> Unit) {
+    val message = editError(result) ?: return
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        text = { Text(message) },
+        confirmButton = { TextButton(onClick = onDismiss) { Text(stringResource(Res.string.okay)) } },
+    )
 }
 
 /** Title, and the QR code (command post) and scanner actions. */

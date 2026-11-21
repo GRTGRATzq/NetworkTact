@@ -1609,6 +1609,7 @@ orgchart_error_duplicate
 orgchart_error_empty
 orgchart_error_role_long
 orgchart_error_too_large
+orgchart_fire_chief
 orgchart_ignore
 orgchart_known_radios
 orgchart_move_down

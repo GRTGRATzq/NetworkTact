@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -28,6 +29,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -42,6 +44,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
@@ -64,6 +67,7 @@ import org.meshtastic.core.resources.orgchart_error_duplicate
 import org.meshtastic.core.resources.orgchart_error_empty
 import org.meshtastic.core.resources.orgchart_error_role_long
 import org.meshtastic.core.resources.orgchart_error_too_large
+import org.meshtastic.core.resources.orgchart_fire_chief
 import org.meshtastic.core.resources.orgchart_known_radios
 import org.meshtastic.core.resources.orgchart_move_down
 import org.meshtastic.core.resources.orgchart_move_up
@@ -85,12 +89,14 @@ class OrgChartEditActions(
     val onEdit: (OrgMemberRow) -> Unit,
     val onMove: (OrgMemberRow, up: Boolean) -> Unit,
     val onRemove: (OrgMemberRow) -> Unit,
+    /** Designates the member as the one fire chief (true), or takes it back (false). */
+    val onFireChief: (OrgMemberRow, chief: Boolean) -> Unit = { _, _ -> },
 )
 
 /** Which member the member dialog adds ([index] null) or edits, in which section. */
 data class MemberDialogTarget(val team: String?, val index: Int?, val callsign: String = "", val role: String = "")
 
-/** Up, down, edit and remove, under a member's card. */
+/** « Chef de tir », then up, down, edit and remove, under a member's card. */
 @Composable
 internal fun MemberActions(
     row: OrgMemberRow,
@@ -98,7 +104,14 @@ internal fun MemberActions(
     actions: OrgChartEditActions,
     modifier: Modifier = Modifier,
 ) {
-    Row(modifier = modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+    Row(modifier = modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        FilterChip(
+            selected = row.fireChief,
+            onClick = { actions.onFireChief(row, !row.fireChief) },
+            label = { Text(stringResource(Res.string.orgchart_fire_chief)) },
+            modifier = Modifier.testTag("orgchart_fire_chief_${row.member.callsign}"),
+        )
+        Spacer(Modifier.weight(1f))
         IconButton(onClick = { actions.onMove(row, true) }, enabled = row.index > 0) {
             Icon(MeshtasticIcons.KeyboardArrowUp, contentDescription = stringResource(Res.string.orgchart_move_up))
         }
