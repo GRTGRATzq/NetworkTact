@@ -816,7 +816,7 @@
     <string name="firereq_target_both">Both</string>
     <string name="firereq_target_both_warning">Both channels: the request goes out twice, radio traffic doubled.</string>
     <string name="firereq_target_channel_note">Broadcast on the channel, no acknowledgement per recipient. Each station sends back a DT acknowledgement once the sheet is complete.</string>
-    <string name="firereq_target_form_note">Where the request goes is chosen in the preview, under « Envoyer à »: the fire team's channel by default.</string>
+    <string name="firereq_target_form_note">Where the request goes is chosen in the preview, under « Send to »: the fire team's channel by default.</string>
     <string name="firereq_target_no_fire_team">No « Équipe TIR » channel on this radio: Principal by default.</string>
     <string name="firereq_target_radio_note">Direct message to this radio, with acknowledgement (as before).</string>
     <string name="firereq_target_title">Send to</string>
