@@ -5,7 +5,32 @@ inchangée depuis le 11 novembre, 20 h 45 UTC),
 pour reprendre dans une conversation neuve. À lire avec `FORK.md` (section de
 chaque tâche, état d'avancement), `TESTS-A-FAIRE.md` et, pour la tâche 7, `docs/PLAN-CARTE-TELECHARGEMENT.md`.
 
-## 00. État au 20 novembre 2026, vers 20 h 40 UTC : À LIRE EN PREMIER (corrections des essais du 13 novembre)
+## 000. État au 21 novembre 2026, vers 20 h UTC : À LIRE EN PREMIER (point 1, `feat/dt-canal`, en cours)
+
+Remplace le § 00 là où ils diffèrent. Passation faite vers 70 % de contexte, tâche **non finie**.
+
+- **Branche** `feat/dt-canal`, base `test/correctifs-13-11-c` (`101742a`), poussée sur `wip/dt-canal`. Spécification :
+  `docs/SPEC-DT-CANAL-ET-ATTRIBUTION.md`. Fait, reste à faire, temps d'antenne et écarts avec l'audit : **FORK.md § 34**.
+  Essais : `TESTS-A-FAIRE.md` § 23.
+- **Décisions du 21/11 par l'utilisateur** : format du chef validé (champ `fireChief`, ligne `F|<indicatif>` après `A`,
+  nouvelle version seulement avec un chef, `NTORGA1` octet pour octet sinon) ; nom de version choisi : **`NTORGA3`**
+  (`NTORGA2` réservé au réglage LoRa, FORK § 19) ; un seul chef ; accusés DT manuels, sans restriction, un par fiche et
+  par poste, grisé ensuite (« Accusé envoyé <GDH> ») avec un texte discret ; en direct, un poste qui n'est pas le chef
+  garde GDH attribution / GDH fin ; seul le chef voit « Tir attribué à : ».
+- **Pas encore fait** : `feat/dt-canal` n'est pas copiée en `feat/dt-canal` distante (seulement `wip/dt-canal`) ;
+  `test/correctifs-13-11-d` **pas créée**, `fork-apk` **pas lancé** : l'interface (aperçu « Envoyer à », cartes, accusé,
+  attribution) manque encore, un APK n'aurait rien à essayer. À faire à la fin : créer `test/correctifs-13-11-d` depuis
+  `test/correctifs-13-11-c`, `git merge --no-ff feat/dt-canal`, pousser, lancer `fork-apk` à la main, donner le n° du
+  run.
+- **Comportement intermédiaire à connaître** : ouvert depuis un canal, le formulaire envoie maintenant **sur un canal**
+  par défaut (Équipe TIR sinon Principal) ; le choix d'une radio dans le formulaire (`RecipientChooser`) envoie toujours
+  en direct.
+- **Session** : le cache Gradle était vide, le premier lancement l'a rempli (≈ 5 min). Lancer Gradle avec
+  `--max-workers=2` : un lancement de 7 modules a été tué faute de mémoire. Un crochet relance detekt sur tout l'arbre
+  avant chaque `git push` (et bloque si un fichier non commité échoue). Les 5 commits de code sont partis en une seule
+  poussée.
+
+## 00. État au 20 novembre 2026, vers 20 h 40 UTC (corrections des essais du 13 novembre)
 
 Remplace les § 0 à 7 là où ils diffèrent. Détail de chaque défaut dans `FORK.md` (section indiquée) et essais dans
 `TESTS-A-FAIRE.md`. **Point 4, radios dans le cadre ami** : fait le 21 novembre (`feat/radios-cadre-ami`, FORK §33),

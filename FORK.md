@@ -1179,6 +1179,77 @@ du Réseau, ou bouton « Diagnostic » sous un envoi en échec. Le diagnostic n'
   `CommandPostRow.offline`. Tests : `FriendlyFrameLabelTest`, `DashRunsTest`, `NodeChipKeyTest`, `CommandPostRowsTest`,
   `CommandPostContentTest`.
 
+### 34. Demande de tir sur un canal, accusé DT et attribution (`feat/dt-canal`, point 1) : EN COURS
+
+- **Spécification** : `docs/SPEC-DT-CANAL-ET-ATTRIBUTION.md` (validée le 21/11). Décisions du 21/11 : un seul chef de tir
+  par organigramme ; accusés DT manuels, sans restriction de poste pour cette version (premier usage à 5 radios), un seul
+  par fiche et par poste, bouton grisé ensuite (« Accusé envoyé <GDH> ») avec un texte discret ; en direct (v1), un poste
+  qui n'est pas le chef garde GDH attribution et GDH fin ; à revoir avant un déploiement à 50 radios.
+- **Fait** (commits `6f4cd3a` à `f588b0e`, vérifiés en local : spotless, detekt, tests JVM ciblés) :
+  - **Chef de tir dans l'organigramme** : `OrgChart.fireChief` (indicatif, vide sans chef ; les organigrammes déjà
+    enregistrés se relisent sans), `OrgChartEdit.SetFireChief` ; la désignation suit un membre renommé et part avec un
+    membre retiré. QR : sans chef, `NTORGA1` octet pour octet ; avec chef, en-tête **`NTORGA3`** et ligne `F|<indicatif>`
+    juste après la ligne `A`. `NTORGA2` reste réservé au réglage LoRa (§ 19), d'où le saut à 3. La ligne F nomme le chef
+    par son indicatif (casse ignorée) et se lit à part des lignes de membres (C1 : elle tient quelle que soit la forme
+    future des membres, au-delà de 40). Code refusé en entier si l'indicatif n'est pas celui d'un membre ; un ancien APK
+    refuse tout `NTORGA3`. Désignation trop grande pour le QR : refusée avec la longueur. Écran : puce « Chef de tir »
+    sous la fiche de chaque membre en mode PC, mention « Chef de tir » visible de tous. Tests : `OrgChartFireChiefTest`,
+    `OrgChartStateTest`.
+  - **Messages** (`FireRequestNotice.kt`, `FireRequestPart.kt`) : `FireRequestAck` (`[DT AB1234] Accusé DT 112251 loc NOV
+    26`), `FireRequestReply.designated` (`… GDH attribution 112252 loc NOV 26 · Tir attribué à CDS` ; la réponse directe
+    v1 se lit comme avant), `FireRequestDesignation` (`[DT AB1234] Tir attribué à vous par OA · GDH attribution …`).
+    Regroupement : accusés par poste (le dernier de chacun), accusé envoyé par ce téléphone, attribution reçue par la
+    radio désignée, dernière attribution faite par le chef (`FireRequestMessage.to`). Test : `FireRequestNoticeTest`.
+  - **Une seule requête** : `PacketDao.getDirectMessagesStartingWith(prefix, since)` (messages directs de toutes les
+    conversations qui commencent par `[DT `, 12 h), `PacketRepository.getDirectMessagesStartingWith` (avec la clé de
+    conversation). **Pas de migration** : requête nouvelle sur des colonnes existantes (`message_text`, rempli à
+    l'insertion depuis la v39). `searchMessages` ne convenait pas : recherche FTS non observée (pas de mise à jour à
+    l'arrivée d'un message) et limitée à 100 lignes. Non indexée sur `message_text` : balayage de la table à chaque
+    changement, à mesurer sur une base chargée.
+  - **Envoi** : `SendTarget` (`OnChannels`, `ToRadio`), `SendChannels` (canal « Équipe TIR » : premier canal secondaire
+    nommé « Équipe TIR » ou « TIR », casse, accents et espaces ignorés, **à confirmer avec les vrais noms de canaux** ;
+    « Principal » : canal 0, son nom ou « Principal » s'il n'en a pas). Par défaut Équipe TIR sinon Principal ; ouvert
+    depuis une conversation directe : cette radio (v1). « Les deux » : chaque copie porte le nom de son canal en
+    Destinataire. `MessageViewModel` fusionne, pour un canal, les réponses reçues en direct (`FireRequestView.of(…,
+    direct)`, jamais les parties). Tests : `FireRequestSendTest` (3 cas canal).
+- **Reste à faire** (rien de cela n'est dans l'APK tant que ce n'est pas fusionné) :
+  1. Aperçu : sélecteur « Envoyer à » (Équipe TIR · Principal · Les deux avec avertissement « trafic doublé » · Une radio)
+     dans `FireRequestPreviewScreen`, appelant `FireRequestViewModel.chooseTarget` ; retirer `RecipientChooser` du
+     formulaire (`FireRequestScreen.kt`) ou le garder en double, à décider.
+  2. Carte de l'émetteur sur un canal (`FireRequestCards.kt`, `SentRequest`) : « diffusée sur <canal> » au lieu de l'état
+     par partie, « Renvoyer la fiche » ou une partie sur le canal, une ligne « Accusé DT : <nom court> <GDH> » par poste
+     (`thread.acknowledgements`, nom court par `view.messages[id].node.user.short_name`), attribution reçue.
+  3. Fiche reçue : bouton « Accusé DT » actif à N / N, une seule fois (`thread.ownAcknowledgement` → « Accusé envoyé
+     <GDH> », grisé), texte discret « envoie un message à l'émetteur » ; envoi en direct à `thread.sender`.
+     `FireRequestCardActions` doit gagner un envoi direct à un identifiant (clé par `directContactKey`).
+  4. Chef de tir (organigramme `OrgChartPrefs.current`, indicatif de la radio de ce téléphone, `Callsign.ofLongName`) :
+     « Tir attribué à : » + menu des radios (nom court et nom long) + « Attribuer », à la place des boutons GDH
+     attribution ; sans chef : « Aucun chef de tir dans l'organigramme ». Deux messages directs (émetteur, radio
+     désignée), un seul si le chef est l'émetteur. « Renvoyer la fiche à <radio> » (parties en direct) si la radio
+     désignée n'est pas sur le canal. Réattribution : nouvelle radio et émetteur prévenus.
+  5. Radio désignée : « GDH fin » en direct à l'émetteur : le nœud dont le nom court est `designation.requester` s'il est
+     unique, sinon l'expéditeur de la fiche.
+  6. Textes EN/FR, `python3 scripts/sort-strings.py`, tests Compose des cartes, mode démo, `TESTS-A-FAIRE.md` § 23.
+- **Temps d'antenne, estimations du 21/11** (LONG_FAST, SF11, 250 kHz, CR 4/5, préambule 16 symboles, environ
+  22 octets d'en-tête et d'enveloppe par paquet ; **calculé par la formule LoRa, rien de mesuré**) :
+
+  | Élément | Une émission | 1 + 3 relais | Pire cas, 50 émissions |
+  |---|---|---|---|
+  | Partie de 200 octets | ≈ 1,9 s | ≈ 7,6 s | ≈ 95 s |
+  | Demande de l'exemple (3 parties, ≈ 160 octets chacune) | ≈ 4,9 s | ≈ 20 s | ≈ 4 min |
+  | Accusé DT (≈ 40 octets) et son accusé radio | ≈ 0,7 s + 0,4 s | ≈ 4,6 s | ≈ 1 min |
+  | 49 accusés DT | — | ≈ 4 min | ≈ 45 min |
+  | Attribution (2 messages directs, 68 et 76 octets) | ≈ 2 s en tout | — | — |
+
+  « Les deux » double la ligne de la demande. Le pire cas suppose que chaque radio relaie une fois chaque paquet ; le
+  micrologiciel annule souvent ce relais quand il entend déjà un autre relais.
+- **Écarts avec `docs/AUDIT-PASSAGE-A-L-ECHELLE.md`** (branche `docs/guide-utilisateur`, lu sans fusion) : mêmes durées
+  par émission (1,91 s pour un texte de 200 octets, 0,44 s pour un accusé). L'audit suppose **3 émissions** par paquet
+  diffusé (l'auteur et deux relais), ces estimations 4 (1 + 3) et un pire cas à 50. L'audit ne couvre que l'envoi direct
+  v1 (2,3 s par partie avec son accusé, environ 14 s pour 3 parties en 2 sauts) : ni la diffusion sur un canal, ni les
+  accusés DT, qui sont nouveaux. Il rappelle la limite légale de 10 % d'émission par heure et par radio (EU_868) et le
+  seuil de 25 % d'occupation du canal qui retient positions et télémétrie : 49 accusés en pire cas y mènent seuls.
+
 ## État d'avancement au 11 novembre 2026
 
 - **Branches** : les sections 1 à 20 sont chacune sur une branche `feat/…`, empilées les unes

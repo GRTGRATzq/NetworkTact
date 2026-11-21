@@ -388,6 +388,19 @@ en JVM, à voir à l'œil et au doigt. Fiche papier à côté pour la relecture.
 - [ ] Carte avec 50 radios et plus (mode démo si possible) : défilement et zoom fluides, bulles de regroupement comme
       avant, radios proches qui se chevauchent comme avant.
 
+## 23. Demande de tir sur un canal et attribution (FORK.md §34, point 1) : PAS ENCORE DANS UN APK
+
+Partie faite (organigramme, messages, envoi sur un canal) ; cartes et aperçu restent à écrire (FORK §34, « Reste à
+faire »). Essais prévus, à compléter quand l'interface sera faite :
+
+- [ ] Organigramme, mode PC : « Chef de tir » sur un membre ; un second chef remplace le premier ; QR montré puis scanné
+      sur un autre téléphone : la mention « Chef de tir » arrive avec lui. Sans chef : le QR se lit sur un ancien APK.
+      Avec chef : un ancien APK le refuse en entier.
+- [ ] Renommer le chef, puis le retirer : la mention suit, puis disparaît.
+- [ ] Demande ouverte depuis un canal, avec un canal nommé « Équipe TIR » (ou « TIR ») : elle part sur ce canal,
+      Destinataire = nom du canal. Sans ce canal : sur Principal. Noter le vrai nom des canaux des radios.
+- [ ] Ouverte depuis une conversation directe : part en direct à cette radio, comme en v1.
+
 ## Avant fusion dans `main`
 - [ ] Les runs 70 et 71 ont été annulés par une poussée plus récente (rien à corriger).
 - [ ] Compiler la variante google et lancer `core:ui` / `core:navigation` à la main si nécessaire.
