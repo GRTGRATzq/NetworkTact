@@ -136,6 +136,8 @@ fun rememberMeshMapState(
     markedPoint: Position? = null,
     /** The radio the user tapped, ringed on the map until its card is closed. */
     selectedNodeNum: Int? = null,
+    /** The waypoint whose card is open, ringed on the map until the card is closed. */
+    selectedWaypointId: Int? = null,
 ): MapState {
     val nodes by viewModel.nodesWithPosition.collectAsStateWithLifecycle()
     val waypoints by viewModel.waypoints.collectAsStateWithLifecycle()
@@ -170,7 +172,11 @@ fun rememberMeshMapState(
             CustomLayers(customLayers, layerOpacity)
 
             if (filterState.showWaypoints) {
-                WaypointLayers(waypoints = waypoints.values, onWaypointClick = onWaypointClick)
+                WaypointLayers(
+                    waypoints = waypoints.values,
+                    onWaypointClick = onWaypointClick,
+                    selectedWaypointId = selectedWaypointId,
+                )
             }
 
             MeshMapNodeLayers(
