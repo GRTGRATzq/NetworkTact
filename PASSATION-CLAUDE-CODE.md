@@ -5,7 +5,38 @@ inchangée depuis le 11 novembre, 20 h 45 UTC),
 pour reprendre dans une conversation neuve. À lire avec `FORK.md` (section de
 chaque tâche, état d'avancement), `TESTS-A-FAIRE.md` et, pour la tâche 7, `docs/PLAN-CARTE-TELECHARGEMENT.md`.
 
-## 000. État au 21 novembre 2026, vers 21 h UTC : À LIRE EN PREMIER (point 1, `feat/dt-canal`, fait, à essayer)
+## 000. État au 21 novembre 2026, vers 22 h UTC : À LIRE EN PREMIER (point 1 fait, revue du code, `test/correctifs-13-11-e`)
+
+### Mise à jour de 22 h UTC (remplace la suite du § 000 là où elles diffèrent)
+
+- **Revue du code (point 6)** : rapport `docs/REVUE-CODE-NETWORKTACT.md` sur `wip/revue-code` (`dbe7a5f5`), hors de
+  `test/correctifs-13-11-e`. Décisions de l'utilisateur : tests `core:ui` et `core:network` dans `fork-apk` **plus tard**,
+  dans un run séparé après les essais ; sonde et essai d'interopérabilité de la carte **gardés** ; fusion des deux
+  lecteurs d'en-tête `.pmtiles` **pas maintenant** ; alerte 50 radios (organigramme plafonné à 40 membres, QR à 9
+  membres longs) **notée au plan**, rien à faire maintenant.
+- **Trois branches faites** (locales ; sur GitHub en `wip/…`) :
+  - `docs/corrections-revue` → `wip/corrections-revue` (`5221cf11`) : dates et états périmés, § 18 des essais, test
+    jamais lancé en CI signalé dans FORK.md § 22 (.md seulement).
+  - `chore/retraits-inutilises` → `wip/retraits-inutilises` (`41c7327d`) : chaîne `firereq_reply_sent` et constante
+    `PROGRESS_DP` retirées (jamais utilisées).
+  - `fix/dt-canal-fragilites` → `wip/dt-canal-fragilites`, depuis `b2705c4`, un commit par point :
+    attribution par identifiant seulement, refus avec message sinon (`be4a10ac`) ; canal Équipe TIR : accents
+    décomposés, tirets et espaces ignorés (`8786c7c5`) ; « Send to » dans `firereq_target_form_note` (`ad0daba3`) ; note
+    sous « Renvoyer la fiche à <radio> » alignée sur le bouton toujours affiché (`30bd5cbf`) ; « GDH fin » par
+    identifiant seulement, bouton grisé avec la raison sinon (`2e6f1ade`) ; « Renew » dans `firereq_intro` (`f8fc2585`).
+- **`test/correctifs-13-11-e`** : créée depuis `test/correctifs-13-11-d` (`b2705c4`, inchangée), fusions `--no-ff` des
+  trois branches (`5e47fa0a`, `c4c73183`, `4f47d44f`), sans conflit, poussée.
+- **Run `fork-apk` 116** : `test/correctifs-13-11-e`, `4f47d44f`, lancé à la main le 21 novembre à 21 h 56 UTC,
+  **en cours** au moment d'écrire ces lignes. S'il est vert, l'APK à essayer devient `apk-fdroid-release` du run 116
+  (tout le run 115 plus les correctifs ci-dessus).
+- **Vérifié en local** (Gradle `--max-workers=1`) : spotless et detekt de `feature:messaging` et `feature:map-maplibre`,
+  compilation JVM de `feature:map-maplibre`, 290 tests JVM de `feature:messaging` verts sur la branche fusionnée. Le
+  reste (Android, tests hôtes, Koin) : CI seulement.
+- **Comportements nouveaux à essayer** (en plus de `TESTS-A-FAIRE.md` § 23) : refus d'« Attribuer » vers une radio
+  disparue du réseau ; « GDH fin » grisé, avec sa raison, sur une fiche renvoyée par le chef qui n'en est pas
+  l'émetteur (envoyer alors le GDH fin en direct) ; canal nommé « Equipe-TIR » reconnu.
+
+### État de 21 h UTC
 
 Remplace le § 00 là où ils diffèrent. Détail de ce qui est fait, décisions et écarts : **FORK.md § 34**. Essais :
 **`TESTS-A-FAIRE.md` § 23**. Spécification : `docs/SPEC-DT-CANAL-ET-ATTRIBUTION.md`.
