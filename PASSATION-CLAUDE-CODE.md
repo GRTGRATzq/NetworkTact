@@ -42,7 +42,10 @@ Remplace le § 00 là où ils diffèrent. Détail de ce qui est fait, décisions
   avec `--max-workers=2` a encore été tué une fois faute de mémoire : `--max-workers=1` après `./gradlew --stop`. Un nom
   de test avec « » fait échouer la compilation (nom de fichier `.class` invalide) : noms de tests en ASCII.
 
-## 00. État au 20 novembre 2026, vers 20 h 40 UTC (corrections des essais du 13 novembre)
+## 00. État au 20 novembre 2026, vers 20 h 40 UTC (corrections des essais du 13 novembre) : historique
+
+> **Historique** : ce paragraphe et tous les suivants (§ 00 à § 7) décrivent des états passés. Pour reprendre, le
+> § 000 suffit ; ne lire la suite que pour un détail qu'il ne donne pas.
 
 Remplace les § 0 à 7 là où ils diffèrent. Détail de chaque défaut dans `FORK.md` (section indiquée) et essais dans
 `TESTS-A-FAIRE.md`. **Point 4, radios dans le cadre ami** : fait le 21 novembre (`feat/radios-cadre-ami`, FORK §33),
@@ -132,7 +135,7 @@ validée, § 10 = décisions), `docs/PLAN-DEMANDE-DE-TIR.md` (plan, tableau D26 
 en commits au § 7, décisions au § 12), `docs/maquette-demande-de-tir.pdf` (maquette, 4 écrans). `FORK.md` § 30 et
 `TESTS-A-FAIRE.md` § 18 restent à écrire (commit 23 du plan).
 
-### 0.3 État au 12 novembre, vers 19 h UTC : À LIRE EN PREMIER (remplace les § 0.1 et 0.2 là où ils diffèrent)
+### 0.3 État au 12 novembre, vers 19 h UTC (historique ; remplaçait les § 0.1 et 0.2 là où ils diffèrent)
 
 **Commits 19 à 23 du plan faits : le code de la v1 est complet.** Restent les essais sur deux téléphones
 (`TESTS-A-FAIRE.md` §18) et les corrections qui en sortiront.

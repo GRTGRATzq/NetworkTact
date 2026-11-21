@@ -1,6 +1,7 @@
 # NetworkTact : historique complet
 
-Établi le 18 octobre 2026 à partir de l'historique Git du dépôt `GRTGRATzq/NetworkTact` et des 72 runs du workflow `fork-apk`. Dernier état : branche `feat/accueil-insignes`, commit `9196e76`, run 72 vert.
+Établi le 18 octobre 2026 à partir de l'historique Git du dépôt `GRTGRATzq/NetworkTact` et des 72 runs du workflow `fork-apk`. Dernier état décrit ici : branche `feat/accueil-insignes`, commit `9196e76`, run 72 vert. Ce fichier n'est pas tenu à jour
+au-delà ; la suite est dans `FORK.md` (sections 21 à 34) et `PASSATION-CLAUDE-CODE.md` (§ 000 pour l'état courant).
 
 ## 1. Chronologie
 

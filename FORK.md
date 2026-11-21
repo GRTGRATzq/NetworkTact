@@ -1,7 +1,8 @@
 # NetworkTact
 
 NetworkTact est un fork de [Meshtastic-Android](https://github.com/meshtastic/Meshtastic-Android),
-modifié à partir du 26 septembre 2026 (dernière mise à jour de ce fichier : 9 novembre 2026, branche `feat/apk-release`).
+modifié à partir du 26 septembre 2026 (dernière mise à jour de ce fichier : 21 novembre 2026, branche
+`test/correctifs-13-11-d`, section 34). L'état courant est dans `PASSATION-CLAUDE-CODE.md` § 000.
 
 - **Licence** : GPL-3.0-or-later (voir le fichier `LICENSE`, inchangé).
 - **Origine** : code de Meshtastic-Android, © Meshtastic LLC. Les mentions de copyright de
@@ -738,8 +739,9 @@ du Réseau, ou bouton « Diagnostic » sous un envoi en échec. Le diagnostic n'
 - **Tests** : `NoInheritedDemoTransportTest` (porte fermée par défaut, `m`, `r` et `m1` refusés
   même si la capture existe, radios réelles admises) ; `MockTransportAddressAdmissionTest` et les
   tests de `ScannerViewModel` continuent de couvrir le comportement quand la porte est ouverte.
-- **CI** : run 79 vert sur `fix/demo-unique` (lint, compilation, tests dont `NoInheritedDemoTransportTest`,
-  APK). Le crochet `.claude/hooks/pre-bash-guard.sh` laisse désormais passer la poussée, avec un avertissement,
+- **CI** : run 79 vert sur `fix/demo-unique` (lint, compilation, tests, APK). **Correction du 21 novembre 2026** :
+  `NoInheritedDemoTransportTest` est dans `core:network`, que `fork-apk` n'a jamais lancé ; ce test n'a donc pas tourné
+  en CI (revue du code, `docs/REVUE-CODE-NETWORKTACT.md` sur `wip/revue-code`, A1). Le crochet `.claude/hooks/pre-bash-guard.sh` laisse désormais passer la poussée, avec un avertissement,
   quand Gradle ne peut pas démarrer pour une raison d'environnement (JDK ou dépôts inaccessibles) ; une vraie
   violation detekt bloque toujours.
 
@@ -1261,7 +1263,11 @@ du Réseau, ou bouton « Diagnostic » sous un envoi en échec. Le diagnostic n'
   accusés DT, qui sont nouveaux. Il rappelle la limite légale de 10 % d'émission par heure et par radio (EU_868) et le
   seuil de 25 % d'occupation du canal qui retient positions et télémétrie : 49 accusés en pire cas y mènent seuls.
 
-## État d'avancement au 11 novembre 2026
+## État d'avancement au 11 novembre 2026 (historique)
+
+Section gardée telle quelle pour l'historique : elle n'est plus tenue à jour. L'état courant (branches, runs, essais)
+est dans `PASSATION-CLAUDE-CODE.md` § 000. Elle dit encore que la CI ne couvre pas `core:ui` : c'est toujours vrai, et
+`core:network` n'est pas couvert non plus.
 
 - **Branches** : les sections 1 à 20 sont chacune sur une branche `feat/…`, empilées les unes
   sur les autres ; la dernière, `feat/accueil-insignes` (commit `9196e76`), contient tout leur code.
