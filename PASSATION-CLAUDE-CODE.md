@@ -8,7 +8,8 @@ chaque tâche, état d'avancement), `TESTS-A-FAIRE.md` et, pour la tâche 7, `do
 ## 00. État au 20 novembre 2026, vers 20 h 40 UTC : À LIRE EN PREMIER (corrections des essais du 13 novembre)
 
 Remplace les § 0 à 7 là où ils diffèrent. Détail de chaque défaut dans `FORK.md` (section indiquée) et essais dans
-`TESTS-A-FAIRE.md`. Suite prévue dans une nouvelle session : **point 4, radios dans le cadre ami** (non commencé).
+`TESTS-A-FAIRE.md`. **Point 4, radios dans le cadre ami** : fait le 21 novembre (`feat/radios-cadre-ami`, FORK §33),
+dans `test/correctifs-13-11-c`, run 114 vert ; reste l'essai sur téléphone.
 
 ### 00.1 Branches (toutes poussées, aucun changement local en attente)
 
@@ -24,7 +25,9 @@ Remplace les § 0 à 7 là où ils diffèrent. Détail de chaque défaut dans `F
 | `feat/reglages-sections` | `test/correctifs-13-11` | A3 : Réglages en sept sections repliables (FORK §32) | `a139b06` |
 | `feat/carte-renommer` | `test/correctifs-13-11` | A4 : renommer une carte de « Cartes sur le téléphone » (FORK §29) | `18fe3a1` |
 | `fix/acces-telecharger-carte` | `test/correctifs-13-11` | R3 : « Télécharger une carte » en tête de « Gérer les calques » et dans le menu des styles (FORK §29) | `fd589fb` |
-| `test/correctifs-13-11-b` | `test/correctifs-13-11` | fusion `--no-ff` des quatre précédentes, plus ce paragraphe | (ce commit) |
+| `test/correctifs-13-11-b` | `test/correctifs-13-11` | fusion `--no-ff` des quatre précédentes, plus ce paragraphe | `03fc34e` |
+| `feat/radios-cadre-ami` | `test/correctifs-13-11-b` | point 4 : radios dans le cadre ami APP-6(C) (FORK §33) | `1912f60` |
+| `test/correctifs-13-11-c` | `test/correctifs-13-11-b` | fusion `--no-ff` de `feat/radios-cadre-ami` (`c952714`), plus la mise à jour de ce § 00 | (ce commit) |
 
 Les fusions vers `test/…` se sont faites sans conflit. Chaque `fix/…` ou `feat/…` est identique à sa `wip/…`.
 
@@ -35,7 +38,11 @@ Les fusions vers `test/…` se sont faites sans conflit. Chaque `fix/…` ou `fe
 | 110 | `fix/dt-espacement`, `172acc2` (D12) | vert ; APK `apk-fdroid-release` |
 | 111 | `fix/dt-coller-coordonnee`, `15dfaa8` (D12 + D13), lancé à la main | vert ; APK `apk-fdroid-release` |
 | 112 | `test/correctifs-13-11`, `a07e96b` (D9 à D13), lancé à la main | **échec à l'étape « Tests »** (lint et compilation fdroid verts) ; pas d'APK |
-| 113 | `test/correctifs-13-11-b`, `03fc34e` (tout), lancé à la main à 20 h 37 UTC | **vert** (32 min) ; **APK à essayer sur les radios** : `apk-fdroid-release` du run 113 |
+| 113 | `test/correctifs-13-11-b`, `03fc34e` (tout), lancé à la main à 20 h 37 UTC | **vert** (32 min) ; APK `apk-fdroid-release` |
+| 114 | `test/correctifs-13-11-c`, `c952714` (tout + point 4), lancé à la main le 21 novembre à 17 h 08 UTC | **vert** (30 min) ; **APK à essayer sur les radios** : `apk-fdroid-release` du run 114 |
+
+Le push de la nouvelle branche `feat/radios-cadre-ami` (code compris) n'a lancé aucun run automatique ; le run 114
+couvre son contenu.
 
 **Run 112, probablement un incident** : le run 113 contient tout ce qu'avait 112 et passe les mêmes tests ; l'échec de
 112 n'est donc pas dû au code, sauf test instable. Le journal complet n'a pas pu être lu ici (l'hôte des journaux et des artefacts,
@@ -46,8 +53,11 @@ L'étape « Tests » lance `feature:messaging`, `feature:node`, `feature:setting
 défaut est donc soit un test Android hôte (impossible ici sans SDK), soit un incident du runner (déjà vu, runs 45 et 47).
 Facultatif : lire « Tests » du run 112 dans l'interface GitHub pour nommer le test, s'il s'agit d'un test instable.
 
-### 00.3 À essayer sur les radios (APK du run 113)
+### 00.3 À essayer sur les radios (APK du run 114)
 
+- Point 4 (`TESTS-A-FAIRE.md` §22) : cadre ami partout (listes, barre du haut, vue PC, carte), tirets hors ligne nets,
+  anneau orange de sélection sur la carte, 50 radios et plus. À confirmer : netteté des tirets sur la carte (densité de
+  rasterisation des images MapLibre non vérifiée ici).
 - D12 (`TESTS-A-FAIRE.md` §18) : file d'envoi, reprise après « envoi trop rapide », « partie 2 / 3 ».
 - D13 (§18, essai 18.9) : appui long sur la carte, « Copier » du convertisseur, texte entier collé dans Fuseau ; lignes G
   puis H, Z conservé ; message d'erreur seulement après un appui sans coordonnée.
@@ -62,7 +72,8 @@ Facultatif : lire « Tests » du run 112 dans l'interface GitHub pour nommer le 
 
 `backup/dt-coller-coordonnee` (sauvegarde du 20 novembre, son contenu est dans `wip/dt-coller-coordonnee`), et les
 `wip/…` : `wip/dt-coller-coordonnee`, `wip/fait-observe-clavier`, `wip/ecran-licences`, `wip/equipe-casse`,
-`wip/textes-et-acces`, `wip/reglages-sections`, `wip/carte-renommer`, `wip/acces-telecharger-carte`.
+`wip/textes-et-acces`, `wip/reglages-sections`, `wip/carte-renommer`, `wip/acces-telecharger-carte`,
+`wip/radios-cadre-ami`.
 
 ### 00.5 Limites de vérification (pas de SDK Android dans la session)
 
