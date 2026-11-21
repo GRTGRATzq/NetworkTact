@@ -716,11 +716,15 @@ filter_words
 filter_words_summary
 firebase_link
 ### FIREREQ ###
+firereq_ack_line
+firereq_ack_none
+firereq_allocated_to
 firereq_block_disconnected
 firereq_block_number
 firereq_block_recipient
 firereq_block_reference
 firereq_block_too_long
+firereq_broadcast_on
 firereq_card_sent
 firereq_card_title
 firereq_close
@@ -761,6 +765,7 @@ firereq_reply_sent
 firereq_reply_title
 firereq_reply_waiting
 firereq_resend_part
+firereq_resend_sheet
 firereq_send
 firereq_sending_part
 firereq_shortcut

@@ -746,11 +746,15 @@
     <string name="filter_words_summary">Messages containing these words will be hidden</string>
     <string name="firebase_link" translatable="false">Firebase: https://firebase.google.com/</string>
     <!-- FIREREQ -->
+    <string name="firereq_ack_line">DT acknowledgement: %1$s %2$s</string>
+    <string name="firereq_ack_none">No DT acknowledgement received yet.</string>
+    <string name="firereq_allocated_to">Fire allocated to: %1$s</string>
     <string name="firereq_block_disconnected">Radio not connected: cannot send.</string>
     <string name="firereq_block_number">Type the fire number to send.</string>
     <string name="firereq_block_recipient">Choose the recipient to send.</string>
     <string name="firereq_block_reference">Rep: choose the direction of each shift.</string>
     <string name="firereq_block_too_long">Too long: %1$d messages, 9 at most.</string>
+    <string name="firereq_broadcast_on">Broadcast on %1$s: no acknowledgement per recipient.</string>
     <string name="firereq_card_sent">DT %1$s · %2$d messages</string>
     <string name="firereq_card_title">Fire request %1$s</string>
     <string name="firereq_close">Close</string>
@@ -791,6 +795,7 @@
     <string name="firereq_reply_title">Send the %1$s</string>
     <string name="firereq_reply_waiting">%1$s: waiting</string>
     <string name="firereq_resend_part">Resend part %1$d</string>
+    <string name="firereq_resend_sheet">Resend the sheet</string>
     <string name="firereq_send">Send the request</string>
     <string name="firereq_sending_part">Sending part %1$d / %2$d…</string>
     <string name="firereq_shortcut">Fire request</string>

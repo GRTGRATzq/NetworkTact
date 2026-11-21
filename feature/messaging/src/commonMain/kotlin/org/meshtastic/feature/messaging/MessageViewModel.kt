@@ -42,6 +42,8 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import org.koin.core.annotation.KoinViewModel
 import org.koin.core.annotation.Named
@@ -86,6 +88,7 @@ import org.meshtastic.core.ui.viewmodel.stateInWhileSubscribed
 import org.meshtastic.feature.messaging.coordinates.SharePointOffer
 import org.meshtastic.feature.messaging.coordinates.sharePointOffer
 import org.meshtastic.feature.messaging.filter.ThreadFilter
+import org.meshtastic.feature.messaging.firerequest.FireRequestSender
 import org.meshtastic.feature.messaging.firerequest.FireRequestView
 import org.meshtastic.feature.messaging.status.sentStatusOf
 import org.meshtastic.feature.messaging.translation.DownloadResult
@@ -490,6 +493,30 @@ class MessageViewModel(
             val ourNode = nodeRepository.ourNodeInfo.value
             _sharePointOffer.value =
                 sharePointOffer(str, contactKey, ourNode?.num, ourNode?.user?.long_name, nowSeconds, systemTimeZone)
+        }
+    }
+
+    private var fireRequestSendingTo = ""
+    private val fireRequestQueue = Mutex()
+
+    /** Spaces out the parts a fire request card sends again, as the form does (« envoi trop rapide »). */
+    private val fireRequestSender =
+        FireRequestSender(
+            send = { text -> sendMessageUseCase(text, fireRequestSendingTo) },
+            outcome = packetRepository::getOutgoingOutcome,
+            discard = { uuid -> packetRepository.deleteMessages(listOf(uuid)) },
+        )
+
+    /**
+     * Sends [texts], parts of a fire request, to [contactKey] one after the other: « Renvoyer la fiche » on a channel,
+     * « Renvoyer la fiche à <radio> » in direct messages. A second call waits for the first to end.
+     */
+    fun sendFireRequestParts(texts: List<String>, contactKey: String) {
+        safeLaunch(errorEvents = sendErrorEvents, tag = "sendFireRequestParts") {
+            fireRequestQueue.withLock {
+                fireRequestSendingTo = contactKey
+                fireRequestSender.sendAll(texts)
+            }
         }
     }
 

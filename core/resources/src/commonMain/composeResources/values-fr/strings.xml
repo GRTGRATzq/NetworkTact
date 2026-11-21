@@ -2063,4 +2063,9 @@
     <string name="firereq_target_no_fire_team">Pas de canal « Équipe TIR » sur cette radio : Principal par défaut.</string>
     <string name="firereq_target_form_note">Où part la demande se choisit dans l'aperçu, sous « Envoyer à » : canal de l'équipe TIR par défaut.</string>
     <string name="firereq_preview_subtitle_channel">Sur %1$s · diffusée</string>
+    <string name="firereq_broadcast_on">Diffusée sur %1$s : pas d'accusé par destinataire.</string>
+    <string name="firereq_ack_line">Accusé DT : %1$s %2$s</string>
+    <string name="firereq_ack_none">Aucun accusé DT reçu pour l'instant.</string>
+    <string name="firereq_resend_sheet">Renvoyer la fiche</string>
+    <string name="firereq_allocated_to">Tir attribué à : %1$s</string>
 </resources>

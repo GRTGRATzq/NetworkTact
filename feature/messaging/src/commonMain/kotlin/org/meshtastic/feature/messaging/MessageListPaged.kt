@@ -97,6 +97,8 @@ internal data class MessageListHandlers(
     val onClickChip: (Node) -> Unit,
     val onDeleteMessages: (List<Long>) -> Unit,
     val onSendMessage: (String, String) -> Unit,
+    /** Sends a fire request's parts to a conversation, one after the other, spaced. */
+    val onSendParts: (List<String>, String) -> Unit = { _, _ -> },
     val onReply: (Message?) -> Unit,
     val onTranslate: (Message) -> Unit = {},
     val onToggleTranslation: (Message) -> Unit = {},
@@ -419,6 +421,7 @@ private fun RenderPagedChatMessageRow(
             thread = thread,
             view = state.fireRequests,
             recipientName = directRecipientName(state.contactKey, state.nodes),
+            channelName = state.channelName.takeIf { directRecipientName(state.contactKey, state.nodes) == null },
             canSend = state.canSend,
             actions =
             FireRequestCardActions(
@@ -429,6 +432,8 @@ private fun RenderPagedChatMessageRow(
                     handlers.onSendMessage(failed.text, state.contactKey)
                 },
                 showOnMap = handlers.onShowOnMap,
+                sendParts = handlers.onSendParts,
+                contactKey = state.contactKey,
             ),
             modifier = modifier,
         )

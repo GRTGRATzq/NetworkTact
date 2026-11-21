@@ -39,6 +39,7 @@ import org.meshtastic.core.model.firerequest.FireRequestReply
 import org.meshtastic.core.model.firerequest.FireRequestThread
 import org.meshtastic.core.model.firerequest.ReplyKind
 import org.meshtastic.core.resources.Res
+import org.meshtastic.core.resources.firereq_allocated_to
 import org.meshtastic.core.resources.firereq_card_sent
 import org.meshtastic.core.resources.firereq_card_title
 import org.meshtastic.core.resources.firereq_part_status
@@ -65,6 +66,7 @@ internal fun FireRequestCard(
     canSend: Boolean,
     actions: FireRequestCardActions,
     modifier: Modifier = Modifier,
+    channelName: String? = null,
 ) {
     var showRaw by remember { mutableStateOf(false) }
     Card(
@@ -72,7 +74,9 @@ internal fun FireRequestCard(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
     ) {
         Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            if (thread.fromLocal) {
+            if (thread.fromLocal && channelName != null) {
+                BroadcastRequest(thread, view, channelName, canSend, actions)
+            } else if (thread.fromLocal) {
                 SentRequest(thread, view, recipientName, canSend, actions)
             } else {
                 ReceivedRequest(thread, canSend, actions)
@@ -127,17 +131,21 @@ private fun SentRequest(
 }
 
 @Composable
-private fun ReplyState(kind: ReplyKind, reply: FireRequestReply?) {
-    Text(
-        text =
-        if (reply != null) {
-            stringResource(Res.string.firereq_reply_received, kind.label, reply.gdh)
-        } else {
-            stringResource(Res.string.firereq_reply_waiting, kind.label)
-        },
-        style = MaterialTheme.typography.bodySmall,
-    )
-}
+internal fun ReplyState(kind: ReplyKind, reply: FireRequestReply?) =
+    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        Text(
+            text =
+            if (reply != null) {
+                stringResource(Res.string.firereq_reply_received, kind.label, reply.gdh)
+            } else {
+                stringResource(Res.string.firereq_reply_waiting, kind.label)
+            },
+            style = MaterialTheme.typography.bodySmall,
+        )
+        reply?.designated?.let {
+            Text(stringResource(Res.string.firereq_allocated_to, it), style = MaterialTheme.typography.bodySmall)
+        }
+    }
 
 /** The recipient's sheet: header, then boxes 1 to 11 in clear, and the two date-time groups to send back. */
 @Composable

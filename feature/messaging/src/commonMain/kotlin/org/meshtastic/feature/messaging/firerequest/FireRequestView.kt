@@ -28,11 +28,17 @@ import org.meshtastic.core.model.firerequest.FireRequestSheet
 import org.meshtastic.core.ui.util.MapFocusPoint
 import kotlin.time.Duration.Companion.days
 
-/** What a request's card can do: send a text in the conversation, resend a part, open the map on a point. */
+/**
+ * What a request's card can do: send a text in the conversation, resend a part, open the map on a point, and send
+ * several parts one after the other, spaced as the form sends them, to the conversation [contactKey] names
+ * ([sendParts]).
+ */
 internal class FireRequestCardActions(
     val send: (String) -> Unit,
     val resend: (Message) -> Unit,
     val showOnMap: ((MapFocusPoint) -> Unit)?,
+    val sendParts: (texts: List<String>, contactKey: String) -> Unit = { _, _ -> },
+    val contactKey: String = "",
 )
 
 /**
