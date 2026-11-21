@@ -46,6 +46,7 @@ import org.koin.core.annotation.KoinViewModel
 import org.koin.core.annotation.Named
 import org.meshtastic.core.common.util.currentLocaleCode
 import org.meshtastic.core.common.util.ioDispatcher
+import org.meshtastic.core.common.util.nowMillis
 import org.meshtastic.core.common.util.nowSeconds
 import org.meshtastic.core.common.util.systemTimeZone
 import org.meshtastic.core.model.ContactKey
@@ -90,6 +91,7 @@ import org.meshtastic.feature.messaging.translation.DownloadResult
 import org.meshtastic.feature.messaging.translation.MessageTranslationService
 import org.meshtastic.feature.messaging.translation.TranslationResult
 import org.meshtastic.proto.ChannelSet
+import kotlin.time.Duration.Companion.hours
 
 /**
  * Test seam for resolving [UiText] to a plain string. Unit tests replace [resolve] so ViewModel snackbar paths don't
@@ -256,8 +258,17 @@ class MessageViewModel(
     val fireRequests: StateFlow<FireRequestView> =
         contactKeyForPagedMessages
             .filterNotNull()
-            .flatMapLatest { key -> flow { emitAll(packetRepository.getMessagesFrom(key, getNode = ::getNode)) } }
-            .map { FireRequestView.of(it) }
+            .flatMapLatest { key ->
+                val messages = flow { emitAll(packetRepository.getMessagesFrom(key, getNode = ::getNode)) }
+                if (ContactKey(key).addressString == NodeAddress.ID_BROADCAST) {
+                    // On a channel, acknowledgements and allocations come in direct messages: one query for all.
+                    val since = nowMillis - FIRE_REQUEST_ANSWERS_WINDOW.inWholeMilliseconds
+                    val direct = packetRepository.getDirectMessagesStartingWith(FIRE_REQUEST_PREFIX, since, ::getNode)
+                    combine(messages, direct) { inChannel, answers -> FireRequestView.of(inChannel, answers) }
+                } else {
+                    messages.map { FireRequestView.of(it) }
+                }
+            }
             .stateInWhileSubscribed(FireRequestView.EMPTY)
 
     /**
@@ -612,6 +623,12 @@ class MessageViewModel(
         private const val MIN_SEARCH_LENGTH = 2
         private const val DRAFT_PERSISTENCE_DELAY_MS = 300L
         private const val KEY_DRAFT_MESSAGE_PREFIX = "draftMessage:"
+
+        /** The tag every fire request message starts with. */
+        private const val FIRE_REQUEST_PREFIX = "[DT "
+
+        /** How far back a channel's fire requests look for their answers in direct messages. */
+        private val FIRE_REQUEST_ANSWERS_WINDOW = 12.hours
 
         /** Saved-state drafts are keyed per conversation; one shared entry would leak text between them. */
         private fun draftKey(contactKey: String) = KEY_DRAFT_MESSAGE_PREFIX + contactKey

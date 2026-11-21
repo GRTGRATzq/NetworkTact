@@ -43,6 +43,7 @@ import org.meshtastic.core.repository.ConnectionStateProvider
 import org.meshtastic.core.repository.FireRequestPrefs
 import org.meshtastic.core.repository.NodeRepository
 import org.meshtastic.core.repository.PacketRepository
+import org.meshtastic.core.repository.RadioConfigRepository
 import org.meshtastic.core.repository.SCREEN_DATA
 import org.meshtastic.core.repository.usecase.SendMessageUseCase
 
@@ -61,6 +62,7 @@ class FireRequestViewModel(
     @Named(SCREEN_DATA) private val sendMessageUseCase: SendMessageUseCase,
     @Named(SCREEN_DATA) connectionStateProvider: ConnectionStateProvider,
     @Named(SCREEN_DATA) private val packetRepository: PacketRepository,
+    @Named(SCREEN_DATA) radioConfigRepository: RadioConfigRepository,
 ) : ViewModel() {
 
     /** Spaces the parts out and sends again those the radio refuses for sending too fast. */
@@ -97,9 +99,21 @@ class FireRequestViewModel(
         }
             .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
+    /** The channels « Envoyer à » offers; null until the radio has given its channels. */
+    val channels: StateFlow<SendChannels?> =
+        radioConfigRepository.channelSetFlow
+            .map { set -> SendChannels.of(set.settings.map { it.name }) }
+            .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    private val chosenTarget = MutableStateFlow<SendTarget?>(null)
+
+    /** Where the request goes: the target chosen, or by default the fire team's channel (else the primary one). */
+    val target: StateFlow<SendTarget?> =
+        combine(chosenTarget, channels) { chosen, channels -> chosen ?: channels?.default }
+            .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
     val preview: StateFlow<FireRequestPreview> =
-        _request
-            .map { FireRequestPreview.of(it) }
+        combine(_request, target) { request, target -> FireRequestPreview.of(request.addressedTo(target)) }
             .stateIn(viewModelScope, SharingStarted.Eagerly, FireRequestPreview.of(_request.value))
 
     private val connected: StateFlow<Boolean> =
@@ -108,8 +122,8 @@ class FireRequestViewModel(
             .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     val sendBlock: StateFlow<SendBlock?> =
-        combine(_request, preview, _recipient, connected) { request, preview, recipient, connected ->
-            sendBlock(request, preview, recipient != null, connected)
+        combine(_request, preview, target, connected) { request, preview, target, connected ->
+            sendBlock(request, preview, target != null, connected)
         }
             .stateIn(viewModelScope, SharingStarted.Eagerly, SendBlock.NO_NUMBER)
 
@@ -130,7 +144,24 @@ class FireRequestViewModel(
 
     fun chooseRecipient(option: RecipientOption) {
         _recipient.value = option
+        chosenTarget.value = SendTarget.ToRadio(option)
         if (_request.value.recipient.isBlank()) edit { it.copy(recipient = option.name) }
+    }
+
+    /**
+     * « Envoyer à »: a channel, both, or one radio. « Destinataire » becomes the channel's name, or the radio's (kept
+     * editable in the form, as in v1).
+     */
+    fun chooseTarget(target: SendTarget) {
+        chosenTarget.value = target
+        when (target) {
+            is SendTarget.ToRadio -> {
+                _recipient.value = target.radio
+                edit { it.copy(recipient = target.radio.name) }
+            }
+
+            is SendTarget.OnChannels -> edit { it.copy(recipient = target.channels.first().name) }
+        }
     }
 
     /** Changes the request and keeps it as the draft. */
@@ -155,25 +186,28 @@ class FireRequestViewModel(
     fun hasDraft(): Boolean = _request.value.copy(requestGdh = "") != FireRequest()
 
     /**
-     * Sends the parts one after the other in direct messages to the recipient, then keeps the request as the last one
-     * sent. Returns the direct conversation, or null when sending is refused ([sendBlock]).
+     * Sends the parts one after the other: in direct messages to the radio chosen, with acknowledgement, or on the
+     * channel (each of the two for « Les deux », one after the other), then keeps the request as the last one sent.
+     * Returns the conversation to show (the first channel's), or null when sending is refused ([sendBlock]).
      */
     suspend fun send(): String? {
-        val node =
-            _recipient.value?.takeIf { sendBlock.value == null }?.let { nodeRepository.nodeDBbyNum.value[it.num] }
-                ?: return null
-        val contactKey = directContactKey(node, nodeRepository.ourNodeInfo.value)
         val request = _request.value
-        // Computed again from the request sent, not from the preview flow, which may lag one change behind.
+        val batches =
+            target.value
+                ?.takeIf { sendBlock.value == null }
+                ?.let { sendBatches(it, request, nodeRepository.nodeDBbyNum.value, nodeRepository.ourNodeInfo.value) }
+                ?: return null
         // In the view model's scope: leaving the screen must not drop the parts still to send.
         viewModelScope
             .async {
-                sendingTo = contactKey
-                sender.sendAll(FireRequestPreview.of(request).parts)
+                batches.forEach { (contactKey, copy) ->
+                    sendingTo = contactKey
+                    sender.sendAll(FireRequestPreview.of(copy).parts)
+                }
             }
             .await()
         prefs.recordSent(request)
-        return contactKey
+        return batches.first().first
     }
 
     private fun gdhNow(zone: GdhZone): String = Gdh.of(nowSeconds, zone, systemTimeZone).format()

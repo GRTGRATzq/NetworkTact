@@ -34,7 +34,9 @@ import org.meshtastic.core.repository.ConnectionStateProvider
 import org.meshtastic.core.repository.PacketRepository
 import org.meshtastic.core.repository.usecase.SendMessageUseCase
 import org.meshtastic.core.testing.FakeNodeRepository
+import org.meshtastic.core.testing.FakeRadioConfigRepository
 import org.meshtastic.core.testing.TestDataFactory
+import org.meshtastic.proto.ChannelSettings
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -90,8 +92,53 @@ class FireRequestSendTest {
         Dispatchers.resetMain()
     }
 
+    private val radioConfig = FakeRadioConfigRepository()
+
     private fun viewModel(prefs: FakeFireRequestPrefs = FakeFireRequestPrefs(draft = draft)) =
-        FireRequestViewModel(nodeRepository, prefs, send, connectionStateProvider, packetRepository)
+        FireRequestViewModel(nodeRepository, prefs, send, connectionStateProvider, packetRepository, radioConfig)
+
+    private suspend fun channels(vararg names: String) =
+        radioConfig.replaceAllSettings(names.map { name -> ChannelSettings.Builder().also { it.name = name }.build() })
+
+    @Test
+    fun `on a channel the request goes by default on the fire team's channel, named as Destinataire`() = runTest {
+        channels("", "Équipe TIR")
+        val vm = viewModel()
+        vm.start("0^all")
+
+        assertEquals(SendTarget.OnChannels(listOf(ChannelOption(1, "Équipe TIR"))), vm.target.value)
+        assertNull(vm.sendBlock.value)
+        assertEquals("1^all", vm.send())
+        assertTrue(send.sent.all { it.second == "1^all" })
+        assertTrue(send.sent.first().first.contains("Destinataire Équipe TIR"))
+    }
+
+    @Test
+    fun `without a fire team channel the default is the primary, and both send each copy on its channel`() = runTest {
+        channels("LongFast")
+        val primaryOnly = viewModel()
+        assertEquals(SendTarget.OnChannels(listOf(ChannelOption(0, "LongFast"))), primaryOnly.target.value)
+
+        channels("", "TIR")
+        val vm = viewModel()
+        vm.chooseTarget(SendChannels.of(listOf("", "TIR"))?.both ?: error("two channels give « Les deux »"))
+        vm.send()
+
+        val keys = send.sent.map { it.second }.distinct()
+        assertEquals(listOf("1^all", "0^all"), keys)
+        assertTrue(send.sent.first { it.second == "0^all" }.first.contains("Destinataire Principal"))
+        assertTrue(send.sent.first { it.second == "1^all" }.first.contains("Destinataire TIR"))
+    }
+
+    @Test
+    fun `one radio chosen in the preview keeps the direct sending of v1`() = runTest {
+        channels("", "TIR")
+        val vm = viewModel()
+        vm.chooseTarget(SendTarget.ToRadio(RecipientOption(2, "!00000002", "CDS TIR")))
+
+        assertEquals("1!00000002", vm.send())
+        assertEquals("CDS TIR", vm.request.value.recipient)
+    }
 
     @Test
     fun `the direct conversation gives the recipient, its name without team in the Destinataire box`() {

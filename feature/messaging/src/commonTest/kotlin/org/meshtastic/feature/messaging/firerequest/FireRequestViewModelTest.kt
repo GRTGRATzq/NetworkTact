@@ -36,6 +36,7 @@ import org.meshtastic.core.repository.FireRequestPrefs
 import org.meshtastic.core.repository.PacketRepository
 import org.meshtastic.core.repository.usecase.SendMessageUseCase
 import org.meshtastic.core.testing.FakeNodeRepository
+import org.meshtastic.core.testing.FakeRadioConfigRepository
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -95,8 +96,14 @@ class FireRequestViewModelTest {
         Dispatchers.resetMain()
     }
 
-    private fun viewModel(prefs: FireRequestPrefs) =
-        FireRequestViewModel(nodeRepository, prefs, sendMessageUseCase, connectionStateProvider, packetRepository)
+    private fun viewModel(prefs: FireRequestPrefs) = FireRequestViewModel(
+        nodeRepository,
+        prefs,
+        sendMessageUseCase,
+        connectionStateProvider,
+        packetRepository,
+        FakeRadioConfigRepository(),
+    )
 
     @Test
     fun `an empty form starts with the request date-time group at now in the chosen zone`() {

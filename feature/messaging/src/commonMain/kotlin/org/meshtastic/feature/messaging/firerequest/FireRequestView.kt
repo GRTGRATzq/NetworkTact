@@ -16,9 +16,13 @@
  */
 package org.meshtastic.feature.messaging.firerequest
 
+import org.meshtastic.core.model.ContactKey
 import org.meshtastic.core.model.Message
+import org.meshtastic.core.model.firerequest.FireRequestAck
 import org.meshtastic.core.model.firerequest.FireRequestAssembly
+import org.meshtastic.core.model.firerequest.FireRequestDesignation
 import org.meshtastic.core.model.firerequest.FireRequestMessage
+import org.meshtastic.core.model.firerequest.FireRequestReply
 import org.meshtastic.core.model.firerequest.FireRequestSheet
 import org.meshtastic.core.ui.util.MapFocusPoint
 
@@ -44,15 +48,29 @@ data class FireRequestView(val assembly: FireRequestAssembly, val messages: Map<
 
         private val TAG = "[${FireRequestSheet.TAG} "
 
-        /** The requests among [messages], any conversation's history; ordinary messages are left alone. */
-        fun of(messages: List<Message>): FireRequestView {
+        /**
+         * The requests among [messages], any conversation's history; ordinary messages are left alone. On a channel,
+         * [direct] adds the acknowledgements and allocations that came in direct messages (with the key of their
+         * conversation), for the requests of this channel only: a request's parts are never taken from them.
+         */
+        fun of(messages: List<Message>, direct: List<Pair<String, Message>> = emptyList()): FireRequestView {
             val tagged = messages.filter { it.text.startsWith(TAG) }
             if (tagged.isEmpty()) return EMPTY
+            val ids = tagged.map { it.uuid }.toSet()
+            val answers = direct.filter { (_, it) -> it.uuid !in ids && isAnswer(it.text) }
             val assembly =
                 FireRequestAssembly.of(
-                    tagged.map { FireRequestMessage(it.uuid, it.fromLocal, it.node.user.id, it.displayTime, it.text) },
+                    tagged.map { FireRequestMessage(it.uuid, it.fromLocal, it.node.user.id, it.displayTime, it.text) } +
+                        answers.map { (key, it) ->
+                            val to = if (it.fromLocal) ContactKey(key).addressString else ""
+                            FireRequestMessage(it.uuid, it.fromLocal, it.node.user.id, it.displayTime, it.text, to)
+                        },
                 )
-            return FireRequestView(assembly, tagged.associateBy { it.uuid })
+            return FireRequestView(assembly, (tagged + answers.map { it.second }).associateBy { it.uuid })
         }
+
+        private fun isAnswer(text: String): Boolean = FireRequestReply.parse(text) != null ||
+            FireRequestAck.parse(text) != null ||
+            FireRequestDesignation.parse(text) != null
     }
 }
