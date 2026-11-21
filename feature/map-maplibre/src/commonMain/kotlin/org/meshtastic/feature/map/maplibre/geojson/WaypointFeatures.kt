@@ -26,6 +26,7 @@ import org.maplibre.spatialk.geojson.Point
 import org.maplibre.spatialk.geojson.Polygon
 import org.maplibre.spatialk.geojson.Position
 import org.meshtastic.core.model.DataPacket
+import org.meshtastic.core.model.geo.WaypointAffiliation
 import org.meshtastic.core.model.geofence.toGeofence
 
 /** Scale factor turning firmware's fixed-point degrees into floating-point degrees. */
@@ -35,67 +36,55 @@ private const val DEG_SCALE = 1e-7
 object WaypointFeatureKeys {
     const val WAYPOINT_ID = "waypointId"
     const val NAME = "name"
-    const val ICON = "icon"
+    const val AFFILIATION = "affiliation"
     const val IS_LOCKED = "isLocked"
+    const val IS_SELECTED = "isSelected"
+
+    /** Which of the rasterized frames the feature is drawn with: [waypointLook] of its affiliation and selection. */
+    const val LOOK = "look"
 }
+
+/** The key of one waypoint image: its affiliation, ringed or not. Eight looks in all, whatever the number of points. */
+fun waypointLook(affiliation: WaypointAffiliation, selected: Boolean): String =
+    if (selected) "${affiliation.name}-selected" else affiliation.name
 
 /**
  * Waypoint markers.
  *
- * The emoji `icon` is emitted as a string the layers group on — one symbol layer per distinct glyph, each glyph
- * rasterized into a style image. Not a text field: the basemap's glyph stack has no emoji coverage, so asking for these
- * as text rendered nothing at all (see [WaypointLayers][org.meshtastic.feature.map.maplibre.layers.WaypointLayers]).
+ * The `icon` field is emitted as the name of its [WaypointAffiliation] (Unknown for anything not recognised), and
+ * whether the waypoint's card is open as [WaypointFeatureKeys.IS_SELECTED]: the layers group on both, one symbol layer
+ * and one rasterized frame per look (see [WaypointLayers][org.meshtastic.feature.map.maplibre.layers.WaypointLayers]).
  */
-fun waypointsToFeatureCollection(waypoints: Collection<DataPacket>): FeatureCollection<Point, JsonObject?> =
-    FeatureCollection(
-        waypoints.mapNotNull { packet ->
-            val waypoint = packet.waypoint ?: return@mapNotNull null
-            // Both axes required, not just "not null island". Substituting 0 for one absent ordinate put a marker on
-            // the equator or the prime meridian at the other's position — a confident pin in the wrong place, which is
-            // worse than no pin. A waypoint genuinely at 0,0 is also dropped, as it was before.
-            val latitudeI = waypoint.latitude_i ?: return@mapNotNull null
-            val longitudeI = waypoint.longitude_i ?: return@mapNotNull null
-            val latitude = latitudeI * DEG_SCALE
-            val longitude = longitudeI * DEG_SCALE
-            if (latitude == 0.0 && longitude == 0.0) return@mapNotNull null
-            Feature(
-                geometry = Point(Position(longitude = longitude, latitude = latitude)),
-                properties =
-                buildJsonObject {
-                    put(WaypointFeatureKeys.WAYPOINT_ID, waypoint.id)
-                    put(WaypointFeatureKeys.NAME, waypoint.name)
-                    put(WaypointFeatureKeys.ICON, iconGlyph(waypoint.icon))
-                    put(WaypointFeatureKeys.IS_LOCKED, (waypoint.locked_to ?: 0) != 0)
-                },
-            )
-        },
-    )
-
-/**
- * Firmware stores a waypoint icon as a Unicode code point; 0 means "no icon chosen".
- *
- * Anything that is not a Unicode scalar value falls back to the default pin. The field is an `Int` carrying whatever
- * the sending node put there, and a negative, out-of-range, or surrogate value would otherwise be appended as a broken
- * or unpaired character that renders as tofu on the map.
- */
-internal fun iconGlyph(codePoint: Int?): String {
-    val cp = codePoint ?: 0
-    return if (cp == 0 || !cp.isUnicodeScalarValue()) "📍" else buildString { appendCodePointCompat(cp) }
-}
-
-@Suppress("MagicNumber")
-private fun Int.isUnicodeScalarValue(): Boolean = this in 1..0x10FFFF && this !in 0xD800..0xDFFF
-
-private fun StringBuilder.appendCodePointCompat(codePoint: Int) {
-    @Suppress("MagicNumber")
-    if (codePoint <= 0xFFFF) {
-        append(codePoint.toChar())
-    } else {
-        val offset = codePoint - 0x10000
-        append(((offset shr 10) + 0xD800).toChar())
-        append(((offset and 0x3FF) + 0xDC00).toChar())
-    }
-}
+fun waypointsToFeatureCollection(
+    waypoints: Collection<DataPacket>,
+    selectedWaypointId: Int? = null,
+): FeatureCollection<Point, JsonObject?> = FeatureCollection(
+    waypoints.mapNotNull { packet ->
+        val waypoint = packet.waypoint ?: return@mapNotNull null
+        // Both axes required, not just "not null island". Substituting 0 for one absent ordinate put a marker on
+        // the equator or the prime meridian at the other's position — a confident pin in the wrong place, which is
+        // worse than no pin. A waypoint genuinely at 0,0 is also dropped, as it was before.
+        val latitudeI = waypoint.latitude_i ?: return@mapNotNull null
+        val longitudeI = waypoint.longitude_i ?: return@mapNotNull null
+        val latitude = latitudeI * DEG_SCALE
+        val longitude = longitudeI * DEG_SCALE
+        if (latitude == 0.0 && longitude == 0.0) return@mapNotNull null
+        Feature(
+            geometry = Point(Position(longitude = longitude, latitude = latitude)),
+            properties =
+            buildJsonObject {
+                put(WaypointFeatureKeys.WAYPOINT_ID, waypoint.id)
+                put(WaypointFeatureKeys.NAME, waypoint.name)
+                val affiliation = WaypointAffiliation.fromIcon(waypoint.icon)
+                val selected = selectedWaypointId != null && waypoint.id == selectedWaypointId
+                put(WaypointFeatureKeys.AFFILIATION, affiliation.name)
+                put(WaypointFeatureKeys.IS_LOCKED, (waypoint.locked_to ?: 0) != 0)
+                put(WaypointFeatureKeys.IS_SELECTED, selected)
+                put(WaypointFeatureKeys.LOOK, waypointLook(affiliation, selected))
+            },
+        )
+    },
+)
 
 /**
  * Geofence zones attached to waypoints, as real ground polygons.

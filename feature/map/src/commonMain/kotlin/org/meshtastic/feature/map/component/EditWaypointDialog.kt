@@ -17,7 +17,6 @@
 package org.meshtastic.feature.map.component
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -30,7 +29,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.toggleable
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -41,7 +39,6 @@ import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -66,7 +63,6 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
@@ -78,11 +74,9 @@ import org.jetbrains.compose.resources.stringResource
 import org.meshtastic.core.common.util.DateFormatter
 import org.meshtastic.core.common.util.MeasurementSystem
 import org.meshtastic.core.common.util.systemTimeZone
+import org.meshtastic.core.model.geo.WaypointAffiliation
 import org.meshtastic.core.model.geofence.GeofenceRadiusPresets
 import org.meshtastic.core.model.isLocked
-import org.meshtastic.core.model.util.PUSHPIN_CODE_POINT
-import org.meshtastic.core.model.util.firstCodePointOrNull
-import org.meshtastic.core.model.util.toCodePointString
 import org.meshtastic.core.model.util.toDistanceString
 import org.meshtastic.core.resources.Res
 import org.meshtastic.core.resources.cancel
@@ -104,9 +98,10 @@ import org.meshtastic.core.resources.name
 import org.meshtastic.core.resources.save
 import org.meshtastic.core.resources.send
 import org.meshtastic.core.resources.time
+import org.meshtastic.core.resources.waypoint_affiliation
 import org.meshtastic.core.resources.waypoint_edit
 import org.meshtastic.core.resources.waypoint_new
-import org.meshtastic.core.ui.emoji.EmojiPickerDialog
+import org.meshtastic.core.ui.component.AffiliationSelector
 import org.meshtastic.core.ui.icon.CalendarMonth
 import org.meshtastic.core.ui.icon.Lock
 import org.meshtastic.core.ui.icon.MeshtasticIcons
@@ -136,9 +131,8 @@ fun EditWaypointDialog(
 ) {
     var waypointInput by remember { mutableStateOf(waypoint) }
     val title = if (waypoint.id == 0) Res.string.waypoint_new else Res.string.waypoint_edit
-    val defaultEmoji = PUSHPIN_CODE_POINT
-    val currentEmojiCodepoint = if (waypointInput.icon == 0) defaultEmoji else waypointInput.icon
-    var showEmojiPickerView by remember { mutableStateOf(false) }
+    // One of the four APP-6(C) frames, in place of the old emoji list; anything else in the field reads as Unknown.
+    val affiliation = WaypointAffiliation.fromIcon(waypointInput.icon)
 
     val tz = systemTimeZone
 
@@ -164,239 +158,229 @@ fun EditWaypointDialog(
         }
     }
 
-    if (!showEmojiPickerView) {
-        AlertDialog(
-            onDismissRequest = onDismissRequest,
-            title = {
-                Text(
-                    text = stringResource(title),
-                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                    textAlign = TextAlign.Center,
+    AlertDialog(
+        onDismissRequest = onDismissRequest,
+        title = {
+            Text(
+                text = stringResource(title),
+                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        },
+        text = {
+            Column(modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState())) {
+                OutlinedTextField(
+                    value = waypointInput.name,
+                    onValueChange = {
+                        waypointInput = waypointInput.newBuilder().also { wb -> wb.name = it.take(29) }.build()
+                    },
+                    label = { Text(stringResource(Res.string.name)) },
+                    singleLine = true,
+                    keyboardOptions =
+                    KeyboardOptions.Default.copy(keyboardType = KeyboardType.Text, imeAction = ImeAction.Next),
                     modifier = Modifier.fillMaxWidth(),
                 )
-            },
-            text = {
-                Column(modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState())) {
-                    OutlinedTextField(
-                        value = waypointInput.name,
-                        onValueChange = {
-                            waypointInput = waypointInput.newBuilder().also { wb -> wb.name = it.take(29) }.build()
+                Spacer(modifier = Modifier.size(8.dp))
+                Text(
+                    text = stringResource(Res.string.waypoint_affiliation),
+                    style = MaterialTheme.typography.labelLarge,
+                )
+                AffiliationSelector(
+                    selected = affiliation,
+                    onSelect = { chosen ->
+                        waypointInput = waypointInput.newBuilder().also { wb -> wb.icon = chosen.code }.build()
+                    },
+                )
+                Spacer(modifier = Modifier.size(8.dp))
+                OutlinedTextField(
+                    value = waypointInput.description,
+                    onValueChange = {
+                        waypointInput = waypointInput.newBuilder().also { wb -> wb.description = it.take(99) }.build()
+                    },
+                    label = { Text(stringResource(Res.string.description)) },
+                    keyboardOptions =
+                    KeyboardOptions.Default.copy(keyboardType = KeyboardType.Text, imeAction = ImeAction.Done),
+                    keyboardActions = KeyboardActions(onDone = {}),
+                    modifier = Modifier.fillMaxWidth(),
+                    minLines = 2,
+                    maxLines = 3,
+                )
+                Spacer(modifier = Modifier.size(8.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Image(
+                            imageVector = MeshtasticIcons.Lock,
+                            contentDescription = stringResource(Res.string.locked),
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(stringResource(Res.string.locked))
+                    }
+                    Switch(
+                        checked = waypointInput.isLocked,
+                        // Lock to our own node so we (and only we) can later edit or remove it; unlock clears the
+                        // owner. locked_to must be a real node number — a placeholder locks the waypoint to a
+                        // phantom node and blocks even the creator (see #6343). Disabled until our node number is
+                        // known, since without it we can't lock a waypoint to ourselves (the toggle would silently
+                        // stay unlocked).
+                        enabled = myNodeNum != null,
+                        onCheckedChange = { locked ->
+                            waypointInput =
+                                waypointInput
+                                    .newBuilder()
+                                    .also { wb -> wb.locked_to = if (locked) myNodeNum ?: 0 else 0 }
+                                    .build()
                         },
-                        label = { Text(stringResource(Res.string.name)) },
-                        singleLine = true,
-                        keyboardOptions =
-                        KeyboardOptions.Default.copy(keyboardType = KeyboardType.Text, imeAction = ImeAction.Next),
-                        modifier = Modifier.fillMaxWidth(),
-                        trailingIcon = {
-                            IconButton(onClick = { showEmojiPickerView = true }) {
-                                Text(
-                                    text = currentEmojiCodepoint.toCodePointString(),
-                                    modifier =
-                                    Modifier.background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)
-                                        .padding(6.dp),
-                                    fontSize = 20.sp,
-                                )
+                    )
+                }
+                Spacer(modifier = Modifier.size(8.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Image(
+                            imageVector = MeshtasticIcons.CalendarMonth,
+                            contentDescription = stringResource(Res.string.expires),
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(stringResource(Res.string.expires))
+                    }
+                    Switch(
+                        checked = isExpiryEnabled,
+                        onCheckedChange = { checked ->
+                            isExpiryEnabled = checked
+                            if (checked) {
+                                if (!waypointInput.expire.isExpirySet()) {
+                                    val default = waypointInput.expire.expiryInstantOrDefault()
+                                    waypointInput =
+                                        waypointInput
+                                            .newBuilder()
+                                            .also { wb -> wb.expire = default.epochSeconds.toInt() }
+                                            .build()
+                                }
+                            } else {
+                                waypointInput =
+                                    waypointInput.newBuilder().also { wb -> wb.expire = Int.MAX_VALUE }.build()
                             }
                         },
                     )
-                    Spacer(modifier = Modifier.size(8.dp))
-                    OutlinedTextField(
-                        value = waypointInput.description,
-                        onValueChange = {
-                            waypointInput =
-                                waypointInput.newBuilder().also { wb -> wb.description = it.take(99) }.build()
-                        },
-                        label = { Text(stringResource(Res.string.description)) },
-                        keyboardOptions =
-                        KeyboardOptions.Default.copy(keyboardType = KeyboardType.Text, imeAction = ImeAction.Done),
-                        keyboardActions = KeyboardActions(onDone = {}),
-                        modifier = Modifier.fillMaxWidth(),
-                        minLines = 2,
-                        maxLines = 3,
-                    )
-                    Spacer(modifier = Modifier.size(8.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Image(
-                                imageVector = MeshtasticIcons.Lock,
-                                contentDescription = stringResource(Res.string.locked),
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(stringResource(Res.string.locked))
-                        }
-                        Switch(
-                            checked = waypointInput.isLocked,
-                            // Lock to our own node so we (and only we) can later edit or remove it; unlock clears the
-                            // owner. locked_to must be a real node number — a placeholder locks the waypoint to a
-                            // phantom node and blocks even the creator (see #6343). Disabled until our node number is
-                            // known, since without it we can't lock a waypoint to ourselves (the toggle would silently
-                            // stay unlocked).
-                            enabled = myNodeNum != null,
-                            onCheckedChange = { locked ->
+                }
+
+                if (isExpiryEnabled) {
+                    val ldt = waypointInput.expire.expiryInstantOrDefault().toLocalDateTime(tz)
+
+                    // The pickers are Material 3's own, so this dialog builds for desktop as well as Android.
+                    // They replace `android.app.DatePickerDialog`/`TimePickerDialog`, which are what kept this
+                    // file in `androidMain` and left the desktop map unable to create a waypoint at all.
+                    if (showDatePicker) {
+                        ExpiryDatePickerDialog(
+                            initial = ldt,
+                            onDismiss = { showDatePicker = false },
+                            onPick = { picked ->
+                                val newLdt =
+                                    picked.atTime(
+                                        hour = ldt.hour,
+                                        minute = ldt.minute,
+                                        second = ldt.second,
+                                        nanosecond = ldt.nanosecond,
+                                    )
                                 waypointInput =
                                     waypointInput
                                         .newBuilder()
-                                        .also { wb -> wb.locked_to = if (locked) myNodeNum ?: 0 else 0 }
+                                        .also { wb -> wb.expire = newLdt.toInstant(tz).epochSeconds.toInt() }
                                         .build()
-                            },
-                        )
-                    }
-                    Spacer(modifier = Modifier.size(8.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Image(
-                                imageVector = MeshtasticIcons.CalendarMonth,
-                                contentDescription = stringResource(Res.string.expires),
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(stringResource(Res.string.expires))
-                        }
-                        Switch(
-                            checked = isExpiryEnabled,
-                            onCheckedChange = { checked ->
-                                isExpiryEnabled = checked
-                                if (checked) {
-                                    if (!waypointInput.expire.isExpirySet()) {
-                                        val default = waypointInput.expire.expiryInstantOrDefault()
-                                        waypointInput =
-                                            waypointInput
-                                                .newBuilder()
-                                                .also { wb -> wb.expire = default.epochSeconds.toInt() }
-                                                .build()
-                                    }
-                                } else {
-                                    waypointInput =
-                                        waypointInput.newBuilder().also { wb -> wb.expire = Int.MAX_VALUE }.build()
-                                }
+                                showDatePicker = false
                             },
                         )
                     }
 
-                    if (isExpiryEnabled) {
-                        val ldt = waypointInput.expire.expiryInstantOrDefault().toLocalDateTime(tz)
-
-                        // The pickers are Material 3's own, so this dialog builds for desktop as well as Android.
-                        // They replace `android.app.DatePickerDialog`/`TimePickerDialog`, which are what kept this
-                        // file in `androidMain` and left the desktop map unable to create a waypoint at all.
-                        if (showDatePicker) {
-                            ExpiryDatePickerDialog(
-                                initial = ldt,
-                                onDismiss = { showDatePicker = false },
-                                onPick = { picked ->
-                                    val newLdt =
-                                        picked.atTime(
-                                            hour = ldt.hour,
-                                            minute = ldt.minute,
+                    if (showTimePicker) {
+                        ExpiryTimePickerDialog(
+                            initial = ldt,
+                            onDismiss = { showTimePicker = false },
+                            onPick = { hour, minute ->
+                                val newLdt =
+                                    LocalDate(year = ldt.year, month = ldt.month, day = ldt.day)
+                                        .atTime(
+                                            hour = hour,
+                                            minute = minute,
                                             second = ldt.second,
                                             nanosecond = ldt.nanosecond,
                                         )
-                                    waypointInput =
-                                        waypointInput
-                                            .newBuilder()
-                                            .also { wb -> wb.expire = newLdt.toInstant(tz).epochSeconds.toInt() }
-                                            .build()
-                                    showDatePicker = false
-                                },
-                            )
-                        }
-
-                        if (showTimePicker) {
-                            ExpiryTimePickerDialog(
-                                initial = ldt,
-                                onDismiss = { showTimePicker = false },
-                                onPick = { hour, minute ->
-                                    val newLdt =
-                                        LocalDate(year = ldt.year, month = ldt.month, day = ldt.day)
-                                            .atTime(
-                                                hour = hour,
-                                                minute = minute,
-                                                second = ldt.second,
-                                                nanosecond = ldt.nanosecond,
-                                            )
-                                    waypointInput =
-                                        waypointInput
-                                            .newBuilder()
-                                            .also { wb -> wb.expire = newLdt.toInstant(tz).epochSeconds.toInt() }
-                                            .build()
-                                    showTimePicker = false
-                                },
-                            )
-                        }
-
-                        Spacer(modifier = Modifier.size(8.dp))
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceEvenly,
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Button(onClick = { showDatePicker = true }) { Text(stringResource(Res.string.date)) }
-                                Text(
-                                    modifier = Modifier.padding(top = 4.dp),
-                                    text = selectedDateString,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                )
-                            }
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Button(onClick = { showTimePicker = true }) { Text(stringResource(Res.string.time)) }
-                                Text(
-                                    modifier = Modifier.padding(top = 4.dp),
-                                    text = selectedTimeString,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                )
-                            }
-                        }
+                                waypointInput =
+                                    waypointInput
+                                        .newBuilder()
+                                        .also { wb -> wb.expire = newLdt.toInstant(tz).epochSeconds.toInt() }
+                                        .build()
+                                showTimePicker = false
+                            },
+                        )
                     }
 
                     Spacer(modifier = Modifier.size(8.dp))
-                    HorizontalDivider()
-                    Spacer(modifier = Modifier.size(8.dp))
-                    GeofenceSection(
-                        waypoint = waypointInput,
-                        displayUnits = displayUnits,
-                        onWaypointChange = { waypointInput = it },
-                        onBeginBoxAuthoring = { onBeginBoxAuthoring(waypointInput) },
-                    )
-                }
-            },
-            confirmButton = {
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(start = 8.dp, end = 8.dp, bottom = 8.dp),
-                    horizontalArrangement = Arrangement.End,
-                ) {
-                    if (waypoint.id != 0) {
-                        TextButton(onClick = { onDelete(waypointInput) }, modifier = Modifier.padding(end = 8.dp)) {
-                            Text(stringResource(Res.string.delete), color = MaterialTheme.colorScheme.error)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Button(onClick = { showDatePicker = true }) { Text(stringResource(Res.string.date)) }
+                            Text(
+                                modifier = Modifier.padding(top = 4.dp),
+                                text = selectedDateString,
+                                style = MaterialTheme.typography.bodyMedium,
+                            )
+                        }
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Button(onClick = { showTimePicker = true }) { Text(stringResource(Res.string.time)) }
+                            Text(
+                                modifier = Modifier.padding(top = 4.dp),
+                                text = selectedTimeString,
+                                style = MaterialTheme.typography.bodyMedium,
+                            )
                         }
                     }
-                    Spacer(modifier = Modifier.weight(1f))
-                    TextButton(onClick = onDismissRequest, modifier = Modifier.padding(end = 8.dp)) {
-                        Text(stringResource(Res.string.cancel))
-                    }
-                    Button(onClick = { onSend(waypointInput) }, enabled = (waypointInput.name).isNotBlank()) {
-                        Text(stringResource(Res.string.send))
-                    }
                 }
-            },
-            dismissButton = null,
-            modifier = modifier,
-        )
-    } else {
-        EmojiPickerDialog(onDismiss = { showEmojiPickerView = false }) { selectedEmoji ->
-            showEmojiPickerView = false
-            selectedEmoji.firstCodePointOrNull()?.let {
-                waypointInput = waypointInput.newBuilder().also { wb -> wb.icon = it }.build()
+
+                Spacer(modifier = Modifier.size(8.dp))
+                HorizontalDivider()
+                Spacer(modifier = Modifier.size(8.dp))
+                GeofenceSection(
+                    waypoint = waypointInput,
+                    displayUnits = displayUnits,
+                    onWaypointChange = { waypointInput = it },
+                    onBeginBoxAuthoring = { onBeginBoxAuthoring(waypointInput) },
+                )
             }
-        }
-    }
+        },
+        confirmButton = {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(start = 8.dp, end = 8.dp, bottom = 8.dp),
+                horizontalArrangement = Arrangement.End,
+            ) {
+                if (waypoint.id != 0) {
+                    TextButton(onClick = { onDelete(waypointInput) }, modifier = Modifier.padding(end = 8.dp)) {
+                        Text(stringResource(Res.string.delete), color = MaterialTheme.colorScheme.error)
+                    }
+                }
+                Spacer(modifier = Modifier.weight(1f))
+                TextButton(onClick = onDismissRequest, modifier = Modifier.padding(end = 8.dp)) {
+                    Text(stringResource(Res.string.cancel))
+                }
+                Button(onClick = { onSend(waypointInput) }, enabled = (waypointInput.name).isNotBlank()) {
+                    Text(stringResource(Res.string.send))
+                }
+            }
+        },
+        dismissButton = null,
+        modifier = modifier,
+    )
 }
 
 /**

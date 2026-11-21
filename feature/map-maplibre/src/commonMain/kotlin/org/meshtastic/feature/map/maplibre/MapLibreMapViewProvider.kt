@@ -282,6 +282,8 @@ private fun rememberMapScreenMapState(
         markedPoint = pressedPoint ?: marked?.let { Position(longitude = it.longitude, latitude = it.latitude) },
         // The radio whose card is open is ringed on the map.
         selectedNodeNum = screen.selectedNodeNum,
+        // So is the waypoint whose card is open.
+        selectedWaypointId = screen.infoWaypointId,
     )
 }
 

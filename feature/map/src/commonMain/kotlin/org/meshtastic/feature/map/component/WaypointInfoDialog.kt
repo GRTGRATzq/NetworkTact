@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -29,14 +30,14 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.stringResource
 import org.meshtastic.core.common.util.DateFormatter
 import org.meshtastic.core.common.util.MeasurementSystem
-import org.meshtastic.core.model.util.PUSHPIN_CODE_POINT
-import org.meshtastic.core.model.util.toCodePointString
+import org.meshtastic.core.model.geo.WaypointAffiliation
 import org.meshtastic.core.model.util.toDistanceString
 import org.meshtastic.core.resources.Res
 import org.meshtastic.core.resources.close
@@ -50,6 +51,7 @@ import org.meshtastic.core.resources.geofence_set_area
 import org.meshtastic.core.resources.waypoint_origin
 import org.meshtastic.core.resources.waypoint_origin_me
 import org.meshtastic.core.resources.waypoint_origin_time_unknown
+import org.meshtastic.core.ui.component.AffiliationFrame
 import org.meshtastic.core.ui.component.BasicListItem
 import org.meshtastic.proto.Waypoint
 
@@ -74,13 +76,19 @@ fun WaypointInfoDialog(
     onDeleteForMe: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
-    // waypoint.icon is untrusted input; toCodePointString substitutes a fallback rather than throwing.
-    val emoji = if (waypoint.icon == 0) PUSHPIN_CODE_POINT.toCodePointString() else waypoint.icon.toCodePointString()
+    // waypoint.icon is untrusted input: anything but one of the four affiliation codes reads as Unknown.
+    val affiliation = WaypointAffiliation.fromIcon(waypoint.icon)
     val title = waypoint.name.takeIf { it.isNotBlank() } ?: stringResource(Res.string.geofence)
 
     AlertDialog(
         onDismissRequest = onDismissRequest,
-        title = { Text(text = "$emoji  $title", fontWeight = FontWeight.Bold) },
+        title = {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                AffiliationFrame(affiliation = affiliation)
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(text = title, fontWeight = FontWeight.Bold)
+            }
+        },
         text = {
             Column(modifier = Modifier.fillMaxWidth()) {
                 origin?.let {

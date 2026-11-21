@@ -53,10 +53,13 @@ data class SharedPoint(
         /** How long a shared point stays on the maps of the mesh. */
         val VALIDITY = 24.hours
 
-        /** 👁 observed fact, 📍 position, 📌 any other point. */
-        const val ICON_OBSERVED_FACT = 0x1F441
-        const val ICON_POSITION = 0x1F4CD
-        const val ICON_POINT = 0x1F4CC
+        /**
+         * The affiliation frame each kind of shared point starts with (all editable afterwards): an observed fact and
+         * any other point are Unknown, a `[POS]` is Friend, since only our own stations send one.
+         */
+        val ICON_OBSERVED_FACT = WaypointAffiliation.UNKNOWN.code
+        val ICON_POSITION = WaypointAffiliation.FRIEND.code
+        val ICON_POINT = WaypointAffiliation.UNKNOWN.code
 
         private const val SEPARATOR = " · "
         private const val ELLIPSIS = "…"

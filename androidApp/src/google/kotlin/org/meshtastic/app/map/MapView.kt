@@ -141,17 +141,15 @@ import org.meshtastic.core.common.util.MeasurementSystem
 import org.meshtastic.core.common.util.nowSeconds
 import org.meshtastic.core.model.Node
 import org.meshtastic.core.model.TracerouteOverlay
+import org.meshtastic.core.model.geo.WaypointAffiliation
 import org.meshtastic.core.model.geofence.toGeofence
 import org.meshtastic.core.model.isLocked
 import org.meshtastic.core.model.isModifiableBy
 import org.meshtastic.core.model.util.GeoConstants.DEG_D
 import org.meshtastic.core.model.util.GeoConstants.HEADING_DEG
-import org.meshtastic.core.model.util.isValidCodePoint
 import org.meshtastic.core.model.util.kmhIn
 import org.meshtastic.core.model.util.metersIn
-import org.meshtastic.core.model.util.toCodePointString
 import org.meshtastic.core.model.util.toString
-import org.meshtastic.core.model.util.waypointIconOrDefault
 import org.meshtastic.core.resources.Res
 import org.meshtastic.core.resources.alt
 import org.meshtastic.core.resources.cancel
@@ -866,7 +864,10 @@ fun MapView(
                                 finalWp.newBuilder().also { wb -> wb.id = mapViewModel.generatePacketId() }.build()
                         }
                         finalWp =
-                            finalWp.newBuilder().also { wb -> wb.icon = finalWp.icon.waypointIconOrDefault() }.build()
+                            finalWp
+                                .newBuilder()
+                                .also { wb -> wb.icon = WaypointAffiliation.fromIcon(finalWp.icon).code }
+                                .build()
                         mapViewModel.sendWaypoint(finalWp)
                         editingWaypoint = null
                     },
@@ -1943,14 +1944,6 @@ private fun Int.withAlpha(opacity: Float): Int = AndroidColor.argb(
 // endregion
 
 // region --- Utilities ---
-
-internal fun convertIntToEmoji(unicodeCodePoint: Int): String {
-    if (!unicodeCodePoint.isValidCodePoint()) {
-        Logger.w { "Invalid unicode code point: $unicodeCodePoint" }
-    }
-    // waypointIconOrDefault before rendering: 0 is a valid code point, so it would otherwise render as U+0000.
-    return unicodeCodePoint.waypointIconOrDefault().toCodePointString()
-}
 
 /** Converts protobuf [Position] integer coordinates to a Google Maps [LatLng]. */
 internal fun Position.toLatLng(): LatLng = LatLng((this.latitude_i ?: 0) * DEG_D, (this.longitude_i ?: 0) * DEG_D)

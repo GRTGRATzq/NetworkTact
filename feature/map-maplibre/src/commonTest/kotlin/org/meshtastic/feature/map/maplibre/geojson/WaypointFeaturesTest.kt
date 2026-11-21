@@ -16,8 +16,12 @@
  */
 package org.meshtastic.feature.map.maplibre.geojson
 
+import kotlinx.serialization.json.boolean
+import kotlinx.serialization.json.int
+import kotlinx.serialization.json.jsonPrimitive
 import org.meshtastic.core.model.DataPacket
 import org.meshtastic.core.model.NodeAddress
+import org.meshtastic.core.model.geo.WaypointAffiliation
 import org.meshtastic.proto.Waypoint
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -93,26 +97,56 @@ class WaypointFeaturesTest {
         )
     }
 
+    private fun located(id: Int, icon: Int) = packet(
+        Waypoint.Builder()
+            .also { wb ->
+                wb.id = id
+                wb.latitude_i = 416_000_000
+                wb.longitude_i = -936_000_000
+                wb.icon = icon
+            }
+            .build(),
+    )
+
+    private fun affiliationOf(icon: Int): String? = waypointsToFeatureCollection(listOf(located(1, icon)))
+        .features
+        .single()
+        .properties
+        ?.get(WaypointFeatureKeys.AFFILIATION)
+        ?.jsonPrimitive
+        ?.content
+
     @Test
-    fun `an unset icon falls back to the default pin`() {
-        assertEquals("📍", iconGlyph(null))
-        assertEquals("📍", iconGlyph(0))
+    fun `each affiliation code becomes its affiliation`() {
+        WaypointAffiliation.entries.forEach { assertEquals(it.name, affiliationOf(it.code)) }
     }
 
     @Test
-    fun `a valid code point becomes its glyph`() {
-        assertEquals("A", iconGlyph('A'.code))
-        // Above the BMP, so it has to be emitted as a surrogate pair.
-        assertEquals("🚀", iconGlyph(0x1F680))
+    fun `an unset, emoji or broken icon is shown as unknown`() {
+        // Whatever the sending node put in the field, an old emoji included.
+        listOf(0, 0x1F4CD, 0x1F680, 'A'.code, -1, 0xD800, 0x110000).forEach {
+            assertEquals(WaypointAffiliation.UNKNOWN.name, affiliationOf(it), "icon $it")
+        }
     }
 
     @Test
-    fun `a code point that is not a unicode scalar value falls back to the default pin`() {
-        // Whatever the sending node put in the field. An unpaired surrogate or an out-of-range value would otherwise be
-        // appended as a broken character and render as tofu.
-        assertEquals("📍", iconGlyph(-1))
-        assertEquals("📍", iconGlyph(0xD800))
-        assertEquals("📍", iconGlyph(0xDFFF))
-        assertEquals("📍", iconGlyph(0x110000))
+    fun `only the waypoint whose card is open is selected`() {
+        val code = WaypointAffiliation.FRIEND.code
+        val features = waypointsToFeatureCollection(listOf(located(1, code), located(2, code)), selectedWaypointId = 2)
+        val selected: Map<Int?, Boolean?> =
+            features.features.associate { feature ->
+                feature.properties?.get(WaypointFeatureKeys.WAYPOINT_ID)?.jsonPrimitive?.int to
+                    feature.properties?.get(WaypointFeatureKeys.IS_SELECTED)?.jsonPrimitive?.boolean
+            }
+        assertEquals(mapOf<Int?, Boolean?>(1 to false, 2 to true), selected)
+    }
+
+    @Test
+    fun `nothing is selected without an open card`() {
+        val features = waypointsToFeatureCollection(listOf(located(1, 0)))
+        assertEquals(
+            false,
+            features.features.single().properties?.get(WaypointFeatureKeys.IS_SELECTED)?.jsonPrimitive?.boolean,
+        )
     }
 }

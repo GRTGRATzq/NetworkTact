@@ -22,31 +22,36 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.drawText
-import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
-import androidx.compose.ui.unit.sp
 import kotlinx.serialization.json.int
 import kotlinx.serialization.json.jsonPrimitive
+import org.maplibre.compose.expressions.dsl.asBoolean
 import org.maplibre.compose.expressions.dsl.asString
+import org.maplibre.compose.expressions.dsl.case
+import org.maplibre.compose.expressions.dsl.condition
 import org.maplibre.compose.expressions.dsl.const
-import org.maplibre.compose.expressions.dsl.eq
 import org.maplibre.compose.expressions.dsl.feature
 import org.maplibre.compose.expressions.dsl.image
+import org.maplibre.compose.expressions.dsl.switch
 import org.maplibre.compose.expressions.dsl.textOffset
+import org.maplibre.compose.expressions.value.SymbolAnchor
 import org.maplibre.compose.interaction.ClickResult
 import org.maplibre.compose.layers.FillLayer
 import org.maplibre.compose.layers.LineLayer
 import org.maplibre.compose.layers.SymbolLayer
 import org.meshtastic.core.model.DataPacket
+import org.meshtastic.core.model.geo.WaypointAffiliation
+import org.meshtastic.core.ui.component.AffiliationFrameGeometry
+import org.meshtastic.core.ui.component.AffiliationFrames
+import org.meshtastic.core.ui.component.drawAffiliationFrame
 import org.meshtastic.feature.map.maplibre.geojson.WaypointFeatureKeys
 import org.meshtastic.feature.map.maplibre.geojson.geofencesToFeatureCollection
-import org.meshtastic.feature.map.maplibre.geojson.iconGlyph
 import org.meshtastic.feature.map.maplibre.geojson.rememberFeatureSource
+import org.meshtastic.feature.map.maplibre.geojson.waypointLook
 import org.meshtastic.feature.map.maplibre.geojson.waypointsToFeatureCollection
 import org.meshtastic.feature.map.maplibre.style.MapColors
 
@@ -55,10 +60,16 @@ private const val GEOFENCE_FILL_OPACITY = 0.12f
 /**
  * Waypoint markers and their geofence zones.
  *
- * Zones are drawn first so a marker is never hidden behind its own boundary fill.
+ * Zones are drawn first so a marker is never hidden behind its own boundary fill. Each waypoint is its APP-6(C)
+ * affiliation frame, empty, with its name beside it; the one whose card is open ([selectedWaypointId]) is ringed and
+ * drawn above the others.
  */
 @Composable
-internal fun WaypointLayers(waypoints: Collection<DataPacket>, onWaypointClick: (Int) -> Unit) {
+internal fun WaypointLayers(
+    waypoints: Collection<DataPacket>,
+    onWaypointClick: (Int) -> Unit,
+    selectedWaypointId: Int? = null,
+) {
     val geofenceSource = rememberFeatureSource(waypoints) { geofencesToFeatureCollection(waypoints) }
 
     FillLayer(
@@ -70,29 +81,40 @@ internal fun WaypointLayers(waypoints: Collection<DataPacket>, onWaypointClick: 
 
     LineLayer(id = "geofence-outline", source = geofenceSource, color = const(MapColors.Highlight), width = const(2.dp))
 
-    val waypointSource = rememberFeatureSource(waypoints) { waypointsToFeatureCollection(waypoints) }
+    val waypointSource =
+        rememberFeatureSource(waypoints, selectedWaypointId) {
+            waypointsToFeatureCollection(waypoints, selectedWaypointId)
+        }
 
-    // One layer per distinct glyph, rather than one text layer for all of them. A waypoint icon is an arbitrary code
-    // point from the mesh, and the basemap's font has no emoji coverage — asking for them as text renders nothing at
-    // all, which is what used to happen. MapLibre can only bind one image per layer, so the glyphs are grouped.
-    val glyphs = remember(waypoints) { waypoints.mapNotNull { it.waypoint?.icon }.map { iconGlyph(it) }.distinct() }
+    // One image per look (four frames, ringed or not), whatever the number of waypoints: the map binds them once, and
+    // [WaypointFeatureKeys.LOOK] picks one per feature.
+    val frames = rememberWaypointFrames()
 
-    glyphs.forEach { glyph ->
-        SymbolLayer(
-            id = "waypoint-icon-${glyph.codePointsKey()}",
-            source = waypointSource,
-            filter = feature[WaypointFeatureKeys.ICON].asString() eq const(glyph),
-            iconImage = image(rememberGlyphPainter(glyph), DpSize(WAYPOINT_ICON_DP.dp, WAYPOINT_ICON_DP.dp)),
-            iconAllowOverlap = const(true),
-            onClick = { features ->
-                features.firstOrNull()?.properties?.get(WaypointFeatureKeys.WAYPOINT_ID)?.let { id ->
-                    onWaypointClick(id.jsonPrimitive.int)
-                    ClickResult.Consume
-                } ?: ClickResult.Pass
+    SymbolLayer(
+        id = "waypoint-icon",
+        source = waypointSource,
+        iconImage =
+        switch(
+            input = feature[WaypointFeatureKeys.LOOK].asString(),
+            *frames.map { (look, frame) -> case(look, image(frame.painter, frame.size)) }.toTypedArray(),
+            fallback =
+            frames.getValue(waypointLook(WaypointAffiliation.UNKNOWN, false)).let {
+                image(it.painter, it.size)
             },
-        )
-    }
+        ),
+        iconAllowOverlap = const(true),
+        // With overlap allowed, higher keys draw on top: the waypoint whose card is open stays visible.
+        sortKey =
+        switch(condition(feature[WaypointFeatureKeys.IS_SELECTED].asBoolean(), const(1f)), fallback = const(0f)),
+        onClick = { features ->
+            features.firstOrNull()?.properties?.get(WaypointFeatureKeys.WAYPOINT_ID)?.let { id ->
+                onWaypointClick(id.jsonPrimitive.int)
+                ClickResult.Consume
+            } ?: ClickResult.Pass
+        },
+    )
 
+    // The name beside the frame, never inside it: left-aligned just past the frame's right edge.
     SymbolLayer(
         id = "waypoint-label",
         source = waypointSource,
@@ -101,34 +123,59 @@ internal fun WaypointLayers(waypoints: Collection<DataPacket>, onWaypointClick: 
         textColor = const(Color.White),
         textHaloColor = const(Color.Black),
         textHaloWidth = const(1.dp),
-        textOffset = textOffset(0f.em, WAYPOINT_LABEL_OFFSET_EM.em),
+        textAnchor = const(SymbolAnchor.Left),
+        textOffset =
+        switch(
+            input = feature[WaypointFeatureKeys.AFFILIATION].asString(),
+            *WaypointAffiliation.entries
+                .map { case(it.name, textOffset(labelOffsetEm(it).em, 0f.em)) }
+                .toTypedArray(),
+            fallback = textOffset(labelOffsetEm(WaypointAffiliation.UNKNOWN).em, 0f.em),
+        ),
     )
 }
 
-private const val WAYPOINT_ICON_DP = 24
-private const val WAYPOINT_LABEL_OFFSET_EM = 1.2f
+/** Half the frame's image, plus a small gap, in ems of the label's 16 sp text (MapLibre's text-offset unit). */
+private fun labelOffsetEm(affiliation: WaypointAffiliation): Float =
+    (AffiliationFrames.outerSize(affiliation).width.value / 2 + LABEL_GAP_DP) / LABEL_EM_DP
 
-/** Draws [glyph] — an emoji — as an image MapLibre can use for an icon. */
+private const val LABEL_GAP_DP = 2f
+private const val LABEL_EM_DP = 16f
+
+/** A rasterized frame and the size MapLibre should draw it at. */
+private class WaypointFrame(val painter: Painter, val size: DpSize)
+
+/**
+ * Rasterizes the eight looks once. One `remember` over the whole set: [Painter] identity is part of the key
+ * maplibre-compose reference-counts style images by, so a painter rebuilt on recomposition would re-upload them.
+ */
 @Composable
-private fun rememberGlyphPainter(glyph: String): Painter {
-    val measurer = rememberTextMeasurer()
-    val layout =
-        remember(glyph, measurer) {
-            measurer.measure(AnnotatedString(glyph), TextStyle(fontSize = WAYPOINT_ICON_DP.sp))
-        }
-
-    return remember(layout) {
-        object : Painter() {
-            override val intrinsicSize: Size = Size(layout.size.width.toFloat(), layout.size.height.toFloat())
-
-            override fun DrawScope.onDraw() {
-                drawText(layout)
+private fun rememberWaypointFrames(): Map<String, WaypointFrame> {
+    val density = LocalDensity.current
+    return remember(density) {
+        WaypointAffiliation.entries
+            .flatMap { affiliation -> listOf(false, true).map { selected -> affiliation to selected } }
+            .associate { (affiliation, selected) ->
+                waypointLook(affiliation, selected) to
+                    WaypointFrame(
+                        painter = AffiliationFramePainter(density, affiliation, selected),
+                        size = AffiliationFrames.outerSize(affiliation),
+                    )
             }
-        }
     }
 }
 
-/** A stable, id-safe key for a glyph: its code points. Layer ids must not contain arbitrary characters. */
-private fun String.codePointsKey(): String = map { it.code.toString(HEX_RADIX) }.joinToString("-")
+/** Draws exactly what [org.meshtastic.core.ui.component.AffiliationFrame] draws, for the map's style images. */
+private class AffiliationFramePainter(
+    density: Density,
+    affiliation: WaypointAffiliation,
+    private val selected: Boolean,
+) : Painter() {
+    private val geometry = AffiliationFrameGeometry(density, affiliation)
 
-private const val HEX_RADIX = 16
+    override val intrinsicSize: Size = Size(geometry.outerWidthPx.toFloat(), geometry.outerHeightPx.toFloat())
+
+    override fun DrawScope.onDraw() {
+        drawAffiliationFrame(geometry = geometry, selected = selected)
+    }
+}

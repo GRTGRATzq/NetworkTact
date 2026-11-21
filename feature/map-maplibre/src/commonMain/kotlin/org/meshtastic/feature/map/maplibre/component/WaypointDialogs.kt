@@ -29,10 +29,10 @@ import org.maplibre.spatialk.geojson.Position
 import org.meshtastic.core.common.util.MeasurementSystem
 import org.meshtastic.core.model.DataPacket
 import org.meshtastic.core.model.NodeAddress
+import org.meshtastic.core.model.geo.WaypointAffiliation
 import org.meshtastic.core.model.isFromLocal
 import org.meshtastic.core.model.isModifiableBy
 import org.meshtastic.core.model.team.TeamSuffix
-import org.meshtastic.core.model.util.waypointIconOrDefault
 import org.meshtastic.feature.map.SharedMapViewModel
 import org.meshtastic.feature.map.component.DeleteWaypointDialog
 import org.meshtastic.feature.map.component.WaypointInfoDialog
@@ -344,11 +344,15 @@ internal fun boundingBoxFromCorners(a: Position, b: Position): ProtoBoundingBox 
 
 private const val MIN_CORNER_DELTA_DEG = 1e-4
 
-/** A new waypoint arrives with id 0 and no icon; it needs both before it goes on air. */
+/**
+ * A new waypoint arrives with id 0 and no icon; it needs both before it goes on air. The icon always leaves as one of
+ * the four affiliation codes: anything else, an emoji from another app included, goes as Unknown, which is how it
+ * shows.
+ */
 private fun Waypoint.readyToSend(nextPacketId: () -> Int): Waypoint = this.newBuilder()
     .also { wb ->
         wb.id = if (id == 0) nextPacketId() else id
-        wb.icon = icon.waypointIconOrDefault()
+        wb.icon = WaypointAffiliation.fromIcon(icon).code
     }
     .build()
 

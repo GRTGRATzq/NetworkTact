@@ -1472,6 +1472,11 @@
     <string name="view_release">Voir la version</string>
     <string name="voltage">Tension</string>
     <string name="warning">Attention</string>
+    <string name="waypoint_affiliation">Affiliation</string>
+    <string name="waypoint_affiliation_friend">Ami</string>
+    <string name="waypoint_affiliation_hostile">Ennemi (hostile)</string>
+    <string name="waypoint_affiliation_neutral">Neutre</string>
+    <string name="waypoint_affiliation_unknown">Inconnu</string>
     <string name="waypoint_delete">Supprimer le repère ?</string>
     <string name="waypoint_edit">Modifier le repère</string>
     <string name="waypoint_new">Nouveau point de repère</string>

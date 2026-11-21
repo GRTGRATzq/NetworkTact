@@ -432,6 +432,27 @@ vérifier que les autres ne voient pas l'attribution.
       d'environ 50 ms par requête, ou un défilement saccadé, ajouter un index ou une colonne marquant les messages
       `[DT …]` (cette fois avec migration de la base).
 
+## 24. Points de repère : cadres d'affiliation APP-6(C) (FORK.md §35, point 3) : dans `test/correctifs-13-11-f`
+
+- [ ] Carte (fdroid) : appui long, « Nouveau repère » : quatre boutons Ami, Ennemi (hostile), Neutre, Inconnu, Inconnu
+      choisi d'office, plus aucune liste d'émojis. Envoyer un point de chaque sorte : rectangle bleu, losange rouge,
+      carré vert, trèfle jaune, vides, bord noir, nom à droite.
+- [ ] Taille : un cadre de repère nettement plus petit qu'une radio ; les quatre formes paraissent de même importance
+      (sinon noter laquelle agrandir ou réduire : tout est dans `AffiliationFrames`).
+- [ ] Carte claire, sombre et satellite, thème clair et sombre : contour toujours visible (liseré blanc), losange et
+      trèfle nets.
+- [ ] Toucher un point : halo orange autour de son cadre, au-dessus des voisins ; fermer la fiche : le halo part. La
+      fiche montre le cadre devant le nom.
+- [ ] Modifier un point (changer d'affiliation) : le cadre change sur les autres téléphones NetworkTact.
+- [ ] Partager un fait observé : cadre Inconnu ; une `[POS]` : cadre Ami ; un autre message avec coordonnée : Inconnu.
+      Chacun modifiable ensuite.
+- [ ] Application Meshtastic officielle sur un 4ᵉ téléphone : nos points s'affichent (carré vide accepté) ; un point
+      créé chez elle avec un émoji s'affiche Inconnu chez nous.
+- [ ] Variante google : sur la carte, le mot « Ami », « Inconnu »… sur sa couleur, aucun émoji ni carré vide ; point
+      verrouillé : « (verrouillé) » après le nom dans la bulle.
+- [ ] Carte avec 50 radios et plus et une dizaine de repères : défilement fluide, regroupement des radios inchangé.
+
 ## Avant fusion dans `main`
+- [ ] Couleurs Ennemi `#FF8080`, Neutre `#AAFFAA`, Inconnu `#FFFF80` confirmées dans l'APP-6(C) (§ 24, FORK.md § 35).
 - [ ] Les runs 70 et 71 ont été annulés par une poussée plus récente (rien à corriger).
 - [ ] Compiler la variante google et lancer `core:ui` / `core:navigation` à la main si nécessaire.

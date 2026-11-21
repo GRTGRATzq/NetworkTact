@@ -2364,6 +2364,11 @@ voltage
 warning
 water_ph
 ### WAYPOINT ###
+waypoint_affiliation
+waypoint_affiliation_friend
+waypoint_affiliation_hostile
+waypoint_affiliation_neutral
+waypoint_affiliation_unknown
 waypoint_delete
 waypoint_edit
 waypoint_new
