@@ -22,9 +22,11 @@ import org.meshtastic.core.model.firerequest.FireRequestAck
 import org.meshtastic.core.model.firerequest.FireRequestAssembly
 import org.meshtastic.core.model.firerequest.FireRequestDesignation
 import org.meshtastic.core.model.firerequest.FireRequestMessage
+import org.meshtastic.core.model.firerequest.FireRequestPart
 import org.meshtastic.core.model.firerequest.FireRequestReply
 import org.meshtastic.core.model.firerequest.FireRequestSheet
 import org.meshtastic.core.ui.util.MapFocusPoint
+import kotlin.time.Duration.Companion.days
 
 /** What a request's card can do: send a text in the conversation, resend a part, open the map on a point. */
 internal class FireRequestCardActions(
@@ -68,6 +70,24 @@ data class FireRequestView(val assembly: FireRequestAssembly, val messages: Map<
                 )
             return FireRequestView(assembly, (tagged + answers.map { it.second }).associateBy { it.uuid })
         }
+
+        /** How far back a channel's requests look for their answers, at most. */
+        val ANSWERS_MAX_AGE = 7.days
+
+        /**
+         * When this phone stored the first part of the oldest request among [messages] (sent or received: the stored
+         * time the query compares, not the radio's clock); null when they hold none.
+         */
+        fun firstPartTime(messages: List<Message>): Long? = messages
+            .filter { it.text.startsWith(TAG) && FireRequestPart.parse(it.text) != null }
+            .minOfOrNull { it.receivedTime }
+
+        /**
+         * Since when the answers in direct messages are read: from the first part of the oldest request ([firstPart]),
+         * so a writer's card keeps its acknowledgements however old the request, but [ANSWERS_MAX_AGE] back at most.
+         */
+        fun answersSince(firstPart: Long, nowMillis: Long): Long =
+            maxOf(firstPart, nowMillis - ANSWERS_MAX_AGE.inWholeMilliseconds)
 
         private fun isAnswer(text: String): Boolean = FireRequestReply.parse(text) != null ||
             FireRequestAck.parse(text) != null ||

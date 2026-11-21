@@ -33,6 +33,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
@@ -91,7 +92,6 @@ import org.meshtastic.feature.messaging.translation.DownloadResult
 import org.meshtastic.feature.messaging.translation.MessageTranslationService
 import org.meshtastic.feature.messaging.translation.TranslationResult
 import org.meshtastic.proto.ChannelSet
-import kotlin.time.Duration.Companion.hours
 
 /**
  * Test seam for resolving [UiText] to a plain string. Unit tests replace [resolve] so ViewModel snackbar paths don't
@@ -261,9 +261,22 @@ class MessageViewModel(
             .flatMapLatest { key ->
                 val messages = flow { emitAll(packetRepository.getMessagesFrom(key, getNode = ::getNode)) }
                 if (ContactKey(key).addressString == NodeAddress.ID_BROADCAST) {
-                    // On a channel, acknowledgements and allocations come in direct messages: one query for all.
-                    val since = nowMillis - FIRE_REQUEST_ANSWERS_WINDOW.inWholeMilliseconds
-                    val direct = packetRepository.getDirectMessagesStartingWith(FIRE_REQUEST_PREFIX, since, ::getNode)
+                    // On a channel, acknowledgements and allocations come in direct messages: one query for all,
+                    // from the first part of the oldest request of the channel (7 days back at most). It starts again
+                    // only when that oldest request changes, not at every new message.
+                    val direct =
+                        messages
+                            .map { FireRequestView.firstPartTime(it) }
+                            .distinctUntilChanged()
+                            .flatMapLatest { first ->
+                                first?.let {
+                                    packetRepository.getDirectMessagesStartingWith(
+                                        FIRE_REQUEST_PREFIX,
+                                        FireRequestView.answersSince(it, nowMillis),
+                                        ::getNode,
+                                    )
+                                } ?: flowOf(emptyList())
+                            }
                     combine(messages, direct) { inChannel, answers -> FireRequestView.of(inChannel, answers) }
                 } else {
                     messages.map { FireRequestView.of(it) }
@@ -626,9 +639,6 @@ class MessageViewModel(
 
         /** The tag every fire request message starts with. */
         private const val FIRE_REQUEST_PREFIX = "[DT "
-
-        /** How far back a channel's fire requests look for their answers in direct messages. */
-        private val FIRE_REQUEST_ANSWERS_WINDOW = 12.hours
 
         /** Saved-state drafts are keyed per conversation; one shared entry would leak text between them. */
         private fun draftKey(contactKey: String) = KEY_DRAFT_MESSAGE_PREFIX + contactKey

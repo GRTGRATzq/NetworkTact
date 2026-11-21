@@ -1201,8 +1201,12 @@ du Réseau, ou bouton « Diagnostic » sous un envoi en échec. Le diagnostic n'
     Regroupement : accusés par poste (le dernier de chacun), accusé envoyé par ce téléphone, attribution reçue par la
     radio désignée, dernière attribution faite par le chef (`FireRequestMessage.to`). Test : `FireRequestNoticeTest`.
   - **Une seule requête** : `PacketDao.getDirectMessagesStartingWith(prefix, since)` (messages directs de toutes les
-    conversations qui commencent par `[DT `, 12 h), `PacketRepository.getDirectMessagesStartingWith` (avec la clé de
-    conversation). **Pas de migration** : requête nouvelle sur des colonnes existantes (`message_text`, rempli à
+    conversations qui commencent par `[DT `), `PacketRepository.getDirectMessagesStartingWith` (avec la clé de
+    conversation). **Fenêtre** (décision du 21/11, remplace les 12 h du premier jet) : à partir de l'heure
+    d'enregistrement de la première partie de la plus ancienne demande du canal (`FireRequestView.firstPartTime`, colonne
+    `received_time` comparée par la requête), 7 jours en arrière au plus (`answersSince`) ; aucune requête sur un canal
+    sans demande. La requête ne repart que si cette plus ancienne demande change, pas à chaque message. Une carte garde
+    donc ses accusés tant que sa demande a moins de 7 jours. Test : `FireRequestAnswersWindowTest`. **Pas de migration** : requête nouvelle sur des colonnes existantes (`message_text`, rempli à
     l'insertion depuis la v39). `searchMessages` ne convenait pas : recherche FTS non observée (pas de mise à jour à
     l'arrivée d'un message) et limitée à 100 lignes. Non indexée sur `message_text` : balayage de la table à chaque
     changement, à mesurer sur une base chargée.
