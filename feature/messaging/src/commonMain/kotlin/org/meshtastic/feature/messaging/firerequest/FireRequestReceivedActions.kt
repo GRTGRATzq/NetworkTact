@@ -18,18 +18,28 @@ package org.meshtastic.feature.messaging.firerequest
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.stringResource
 import org.meshtastic.core.model.firerequest.FireRequestAck
+import org.meshtastic.core.model.firerequest.FireRequestReply
 import org.meshtastic.core.model.firerequest.FireRequestThread
+import org.meshtastic.core.model.firerequest.ReplyKind
 import org.meshtastic.core.resources.Res
 import org.meshtastic.core.resources.firereq_ack_incomplete
 import org.meshtastic.core.resources.firereq_ack_note
 import org.meshtastic.core.resources.firereq_ack_send
 import org.meshtastic.core.resources.firereq_ack_sent
+import org.meshtastic.core.resources.firereq_designated_to_you
+import org.meshtastic.core.resources.firereq_reply_resend
 
 /**
  * « Accusé DT » on a sheet received on a channel: sent by hand, in a direct message to the writer only, once the sheet
@@ -60,3 +70,49 @@ internal fun AckButton(thread: FireRequestThread, canSend: Boolean, actions: Fir
             else -> Help(stringResource(Res.string.firereq_ack_note))
         }
     }
+
+/**
+ * On the radio the fire chief designated: « Tir attribué à vous par <émetteur> » and « GDH fin », sent in a direct
+ * message to the writer, as in v1 ([endRecipient]).
+ */
+@Composable
+internal fun DesignatedPart(
+    thread: FireRequestThread,
+    radios: List<AllocationRadio>,
+    canSend: Boolean,
+    actions: FireRequestCardActions,
+) {
+    val (_, designation) = thread.designation ?: return
+    var asking by remember { mutableStateOf(false) }
+    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        Text(
+            stringResource(Res.string.firereq_designated_to_you, designation.requester, designation.gdh),
+            style = MaterialTheme.typography.bodySmall,
+        )
+        if (canSend) {
+            val kind = ReplyKind.END
+            if (thread.end != null) {
+                FilledTonalButton(onClick = { asking = true }) {
+                    Text(stringResource(Res.string.firereq_reply_resend, kind.label))
+                }
+            } else {
+                OutlinedButton(onClick = { asking = true }) { Text(kind.label) }
+            }
+        }
+    }
+    if (asking) {
+        ReplyDialog(ReplyKind.END, onDismiss = { asking = false }) { gdh ->
+            asking = false
+            actions.sendDirect(FireRequestReply(thread.number, ReplyKind.END, gdh).text(), endRecipient(thread, radios))
+        }
+    }
+}
+
+/**
+ * Where « GDH fin » goes: the radio whose short name is the writer named by the allocation, when only one has it,
+ * otherwise the sender of the sheet.
+ */
+internal fun endRecipient(thread: FireRequestThread, radios: List<AllocationRadio>): String {
+    val requester = thread.designation?.second?.requester.orEmpty()
+    return radios.filter { it.shortName.isNotBlank() && it.shortName == requester }.singleOrNull()?.id ?: thread.sender
+}

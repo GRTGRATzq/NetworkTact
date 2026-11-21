@@ -90,7 +90,7 @@ internal fun ReplyButtons(thread: FireRequestThread, send: (String) -> Unit) {
 
 /** The date-time group to send back, at the phone's time in the zone the operator chose, editable. */
 @Composable
-private fun ReplyDialog(kind: ReplyKind, onDismiss: () -> Unit, onSend: (String) -> Unit) {
+internal fun ReplyDialog(kind: ReplyKind, onDismiss: () -> Unit, onSend: (String) -> Unit) {
     val prefs = koinInject<FireRequestPrefs>(qualifier = named(SCREEN_DATA))
     var gdh by remember { mutableStateOf(Gdh.of(nowSeconds, prefs.gdhZone.value, systemTimeZone).format()) }
     AlertDialog(

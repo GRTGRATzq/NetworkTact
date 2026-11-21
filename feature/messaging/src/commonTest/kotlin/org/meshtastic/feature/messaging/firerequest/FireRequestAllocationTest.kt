@@ -62,4 +62,33 @@ class FireRequestAllocationTest {
         assertEquals(listOf("!writer"), toWriter.map { it.second })
         assertEquals(listOf("!writer"), toChief.map { it.second })
     }
+
+    private fun designated(requester: String) = thread(fromLocal = false)
+        .copy(
+            replies =
+            listOf(
+                FireRequestMessage(
+                    2,
+                    false,
+                    "!chief",
+                    1,
+                    "[DT AB1234] Tir attribué à vous par $requester · GDH attribution $gdh",
+                ),
+            ),
+        )
+
+    @Test
+    fun `GDH fin goes to the radio named by the allocation when only one has that short name`() {
+        val radios = listOf(AllocationRadio("!oa", "OA", "OA 1"), cds)
+
+        assertEquals("!oa", endRecipient(designated("OA"), radios))
+    }
+
+    @Test
+    fun `GDH fin goes to the sheet's sender when the name is shared or unknown`() {
+        val twins = listOf(AllocationRadio("!oa1", "OA", ""), AllocationRadio("!oa2", "OA", ""))
+
+        assertEquals("!writer", endRecipient(designated("OA"), twins))
+        assertEquals("!writer", endRecipient(designated("XY"), twins))
+    }
 }

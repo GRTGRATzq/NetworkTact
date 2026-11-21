@@ -83,6 +83,7 @@ internal fun FireRequestCard(
             } else {
                 ReceivedRequest(thread, canSend, actions, onChannel = channelName != null)
                 if (channelName != null) {
+                    DesignatedPart(thread, network.radios, canSend, actions)
                     AllocationPart(thread, network.role, network.allocationOf(thread, view), canSend, actions)
                 }
             }

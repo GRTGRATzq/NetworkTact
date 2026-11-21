@@ -766,6 +766,7 @@
     <string name="firereq_card_sent">DT %1$s · %2$d messages</string>
     <string name="firereq_card_title">Fire request %1$s</string>
     <string name="firereq_close">Close</string>
+    <string name="firereq_designated_to_you">Fire allocated to you (request from %1$s), allocation DTG %2$s.</string>
     <string name="firereq_draft_kept">Draft kept on the phone</string>
     <string name="firereq_edit">Edit</string>
     <string name="firereq_empty_box">Empty box: it is sent anyway, as « %1$d non rempli ».</string>

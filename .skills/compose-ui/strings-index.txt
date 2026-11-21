@@ -736,6 +736,7 @@ firereq_broadcast_on
 firereq_card_sent
 firereq_card_title
 firereq_close
+firereq_designated_to_you
 firereq_draft_kept
 firereq_edit
 firereq_empty_box
