@@ -16,11 +16,15 @@
  */
 package org.meshtastic.app.map.component
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.android.gms.maps.model.LatLng
@@ -29,14 +33,16 @@ import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.rememberComposeBitmapDescriptor
 import com.google.maps.android.compose.rememberUpdatedMarkerState
 import org.jetbrains.compose.resources.stringResource
-import org.meshtastic.app.map.convertIntToEmoji
+import org.meshtastic.core.model.geo.WaypointAffiliation
 import org.meshtastic.core.model.geofence.toGeofence
 import org.meshtastic.core.model.isLocked
 import org.meshtastic.core.model.isModifiableBy
 import org.meshtastic.core.model.util.GeoConstants.DEG_D
-import org.meshtastic.core.model.util.waypointIconOrDefault
 import org.meshtastic.core.resources.Res
 import org.meshtastic.core.resources.geofence
+import org.meshtastic.core.resources.locked
+import org.meshtastic.core.ui.component.AffiliationFrames
+import org.meshtastic.core.ui.component.affiliationLabel
 import org.meshtastic.feature.map.BaseMapViewModel
 import org.meshtastic.proto.Waypoint
 
@@ -65,11 +71,22 @@ fun WaypointMarkers(
                 }
             }
 
-            val iconCodePoint = waypoint.icon.waypointIconOrDefault()
-            val emojiText = convertIntToEmoji(iconCodePoint)
+            // The Google flavor does not draw the APP-6(C) frames: the affiliation is written as plain text on its
+            // colour, so no emoji and no broken character is ever shown.
+            val affiliation = WaypointAffiliation.fromIcon(waypoint.icon)
+            val affiliationText = stringResource(affiliationLabel(affiliation))
             val icon =
-                rememberComposeBitmapDescriptor(iconCodePoint) {
-                    Text(text = emojiText, fontSize = 32.sp, modifier = Modifier.padding(2.dp))
+                rememberComposeBitmapDescriptor(affiliation, affiliationText) {
+                    Text(
+                        text = affiliationText,
+                        color = Color.Black,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier =
+                        Modifier.border(1.dp, AffiliationFrames.Edge)
+                            .background(AffiliationFrames.fill(affiliation))
+                            .padding(horizontal = 4.dp, vertical = 2.dp),
+                    )
                 }
 
             // Non-visual cue: the geofence is otherwise only an orange overlay, so surface it in the marker's
@@ -83,10 +100,11 @@ fun WaypointMarkers(
                     description
                 }
 
-            // Lock cue in the info-window title (parity with the fdroid marker), so a locked waypoint is
-            // identifiable before it is tapped.
+            // Lock cue in the info-window title, so a locked waypoint is identifiable before it is tapped: a word
+            // rather than the old 🔒, since no emoji is left on waypoints.
             val cleanName = waypoint.name.replace('\n', ' ').replace('\b', ' ')
-            val title = if (waypoint.isLocked) "${convertIntToEmoji(LOCK)} $cleanName" else cleanName
+            val lockedText = stringResource(Res.string.locked).lowercase()
+            val title = if (waypoint.isLocked) "$cleanName ($lockedText)" else cleanName
 
             Marker(
                 state = markerState,
@@ -110,5 +128,3 @@ fun WaypointMarkers(
         }
     }
 }
-
-private const val LOCK = 0x1F512 // Unicode for Lock
