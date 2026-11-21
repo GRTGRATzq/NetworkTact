@@ -1,7 +1,8 @@
 # NetworkTact : essais à faire sur téléphone
 
-Dernière mise à jour : 9 novembre 2026. APK : artefact `apk-fdroid-debug` du dernier run vert de
-`fork-apk` sur la branche `feat/apk-release` (qui contient tout). Rien de ce qui suit n'a encore
+Dernière mise à jour : 21 novembre 2026 (§ 23). APK à essayer : artefact `apk-fdroid-release` du run 115 de `fork-apk`,
+sur `test/correctifs-13-11-d` (qui contient tout) ; voir `PASSATION-CLAUDE-CODE.md` § 000. Il n'y a pas de § 19 ni de
+§ 20 : les numéros suivants sont gardés parce que d'autres documents y renvoient. Rien de ce qui suit n'a encore
 été essayé sur un téléphone, sauf le défaut corrigé au §10 ; la CI ne prouve que la compilation et
 les tests unitaires.
 
@@ -279,7 +280,8 @@ en JVM, à voir à l'œil et au doigt. Fiche papier à côté pour la relecture.
 
 - [ ] Puce « DT Demande de tir » (contour rouge, badge DT) sur sa ligne, sous « Ma position · Fait observé · Convertisseur ».
 - [ ] Ouvert depuis la conversation directe avec B : destinataire présélectionné, « Destinataire » prérempli avec le nom
-      de B (sans équipe), modifiable. Ouvert depuis un canal : destinataire à choisir.
+      de B (sans équipe), modifiable. Ouvert depuis un canal : rien à choisir dans le formulaire, le destinataire se
+      choisit dans l'aperçu, sous « Envoyer à » (point 1, § 23 ; le bouton « Choisir le destinataire » n'existe plus).
 - [ ] Chaque case conforme à la fiche (libellés, ordre, codes, unités : millièmes, m, min, s, ms) ; clavier numérique pour
       les nombres ; défilement avec le clavier ouvert ; rien qui ne soit sur la fiche.
 - [ ] GDH : prérempli à l'heure du téléphone en loc, Z (`112150Z NOV 26`) et fra ; le choix du fuseau est gardé après

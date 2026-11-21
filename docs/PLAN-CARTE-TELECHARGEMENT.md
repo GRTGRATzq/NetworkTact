@@ -1,6 +1,9 @@
 # Plan : télécharger une carte hors ligne depuis l'application (tâche 7, `feat/carte-telechargement`)
 
-État : **plan seulement, aucun code d'application**. Rédigé le 11 novembre 2026, **mis à jour le même jour avec les décisions D1 à D11
+**Note du 21 novembre 2026** : ce plan est réalisé ; le code est dans `feature/map/.../offline/extract/` et l'écran
+« Télécharger une carte » (`FORK.md` § 29, essais `TESTS-A-FAIRE.md` § 17). Le texte ci-dessous est celui du plan.
+
+État d'origine : **plan seulement, aucun code d'application**. Rédigé le 11 novembre 2026, **mis à jour le même jour avec les décisions D1 à D11
 validées** (voir §20 : zone par rectangle, confirmation à 50 Mo quelle que soit la connexion, source réglable et mention de
 confidentialité dès la v1, zoom maximal 15 par défaut, portée applicative). La sonde de l'édition (D1) passe avant l'extracteur ;
 ses résultats seront ajoutés au §15.
