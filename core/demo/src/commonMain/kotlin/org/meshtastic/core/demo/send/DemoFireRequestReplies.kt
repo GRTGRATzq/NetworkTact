@@ -27,6 +27,7 @@ import org.meshtastic.core.demo.store.DemoStore
 import org.meshtastic.core.model.DataPacket
 import org.meshtastic.core.model.MessageStatus
 import org.meshtastic.core.model.NodeAddress
+import org.meshtastic.core.model.firerequest.FireRequestAck
 import org.meshtastic.core.model.firerequest.FireRequestPart
 import org.meshtastic.core.model.firerequest.FireRequestReply
 import org.meshtastic.core.model.firerequest.Gdh
@@ -56,16 +57,42 @@ class DemoFireRequestReplies(
         scope.launch {
             delay((DemoSendMessageUseCase.ACKNOWLEDGED_AT + ALLOCATION_AFTER_ACK).milliseconds)
             if (store.session != session) return@launch
-            receive(FireRequestReply(part.number, ReplyKind.ALLOCATION, gdhNow()), contactKey, destination, channel)
+            receive(
+                FireRequestReply(part.number, ReplyKind.ALLOCATION, gdhNow()).text(),
+                contactKey,
+                destination,
+                channel,
+            )
             delay(END_AFTER_ALLOCATION.milliseconds)
             if (store.session != session) return@launch
-            receive(FireRequestReply(part.number, ReplyKind.END, gdhNow()), contactKey, destination, channel)
+            receive(FireRequestReply(part.number, ReplyKind.END, gdhNow()).text(), contactKey, destination, channel)
         }
     }
 
-    private suspend fun receive(reply: FireRequestReply, contactKey: String, from: String, channel: Int) {
+    /**
+     * [text] was just broadcast on a channel: once its last part is out, ALPHA-1 then BRAVO-2 send their « Accusé DT »
+     * in direct messages, [ACK_AFTER_BROADCAST] then twice that later; CHARLIE-3, out of reach, never does.
+     */
+    fun onBroadcast(text: String) {
+        val part = FireRequestPart.parse(text)?.takeIf { it.k == it.count } ?: return
+        val session = store.session
+        scope.launch {
+            listOf(
+                DemoDataSet.ALPHA1_NUM to DemoDataSet.ALPHA1_DIRECT_KEY,
+                DemoDataSet.BRAVO2_NUM to DemoDataSet.BRAVO2_DIRECT_KEY,
+            )
+                .forEach { (num, key) ->
+                    delay(ACK_AFTER_BROADCAST.milliseconds)
+                    if (store.session != session) return@launch
+                    val ack = FireRequestAck(part.number, gdhNow()).text()
+                    receive(ack, key, DemoDataSet.id(num), NodeAddress.PKC_CHANNEL_INDEX)
+                }
+        }
+    }
+
+    private suspend fun receive(text: String, contactKey: String, from: String, channel: Int) {
         val packet =
-            DataPacket(to = store.myId.value ?: NodeAddress.ID_LOCAL, channel = channel, text = reply.text()).apply {
+            DataPacket(to = store.myId.value ?: NodeAddress.ID_LOCAL, channel = channel, text = text).apply {
                 this.from = from
                 id = Random.nextInt(1, Int.MAX_VALUE)
                 time = nowMillis
@@ -86,6 +113,7 @@ class DemoFireRequestReplies(
     companion object {
         const val ALLOCATION_AFTER_ACK = 8_000L
         const val END_AFTER_ALLOCATION = 20_000L
+        const val ACK_AFTER_BROADCAST = 10_000L
         private const val MILLIS_PER_SECOND = 1_000L
     }
 }

@@ -388,10 +388,10 @@ en JVM, à voir à l'œil et au doigt. Fiche papier à côté pour la relecture.
 - [ ] Carte avec 50 radios et plus (mode démo si possible) : défilement et zoom fluides, bulles de regroupement comme
       avant, radios proches qui se chevauchent comme avant.
 
-## 23. Demande de tir sur un canal et attribution (FORK.md §34, point 1) : PAS ENCORE DANS UN APK
+## 23. Demande de tir sur un canal et attribution (FORK.md §34, point 1) : dans `test/correctifs-13-11-d`
 
-Partie faite (organigramme, messages, envoi sur un canal) ; cartes et aperçu restent à écrire (FORK §34, « Reste à
-faire »). Essais prévus, à compléter quand l'interface sera faite :
+Tout est écrit (FORK §34). Il faut au moins 3 téléphones : émetteur, chef de tir, radio désignée ; un 4ᵉ poste pour
+vérifier que les autres ne voient pas l'attribution.
 
 - [ ] Organigramme, mode PC : « Chef de tir » sur un membre ; un second chef remplace le premier ; QR montré puis scanné
       sur un autre téléphone : la mention « Chef de tir » arrive avec lui. Sans chef : le QR se lit sur un ancien APK.
@@ -400,6 +400,27 @@ faire »). Essais prévus, à compléter quand l'interface sera faite :
 - [ ] Demande ouverte depuis un canal, avec un canal nommé « Équipe TIR » (ou « TIR ») : elle part sur ce canal,
       Destinataire = nom du canal. Sans ce canal : sur Principal. Noter le vrai nom des canaux des radios.
 - [ ] Ouverte depuis une conversation directe : part en direct à cette radio, comme en v1.
+- [ ] Aperçu, « Envoyer à » : Équipe TIR choisi par défaut ; Principal ; « Les deux » affiche l'avertissement « trafic
+      radio doublé » et part sur les deux canaux ; « Une radio » ouvre le menu des radios et part en direct. Le
+      sous-titre de l'aperçu suit le choix. Le formulaire n'a plus de bouton « Choisir le destinataire ».
+- [ ] Carte de l'émetteur sur le canal : « Diffusée sur <canal> », « Aucun accusé DT reçu » puis une ligne « Accusé DT :
+      <nom court> <GDH> » par poste ; « Renvoyer la fiche » et « Renvoyer la partie k » repartent sur le canal, espacés
+      (pas d'« envoi trop rapide »).
+- [ ] Fiche reçue sur le canal : « Accusé DT » grisé tant que k < N (« Possible quand la fiche est complète ») ; actif à
+      N / N ; un appui envoie un message direct à l'émetteur ; ensuite « Accusé envoyé <GDH> », grisé, aussi après
+      fermeture et réouverture de la conversation.
+- [ ] Chef de tir (désigné dans l'organigramme) : « Tir attribué à : », menu des radios (nom court · nom long),
+      « Attribuer ». L'émetteur reçoit « GDH attribution … · Tir attribué à <radio> », la radio désignée « Tir attribué
+      à vous par <émetteur> ». Les autres postes ne voient rien. Chef = émetteur : un seul message. Réattribuer : la
+      nouvelle radio et l'émetteur sont prévenus, pas l'ancienne radio.
+- [ ] Sans chef dans l'organigramme : « Aucun chef de tir dans l'organigramme », pas d'attribution ; un poste qui n'est
+      pas le chef ne voit pas « Tir attribué à : ».
+- [ ] « Renvoyer la fiche à <radio> » (chez le chef après attribution) : les parties partent en direct à cette radio,
+      espacées. À juger : le bouton est toujours proposé après une attribution, l'application ne sachant pas si la radio
+      est sur le canal.
+- [ ] Radio désignée : « Tir attribué à vous (demande de <émetteur>) » puis « GDH fin », reçu chez l'émetteur.
+- [ ] Mode démo : envoyer une demande sur Général ; ALPHA-1 puis BRAVO-2 renvoient un accusé DT (10 s puis 20 s),
+      jamais CHARLIE-3.
 - [ ] **Temps de la requête des réponses directes** (`PacketDao.getDirectMessagesStartingWith`, relue à chaque changement
       de la table des paquets, sans index sur le texte) : sur une base bien remplie, au moins **50 conversations
       directes** et quelques milliers de messages (mode démo ou base d'essai), plus quelques demandes de tir sur un

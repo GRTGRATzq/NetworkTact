@@ -1179,7 +1179,7 @@ du Réseau, ou bouton « Diagnostic » sous un envoi en échec. Le diagnostic n'
   `CommandPostRow.offline`. Tests : `FriendlyFrameLabelTest`, `DashRunsTest`, `NodeChipKeyTest`, `CommandPostRowsTest`,
   `CommandPostContentTest`.
 
-### 34. Demande de tir sur un canal, accusé DT et attribution (`feat/dt-canal`, point 1) : EN COURS
+### 34. Demande de tir sur un canal, accusé DT et attribution (`feat/dt-canal`, point 1) : FAIT, À ESSAYER
 
 - **Spécification** : `docs/SPEC-DT-CANAL-ET-ATTRIBUTION.md` (validée le 21/11). Décisions du 21/11 : un seul chef de tir
   par organigramme ; accusés DT manuels, sans restriction de poste pour cette version (premier usage à 5 radios), un seul
@@ -1215,25 +1215,32 @@ du Réseau, ou bouton « Diagnostic » sous un envoi en échec. Le diagnostic n'
     « Principal » : canal 0, son nom ou « Principal » s'il n'en a pas). Par défaut Équipe TIR sinon Principal ; ouvert
     depuis une conversation directe : cette radio (v1). « Les deux » : chaque copie porte le nom de son canal en
     Destinataire. `MessageViewModel` fusionne, pour un canal, les réponses reçues en direct (`FireRequestView.of(…,
-    direct)`, jamais les parties). Tests : `FireRequestSendTest` (3 cas canal).
-- **Reste à faire** (rien de cela n'est dans l'APK tant que ce n'est pas fusionné) :
-  1. Aperçu : sélecteur « Envoyer à » (Équipe TIR · Principal · Les deux avec avertissement « trafic doublé » · Une radio)
-     dans `FireRequestPreviewScreen`, appelant `FireRequestViewModel.chooseTarget` ; retirer `RecipientChooser` du
-     formulaire (`FireRequestScreen.kt`) ou le garder en double, à décider.
-  2. Carte de l'émetteur sur un canal (`FireRequestCards.kt`, `SentRequest`) : « diffusée sur <canal> » au lieu de l'état
-     par partie, « Renvoyer la fiche » ou une partie sur le canal, une ligne « Accusé DT : <nom court> <GDH> » par poste
-     (`thread.acknowledgements`, nom court par `view.messages[id].node.user.short_name`), attribution reçue.
-  3. Fiche reçue : bouton « Accusé DT » actif à N / N, une seule fois (`thread.ownAcknowledgement` → « Accusé envoyé
-     <GDH> », grisé), texte discret « envoie un message à l'émetteur » ; envoi en direct à `thread.sender`.
-     `FireRequestCardActions` doit gagner un envoi direct à un identifiant (clé par `directContactKey`).
-  4. Chef de tir (organigramme `OrgChartPrefs.current`, indicatif de la radio de ce téléphone, `Callsign.ofLongName`) :
-     « Tir attribué à : » + menu des radios (nom court et nom long) + « Attribuer », à la place des boutons GDH
-     attribution ; sans chef : « Aucun chef de tir dans l'organigramme ». Deux messages directs (émetteur, radio
-     désignée), un seul si le chef est l'émetteur. « Renvoyer la fiche à <radio> » (parties en direct) si la radio
-     désignée n'est pas sur le canal. Réattribution : nouvelle radio et émetteur prévenus.
-  5. Radio désignée : « GDH fin » en direct à l'émetteur : le nœud dont le nom court est `designation.requester` s'il est
-     unique, sinon l'expéditeur de la fiche.
-  6. Textes EN/FR, `python3 scripts/sort-strings.py`, tests Compose des cartes, mode démo, `TESTS-A-FAIRE.md` § 23.
+    direct)`, jamais les parties). Tests : `FireRequestSendTest` (3 cas c- **Fait ensuite** (commits `af6f439` à ce commit, vérifiés en local : spotless, detekt, compilation JVM, tests JVM de
+  `feature:messaging` en entier et `DemoSendMessageUseCaseTest`) :
+  1. **Aperçu, « Envoyer à »** (`FireRequestTargetChooser.kt`) : Équipe TIR (par défaut si le canal existe), Principal,
+     Les deux (avertissement « trafic radio doublé »), Une radio (menu, direct v1) ; sous-titre de l'aperçu selon le
+     choix. **Décision prise ici** : `RecipientChooser` retiré du formulaire (un seul endroit pour choisir), l'ouverture
+     depuis une conversation directe choisit toujours cette radio. Nom du canal Équipe TIR **toujours non confirmé** :
+     reconnaissance tolérante (`SendChannels.isFireTeam`) et repli sur Principal, inchangés.
+  2. **Carte de l'émetteur sur un canal** (`FireRequestBroadcastCard.kt`) : « Diffusée sur <canal> » à la place de
+     l'état par partie, une ligne « Accusé DT : <nom court> <GDH> » par poste, attribution reçue (« Tir attribué à »),
+     « Renvoyer la fiche » ou une partie. Les renvois passent par `FireRequestSender` (`MessageViewModel.sendFireRequestParts`,
+     une file à la fois), comme le formulaire.
+  3. **« Accusé DT »** (`FireRequestReceivedActions.kt`) : actif à N / N, en direct à l'émetteur, GDH au format mémorisé
+     (`FireRequestPrefs.gdhZone`), une seule fois puis « Accusé envoyé <GDH> » grisé.
+  4. **Attribution** (`FireRequestAllocation.kt`) : rôle lu dans l'organigramme (`OrgChartPrefs.current`, indicatif du
+     nom long de la radio de ce téléphone) ; seul le chef voit « Tir attribué à : », le menu et « Attribuer » ; sans chef,
+     « Aucun chef de tir dans l'organigramme ». Sur un canal, les boutons GDH v1 sont retirés (en direct, inchangés).
+     « Renvoyer la fiche à <radio> » est proposé **après chaque attribution, sans savoir si la radio est sur le canal**
+     (Meshtastic ne le dit pas) : écart avec la spécification, à juger aux essais.
+  5. **« GDH fin »** chez la radio désignée : en direct au nœud dont le nom court est celui de l'attribution s'il est seul,
+     sinon à l'expéditeur de la fiche.
+  6. Textes EN et FR ; tests `FireRequestChannelCardTest` (7), `FireRequestAllocationTest` (5), `FireRequestSendTest`
+     (retour radio → canal) ; démo : sur un canal, ALPHA-1 puis BRAVO-2 renvoient un accusé DT en direct, CHARLIE-3
+     jamais (`DemoFireRequestReplies.onBroadcast`).
+  Limites : le menu déroulant ne s'ouvre pas dans les tests de bureau (les messages d'« Attribuer » sont testés à part) ;
+  rien de cela n'a tourné sur un téléphone ; le code Android et les tests Android hôtes ne sont vérifiés que par la CI.
+ § 23.
 - **Temps d'antenne, estimations du 21/11** (LONG_FAST, SF11, 250 kHz, CR 4/5, préambule 16 symboles, environ
   22 octets d'en-tête et d'enveloppe par paquet ; **calculé par la formule LoRa, rien de mesuré**) :
 
