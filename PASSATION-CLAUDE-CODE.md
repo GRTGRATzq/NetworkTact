@@ -5,9 +5,28 @@ inchangée depuis le 11 novembre, 20 h 45 UTC),
 pour reprendre dans une conversation neuve. À lire avec `FORK.md` (section de
 chaque tâche, état d'avancement), `TESTS-A-FAIRE.md` et, pour la tâche 7, `docs/PLAN-CARTE-TELECHARGEMENT.md`.
 
-## 000. État au 21 novembre 2026, vers 20 h UTC : À LIRE EN PREMIER (point 1, `feat/dt-canal`, en cours)
+## 000. État au 21 novembre 2026, vers 20 h 30 UTC : À LIRE EN PREMIER (point 1, `feat/dt-canal`, en cours)
 
 Remplace le § 00 là où ils diffèrent. Passation faite vers 70 % de contexte, tâche **non finie**.
+
+**Reprise demandée par l'utilisateur (à faire dans une session neuve)**, dans cet ordre, **un commit puis un push sur
+`wip/dt-canal` par point** (jamais plusieurs commits d'un coup), Gradle avec `--max-workers=2` :
+1. Sélecteur « Envoyer à » dans l'aperçu (Équipe TIR par défaut, sinon Principal ; Principal ; Les deux avec
+   avertissement ; Une radio). `FireRequestViewModel.chooseTarget`, `target`, `channels` existent déjà.
+2. Carte de l'émetteur : « diffusée sur <canal> », une ligne d'accusé par poste, renvoi de la fiche sur le canal.
+3. Bouton « Accusé DT » : actif à N / N, un seul par fiche et par poste, grisé ensuite.
+4. Chez le chef : « Tir attribué à : », menu des radios, « Attribuer » ; « Renvoyer la fiche à <radio> » en direct.
+5. « GDH fin » chez la radio désignée.
+6. Textes EN/FR, tests des cartes, mode démo ; FORK.md et TESTS-A-FAIRE.md.
+Puis : `test/correctifs-13-11-d` depuis `test/correctifs-13-11-c`, `git merge --no-ff feat/dt-canal`, pousser, lancer
+`fork-apk` à la main, donner le n° du run.
+
+**Nom du canal Équipe TIR : non confirmé** (l'utilisateur le donnera). Ne pas le figer : garder la reconnaissance
+tolérante par nom (`SendChannels.isFireTeam`) et le repli sur Principal.
+
+**Fait pendant la reprise** : fenêtre des réponses directes partant de la première partie de la plus ancienne demande
+du canal, 7 jours au plus (`1c45495`, FORK § 34) ; essai de mesure de la requête sur 50 conversations
+(`a733bd8`, `TESTS-A-FAIRE.md` § 23).
 
 - **Branche** `feat/dt-canal`, base `test/correctifs-13-11-c` (`101742a`), poussée sur `wip/dt-canal`. Spécification :
   `docs/SPEC-DT-CANAL-ET-ATTRIBUTION.md`. Fait, reste à faire, temps d'antenne et écarts avec l'audit : **FORK.md § 34**.
