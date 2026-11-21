@@ -808,7 +808,7 @@
     <string name="firereq_resend_part">Resend part %1$d</string>
     <string name="firereq_resend_sheet">Resend the sheet</string>
     <string name="firereq_resend_to">Resend the sheet to %1$s</string>
-    <string name="firereq_resend_to_note">In direct messages, for a radio that is not on this channel.</string>
+    <string name="firereq_resend_to_note">In direct messages, to the designated radio. Shown after every allocation: the app cannot tell whether a radio is on this channel.</string>
     <string name="firereq_send">Send the request</string>
     <string name="firereq_sending_part">Sending part %1$d / %2$d…</string>
     <string name="firereq_shortcut">Fire request</string>

@@ -147,8 +147,9 @@ private const val UNKNOWN_RADIO = "?"
 
 /**
  * The fire chief's part of a card on a channel: « Tir attribué à : » with the menu of the radios and « Attribuer », the
- * allocation made, and « Renvoyer la fiche à <radio> » in direct messages for a radio that is not on the channel. Any
- * other post sees nothing; without a chief in the chart: « Aucun chef de tir dans l'organigramme ».
+ * allocation made, and « Renvoyer la fiche à <radio> » in direct messages after every allocation (Meshtastic does not
+ * tell whether a radio is on the channel). Any other post sees nothing; without a chief in the chart: « Aucun chef de
+ * tir dans l'organigramme ».
  */
 @Composable
 internal fun AllocationPart(

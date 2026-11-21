@@ -2079,6 +2079,6 @@
     <string name="firereq_allocate_refused">Attribution refusée : la radio %1$s n'est pas parmi les radios du réseau. Rien n'a été envoyé.</string>
     <string name="firereq_no_fire_chief">Aucun chef de tir dans l'organigramme.</string>
     <string name="firereq_resend_to">Renvoyer la fiche à %1$s</string>
-    <string name="firereq_resend_to_note">En messages directs, pour une radio absente de ce canal.</string>
+    <string name="firereq_resend_to_note">En messages directs, à la radio désignée. Proposé après chaque attribution : l'application ne peut pas savoir si une radio est sur ce canal.</string>
     <string name="firereq_designated_to_you">Tir attribué à vous (demande de %1$s), GDH attribution %2$s.</string>
 </resources>
