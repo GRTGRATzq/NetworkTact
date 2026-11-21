@@ -359,7 +359,6 @@ private fun Actions(
     }
 }
 
-private const val PROGRESS_DP = 20
 private const val MIN_MAX_ZOOM = 12
 private const val DEFAULT_MAX_ZOOM = 15
 private const val PERCENT = 100

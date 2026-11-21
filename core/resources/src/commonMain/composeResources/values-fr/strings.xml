@@ -1838,7 +1838,6 @@
     <string name="firereq_not_received">non reçu</string>
     <string name="firereq_line">%1$s, ligne %2$s</string>
     <string name="firereq_raw">Voir les %1$d messages bruts</string>
-    <string name="firereq_reply_sent">%1$s envoyé</string>
     <string name="firereq_reply_resend">Renvoyer le %1$s</string>
     <string name="firereq_reply_title">Envoyer le %1$s</string>
     <string name="firereq_reply_send">Envoyer</string>

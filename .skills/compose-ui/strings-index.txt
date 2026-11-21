@@ -774,7 +774,6 @@ firereq_rep_direction
 firereq_reply_received
 firereq_reply_resend
 firereq_reply_send
-firereq_reply_sent
 firereq_reply_title
 firereq_reply_waiting
 firereq_resend_part

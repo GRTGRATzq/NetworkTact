@@ -804,7 +804,6 @@
     <string name="firereq_reply_received">%1$s received: %2$s</string>
     <string name="firereq_reply_resend">Resend the %1$s</string>
     <string name="firereq_reply_send">Send</string>
-    <string name="firereq_reply_sent">%1$s sent</string>
     <string name="firereq_reply_title">Send the %1$s</string>
     <string name="firereq_reply_waiting">%1$s: waiting</string>
     <string name="firereq_resend_part">Resend part %1$d</string>
