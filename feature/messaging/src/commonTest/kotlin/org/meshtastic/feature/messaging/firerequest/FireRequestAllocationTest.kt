@@ -119,32 +119,42 @@ class FireRequestAllocationTest {
         assertEquals(MadeAllocation("CDS", gdh, null), madeAllocation(message, listOf(cds)))
     }
 
-    private fun designated(requester: String) = thread(fromLocal = false)
-        .copy(
-            replies =
-            listOf(
-                FireRequestMessage(
-                    2,
-                    false,
-                    "!chief",
-                    1,
-                    "[DT AB1234] Tir attribué à vous par $requester · GDH attribution $gdh",
-                ),
-            ),
-        )
+    private fun designated(
+        requester: String,
+        from: String = "!chief",
+        sheetFrom: String = "!writer",
+    ): FireRequestThread {
+        val text = "[DT AB1234] Tir attribué à vous par $requester · GDH attribution $gdh"
+        return thread(fromLocal = false)
+            .copy(sender = sheetFrom, replies = listOf(FireRequestMessage(2, false, from, 1, text)))
+    }
+
+    private val writer = AllocationRadio("!writer", "OA", "OA 1")
+    private val chief = AllocationRadio("!chief", "CT", "CHEF TIR")
 
     @Test
-    fun `GDH fin goes to the radio named by the allocation when only one has that short name`() {
-        val radios = listOf(AllocationRadio("!oa", "OA", "OA 1"), cds)
+    fun `GDH fin goes to the sheet's sender by its id, even when another radio has the writer's short name`() {
+        val radios = listOf(AllocationRadio("!other", "OA", "OA 2"), writer, chief)
 
-        assertEquals("!oa", endRecipient(designated("OA"), radios))
+        assertEquals(EndRecipient.Ready("!writer"), endRecipient(designated("OA"), radios))
     }
 
     @Test
-    fun `GDH fin goes to the sheet's sender when the name is shared or unknown`() {
-        val twins = listOf(AllocationRadio("!oa1", "OA", ""), AllocationRadio("!oa2", "OA", ""))
+    fun `GDH fin goes to the chief who wrote the sheet himself`() {
+        val sheet = designated("CT", from = "!chief", sheetFrom = "!chief")
 
-        assertEquals("!writer", endRecipient(designated("OA"), twins))
-        assertEquals("!writer", endRecipient(designated("XY"), twins))
+        assertEquals(EndRecipient.Ready("!chief"), endRecipient(sheet, listOf(writer, chief)))
+    }
+
+    @Test
+    fun `GDH fin is refused when the sheet's sender is not a radio of the network`() {
+        assertEquals(EndRecipient.UnknownSender("!writer"), endRecipient(designated("OA"), listOf(chief)))
+    }
+
+    @Test
+    fun `GDH fin is refused for a sheet resent by the chief, never sent to a radio found by name`() {
+        val resent = designated("OA", from = "!chief", sheetFrom = "!chief")
+
+        assertEquals(EndRecipient.SheetFromChief("OA"), endRecipient(resent, listOf(writer, chief)))
     }
 }

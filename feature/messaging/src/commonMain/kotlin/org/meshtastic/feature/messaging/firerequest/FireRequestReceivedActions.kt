@@ -39,6 +39,8 @@ import org.meshtastic.core.resources.firereq_ack_note
 import org.meshtastic.core.resources.firereq_ack_send
 import org.meshtastic.core.resources.firereq_ack_sent
 import org.meshtastic.core.resources.firereq_designated_to_you
+import org.meshtastic.core.resources.firereq_end_refused_resent
+import org.meshtastic.core.resources.firereq_end_refused_unknown
 import org.meshtastic.core.resources.firereq_reply_resend
 
 /**
@@ -84,6 +86,7 @@ internal fun DesignatedPart(
 ) {
     val (_, designation) = thread.designation ?: return
     var asking by remember { mutableStateOf(false) }
+    val recipient = endRecipient(thread, radios)
     Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
         Text(
             stringResource(Res.string.firereq_designated_to_you, designation.requester, designation.gdh),
@@ -91,28 +94,65 @@ internal fun DesignatedPart(
         )
         if (canSend) {
             val kind = ReplyKind.END
+            val ready = recipient is EndRecipient.Ready
             if (thread.end != null) {
-                FilledTonalButton(onClick = { asking = true }) {
+                FilledTonalButton(onClick = { asking = true }, enabled = ready) {
                     Text(stringResource(Res.string.firereq_reply_resend, kind.label))
                 }
             } else {
-                OutlinedButton(onClick = { asking = true }) { Text(kind.label) }
+                OutlinedButton(onClick = { asking = true }, enabled = ready) { Text(kind.label) }
             }
+            EndRefusal(recipient)
         }
     }
-    if (asking) {
+    if (asking && recipient is EndRecipient.Ready) {
         ReplyDialog(ReplyKind.END, onDismiss = { asking = false }) { gdh ->
             asking = false
-            actions.sendDirect(FireRequestReply(thread.number, ReplyKind.END, gdh).text(), endRecipient(thread, radios))
+            actions.sendDirect(FireRequestReply(thread.number, ReplyKind.END, gdh).text(), recipient.nodeId)
         }
     }
 }
 
+@Composable
+private fun EndRefusal(recipient: EndRecipient) {
+    val text =
+        when (recipient) {
+            is EndRecipient.Ready -> return
+            is EndRecipient.UnknownSender -> stringResource(Res.string.firereq_end_refused_unknown, recipient.nodeId)
+            is EndRecipient.SheetFromChief -> stringResource(Res.string.firereq_end_refused_resent, recipient.requester)
+        }
+    Text(text, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
+}
+
+/** Where « GDH fin » can go: [Ready] to a node id, or refused, with the reason shown under the button. */
+internal sealed interface EndRecipient {
+    data class Ready(val nodeId: String) : EndRecipient
+
+    /** The radio that sent the sheet ([nodeId]) is not among the radios of the network. */
+    data class UnknownSender(val nodeId: String) : EndRecipient
+
+    /** The sheet came from the fire chief, who did not write it: the writer ([requester]) has no known id here. */
+    data class SheetFromChief(val requester: String) : EndRecipient
+}
+
 /**
- * Where « GDH fin » goes: the radio whose short name is the writer named by the allocation, when only one has it,
- * otherwise the sender of the sheet.
+ * Where « GDH fin » goes: to the radio that sent the sheet, by its node id, never to a radio found by its short name.
+ * Refused when that id is not a radio of the network, or when the sheet came from the fire chief (« Renvoyer la fiche à
+ * <radio> ») while the allocation names another writer: the writer's id is then unknown on this phone. The short name
+ * is only compared, to detect that case; it never chooses the recipient.
  */
-internal fun endRecipient(thread: FireRequestThread, radios: List<AllocationRadio>): String {
-    val requester = thread.designation?.second?.requester.orEmpty()
-    return radios.filter { it.shortName.isNotBlank() && it.shortName == requester }.singleOrNull()?.id ?: thread.sender
+internal fun endRecipient(thread: FireRequestThread, radios: List<AllocationRadio>): EndRecipient {
+    val sender = thread.sender
+    val senderRadio = radios.firstOrNull { it.id.isNotBlank() && it.id == sender }
+    val designation = thread.designation
+    return when {
+        senderRadio == null -> EndRecipient.UnknownSender(sender)
+
+        designation != null &&
+            designation.first.sender == sender &&
+            designation.second.requester != senderRadio.shortName ->
+            EndRecipient.SheetFromChief(designation.second.requester)
+
+        else -> EndRecipient.Ready(sender)
+    }
 }
