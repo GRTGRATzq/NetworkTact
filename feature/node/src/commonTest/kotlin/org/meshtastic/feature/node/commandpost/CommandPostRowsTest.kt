@@ -87,6 +87,25 @@ class CommandPostRowsTest {
     }
 
     @Test
+    fun `a radio not heard within the online window is offline - its frame is dashed`() {
+        val rows =
+            buildCommandPostRows(
+                listOf(
+                    node(num = 1, shortName = "ALPHA-1", lastHeard = (now - 60).toInt()),
+                    node(num = 2, shortName = "BRAVO-2", lastHeard = (now - 3 * 3600).toInt()),
+                    node(num = 3, shortName = "CHARLIE-3"),
+                ),
+                ourNode = pc,
+                nowSeconds = now,
+            )
+
+        assertEquals(
+            mapOf("ALPHA-1" to false, "BRAVO-2" to true, "CHARLIE-3" to true),
+            rows.associate { it.shortName to it.offline },
+        )
+    }
+
+    @Test
     fun `row carries the position state and coordinates only when a position exists`() {
         val rows =
             buildCommandPostRows(

@@ -31,6 +31,7 @@ import org.meshtastic.core.model.freshness.ContactState
 import org.meshtastic.core.model.freshness.FreshnessThresholds
 import org.meshtastic.core.model.freshness.NodeFreshness
 import org.meshtastic.core.model.freshness.PositionState
+import org.meshtastic.core.model.util.ONLINE_WINDOW_SECONDS
 import org.meshtastic.core.repository.NodeRepository
 import org.meshtastic.core.repository.SCREEN_DATA
 import org.meshtastic.core.ui.viewmodel.stateInWhileSubscribed
@@ -48,6 +49,8 @@ data class CommandPostRow(
     val longitude: Double?,
     /** Contact key of the existing direct conversation, or null when a direct message cannot be delivered. */
     val directMessageKey: String?,
+    /** Not heard within the node list's online window: the radio's friend frame is dashed. */
+    val offline: Boolean = false,
 )
 
 /**
@@ -99,6 +102,8 @@ fun buildCommandPostRows(
             latitude = node.latitude.takeIf { hasPosition },
             longitude = node.longitude.takeIf { hasPosition },
             directMessageKey = node.takeIf { it.canDirectMessage }?.let { directMessageKey(it, ourNode) },
+            // The same test as Node.isOnline, against this tick's clock rather than the wall clock.
+            offline = node.lastHeard.toUInt().toLong() <= nowSeconds - ONLINE_WINDOW_SECONDS,
         )
     }
 

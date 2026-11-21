@@ -20,6 +20,7 @@ import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -117,6 +118,15 @@ class CommandPostContentTest {
         onNodeWithText(getString(Res.string.command_post_position_fresh, minutesText(4.minutes))).assertDoesNotExist()
         onAllNodesWithText(getString(Res.string.command_post_contact_recent, minutesText(1.minutes)))
             .assertCountEquals(3)
+    }
+
+    @Test
+    fun theRadioIsItsFriendFrameWithTheShortNameOnly() = runComposeUiTest {
+        show(listOf(row(8, "DRONE").copy(longName = "Drone [Obs]", offline = true)))
+
+        // In the frame: four characters of the short name, offline announced; the long name is text beside it.
+        onNodeWithContentDescription("DRON").assertExists()
+        onNodeWithText("DRONE").assertDoesNotExist()
     }
 
     @Test
