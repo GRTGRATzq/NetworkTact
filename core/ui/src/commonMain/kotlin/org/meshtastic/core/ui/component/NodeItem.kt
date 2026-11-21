@@ -532,7 +532,7 @@ private fun NodeItemHeader(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(4.dp),
     ) {
-        NodeChip(node = thatNode)
+        NodeChip(node = thatNode, offline = !isThisNode && !thatNode.isOnline)
         NodeSecurityIcons(thatNode, isThisNode = isThisNode)
 
         Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {

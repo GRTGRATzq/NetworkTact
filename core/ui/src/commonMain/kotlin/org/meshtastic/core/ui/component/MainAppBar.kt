@@ -144,7 +144,13 @@ private fun TopBarActions(
 ) {
     AnimatedVisibility(visible = showNodeChip, enter = fadeIn(), exit = fadeOut()) {
         ourNode?.let { node ->
-            NodeChip(modifier = Modifier.padding(horizontal = 16.dp), node = node, onClick = onClickChip)
+            // This phone's own radio: never drawn offline.
+            NodeChip(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                node = node,
+                onClick = onClickChip,
+                offline = false,
+            )
         }
     }
 

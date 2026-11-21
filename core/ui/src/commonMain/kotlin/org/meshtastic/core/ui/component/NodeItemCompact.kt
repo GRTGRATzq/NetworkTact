@@ -195,7 +195,7 @@ fun NodeItemCompact(
                 horizontalAlignment = Alignment.Start,
                 verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
-                NodeChip(node = thatNode)
+                NodeChip(node = thatNode, offline = !isThisNode && !thatNode.isOnline)
                 if (showPower && (thatNode.batteryLevel ?: 0) > 0) {
                     MaterialBatteryInfo(
                         level = thatNode.batteryLevel ?: 0,
