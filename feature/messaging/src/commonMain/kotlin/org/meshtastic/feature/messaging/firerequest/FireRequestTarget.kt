@@ -87,10 +87,23 @@ data class SendChannels(val fireTeam: ChannelOption?, val primary: ChannelOption
             return SendChannels(fireTeam, primary)
         }
 
-        internal fun isFireTeam(name: String): Boolean {
-            val key =
-                name.uppercase().filterNot { it.isWhitespace() }.map { if (it in "ÉÈÊË") 'E' else it }.joinToString("")
-            return key == "EQUIPETIR" || key == "TIR"
-        }
+        /**
+         * Whether [name] is « Équipe TIR » or « TIR »: case ignored, accents ignored whether written as one character
+         * (É) or as a letter followed by a combining accent (E + U+0301, the decomposed form some clients send), and
+         * spaces and dashes ignored (« Equipe-TIR » is the fire team's; an underscore is not ignored).
+         */
+        internal fun isFireTeam(name: String): Boolean = fireTeamKey(name).let { it == "EQUIPETIR" || it == "TIR" }
+
+        private fun fireTeamKey(name: String): String = name
+            .uppercase()
+            .filterNot { it.isWhitespace() || it in DASHES || it in COMBINING_MARKS }
+            .map { if (it in "ÉÈÊË") 'E' else it }
+            .joinToString("")
+
+        /** Hyphen-minus, hyphen, non-breaking hyphen, figure dash, en dash, em dash, minus sign. */
+        private const val DASHES = "-‐‑‒–—−"
+
+        /** The combining diacritical marks block: the accents of a decomposed letter. */
+        private val COMBINING_MARKS = '̀'..'ͯ'
     }
 }

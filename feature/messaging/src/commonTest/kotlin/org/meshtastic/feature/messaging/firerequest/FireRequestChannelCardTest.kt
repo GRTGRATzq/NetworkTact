@@ -129,6 +129,30 @@ class FireRequestChannelCardTest {
     }
 
     @Test
+    fun afterAnAllocationTheChiefAlwaysSeesResendToTheRadioWithANoteThatSaysWhy() = runComposeUiTest {
+        val made = Example.message(9, "[DT AB1234] Tir attribué à vous par OA · GDH attribution $gdh", fromLocal = true)
+        val view = received(direct = listOf("8!cds" to made))
+        val chief = FireRequestNetwork(FireChiefRole.CHIEF, listOf(cds), ourId = "!chief", ourShortName = "CT")
+        setContent {
+            AppTheme {
+                FireRequestCard(
+                    view.assembly.threads.single(),
+                    view,
+                    null,
+                    true,
+                    actions,
+                    channelName = "TIR",
+                    network = chief,
+                )
+            }
+        }
+        onNodeWithText("Allocated to CDS · CDS TIR, $gdh").assertExists()
+        onNodeWithText("Resend the sheet to CDS").assertExists()
+        onNodeWithText("Shown after every allocation", substring = true).assertExists()
+        onNodeWithText("not on this channel.", substring = true).assertDoesNotExist()
+    }
+
+    @Test
     fun withoutAChiefAllocationIsNotOfferedAndTheGdhButtonsOfV1AreGone() = runComposeUiTest {
         val view = received()
         setContent {
@@ -141,6 +165,32 @@ class FireRequestChannelCardTest {
 
     @Test
     fun theDesignatedRadioSendsGdhFin() = runComposeUiTest {
+        val designation =
+            Example.message(9, "[DT AB1234] Tir attribué à vous par OA · GDH attribution $gdh", fromLocal = false)
+        val view = received(direct = listOf("8!00000002" to designation))
+        // The sheet and the allocation both come from !00000002, the writer named « OA »: GDH fin goes back to it.
+        val other = FireRequestNetwork(FireChiefRole.OTHER, listOf(cds, AllocationRadio("!00000002", "OA", "OA")))
+        setContent {
+            AppTheme {
+                FireRequestCard(
+                    view.assembly.threads.single(),
+                    view,
+                    null,
+                    true,
+                    actions,
+                    channelName = "TIR",
+                    network = other,
+                )
+            }
+        }
+        onNodeWithText("Fire allocated to you", substring = true).assertExists()
+        onAllNodes(hasText("GDH fin") and hasClickAction()).assertCountEquals(1)
+        onNode(hasText("GDH fin") and hasClickAction()).assertIsEnabled()
+        onNodeWithText("Allocate").assertDoesNotExist()
+    }
+
+    @Test
+    fun gdhFinIsGreyedWithItsReasonWhenTheSheetsSenderIsUnknown() = runComposeUiTest {
         val designation =
             Example.message(9, "[DT AB1234] Tir attribué à vous par OA · GDH attribution $gdh", fromLocal = false)
         val view = received(direct = listOf("8!00000002" to designation))
@@ -158,8 +208,7 @@ class FireRequestChannelCardTest {
                 )
             }
         }
-        onNodeWithText("Fire allocated to you", substring = true).assertExists()
-        onAllNodes(hasText("GDH fin") and hasClickAction()).assertCountEquals(1)
-        onNodeWithText("Allocate").assertDoesNotExist()
+        onNode(hasText("GDH fin") and hasClickAction()).assertIsNotEnabled()
+        onNodeWithText("is not among the radios of the network", substring = true).assertExists()
     }
 }

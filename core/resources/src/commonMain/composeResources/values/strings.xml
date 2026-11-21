@@ -755,6 +755,7 @@
     <string name="firereq_allocate">Allocate</string>
     <string name="firereq_allocate_choose">Choose a radio</string>
     <string name="firereq_allocate_done">Allocated to %1$s, %2$s</string>
+    <string name="firereq_allocate_refused">Allocation refused: radio %1$s is not among the radios of the network. Nothing was sent.</string>
     <string name="firereq_allocate_title">Fire allocated to:</string>
     <string name="firereq_allocated_to">Fire allocated to: %1$s</string>
     <string name="firereq_block_disconnected">Radio not connected: cannot send.</string>
@@ -770,8 +771,10 @@
     <string name="firereq_draft_kept">Draft kept on the phone</string>
     <string name="firereq_edit">Edit</string>
     <string name="firereq_empty_box">Empty box: it is sent anyway, as « %1$d non rempli ».</string>
+    <string name="firereq_end_refused_resent">« GDH fin » not available: the fire chief resent this sheet, so the radio of its writer, %1$s, is not known here. Send the end DTG to the writer in a direct message.</string>
+    <string name="firereq_end_refused_unknown">« GDH fin » not available: the radio that sent this sheet (%1$s) is not among the radios of the network.</string>
     <string name="firereq_gdh_invalid">Unreadable DTG: DDHHMM loc MON YY, DDHHMMZ MON YY or DDHHMM fra MON YY.</string>
-    <string name="firereq_intro">Each box follows the 68e RAA sheet, in the same order, with its labels and codes. Green background: filled in by the app, editable. « Renouveler » brings back the last request sent.</string>
+    <string name="firereq_intro">Each box follows the 68e RAA sheet, in the same order, with its labels and codes. Green background: filled in by the app, editable. « Renew » brings back the last request sent.</string>
     <string name="firereq_line">%1$s, line %2$s</string>
     <string name="firereq_lru_help">MGRS, written 35T LL 33000 - 90300: 35 UTM zone · T latitude band · LL 100 km square · X easting and Y northing on 5 digits (1 m) · Z altitude, optional.</string>
     <string name="firereq_missing">Missing part(s) %1$s (boxes %2$s). The sheet will be complete once they arrive; the boxes received stay readable.</string>
@@ -807,7 +810,7 @@
     <string name="firereq_resend_part">Resend part %1$d</string>
     <string name="firereq_resend_sheet">Resend the sheet</string>
     <string name="firereq_resend_to">Resend the sheet to %1$s</string>
-    <string name="firereq_resend_to_note">In direct messages, for a radio that is not on this channel.</string>
+    <string name="firereq_resend_to_note">In direct messages, to the designated radio. Shown after every allocation: the app cannot tell whether a radio is on this channel.</string>
     <string name="firereq_send">Send the request</string>
     <string name="firereq_sending_part">Sending part %1$d / %2$d…</string>
     <string name="firereq_shortcut">Fire request</string>
@@ -815,7 +818,7 @@
     <string name="firereq_target_both">Both</string>
     <string name="firereq_target_both_warning">Both channels: the request goes out twice, radio traffic doubled.</string>
     <string name="firereq_target_channel_note">Broadcast on the channel, no acknowledgement per recipient. Each station sends back a DT acknowledgement once the sheet is complete.</string>
-    <string name="firereq_target_form_note">Where the request goes is chosen in the preview, under « Envoyer à »: the fire team's channel by default.</string>
+    <string name="firereq_target_form_note">Where the request goes is chosen in the preview, under « Send to »: the fire team's channel by default.</string>
     <string name="firereq_target_no_fire_team">No « Équipe TIR » channel on this radio: Principal by default.</string>
     <string name="firereq_target_radio_note">Direct message to this radio, with acknowledgement (as before).</string>
     <string name="firereq_target_title">Send to</string>

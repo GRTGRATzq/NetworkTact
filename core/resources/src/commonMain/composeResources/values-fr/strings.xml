@@ -1854,6 +1854,8 @@
     <string name="firereq_number_help">Lettres et chiffres, 10 au plus. Obligatoire pour l'envoi.</string>
     <string name="firereq_type_help">Plusieurs choix possibles, lettres comme types. Les lettres renvoient aux lignes de localisation de la case 7.</string>
     <string name="firereq_empty_box">Case vide : elle part quand même, sous la forme « %1$d non rempli ».</string>
+    <string name="firereq_end_refused_resent">« GDH fin » indisponible : cette fiche a été renvoyée par le chef de tir, la radio de son émetteur, %1$s, n'est donc pas connue ici. Envoyez le GDH fin à l'émetteur en message direct.</string>
+    <string name="firereq_end_refused_unknown">« GDH fin » indisponible : la radio qui a envoyé cette fiche (%1$s) n'est pas parmi les radios du réseau.</string>
     <string name="firereq_no_space">Sans espace ici : « %1$s » sera envoyé.</string>
     <string name="firereq_paste_into">Coller une coordonnée en ligne %1$s</string>
     <string name="firereq_paste_help">Facultatif : copier un point par l'appui long sur la carte ou par « Copier » dans le convertisseur, puis appuyer sur le bouton de la ligne ; Fuseau, Bande, Carré, X et Y se remplissent, Z est conservé, tout reste modifiable à la main.</string>
@@ -2076,8 +2078,9 @@
     <string name="firereq_allocate_title">Tir attribué à :</string>
     <string name="firereq_allocate_choose">Choisir une radio</string>
     <string name="firereq_allocate_done">Attribué à %1$s, %2$s</string>
+    <string name="firereq_allocate_refused">Attribution refusée : la radio %1$s n'est pas parmi les radios du réseau. Rien n'a été envoyé.</string>
     <string name="firereq_no_fire_chief">Aucun chef de tir dans l'organigramme.</string>
     <string name="firereq_resend_to">Renvoyer la fiche à %1$s</string>
-    <string name="firereq_resend_to_note">En messages directs, pour une radio absente de ce canal.</string>
+    <string name="firereq_resend_to_note">En messages directs, à la radio désignée. Proposé après chaque attribution : l'application ne peut pas savoir si une radio est sur ce canal.</string>
     <string name="firereq_designated_to_you">Tir attribué à vous (demande de %1$s), GDH attribution %2$s.</string>
 </resources>
