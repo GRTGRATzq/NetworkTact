@@ -33,7 +33,9 @@ import org.meshtastic.core.model.utf8Size
 /**
  * The chain of command: the command post (PC) and its members, then the teams and theirs. Ranks are the order of the
  * lists. [author] is the call sign of the phone's radio that made it, empty when unknown, and [createdSeconds] the time
- * of its last change.
+ * of its last change. [fireChief] is the call sign of the one member designated « chef de tir », empty when none: the
+ * post that allocates fire requests, not necessarily the chart's author. It names a member by call sign, never by rank,
+ * so it does not depend on how the members are listed.
  */
 @Serializable
 data class OrgChart(
@@ -41,9 +43,13 @@ data class OrgChart(
     val createdSeconds: Long,
     val commandPost: List<OrgMember>,
     val teams: List<OrgTeam>,
+    val fireChief: String = "",
 ) {
     val memberCount: Int
         get() = commandPost.size + teams.sumOf { it.members.size }
+
+    /** Whether [callsign] is the designated fire chief, ignoring case. */
+    fun isFireChief(callsign: String): Boolean = fireChief.isNotEmpty() && Callsign.sameAs(fireChief, callsign)
 
     /** Every member with the team it belongs to, null for the command post. */
     val allMembers: List<Pair<String?, OrgMember>>
@@ -55,7 +61,7 @@ data class OrgChart(
 
     /** Same people in the same places, whoever made it and whenever: nothing to adopt when it is the same. */
     fun sameStructureAs(other: OrgChart?): Boolean =
-        other != null && commandPost == other.commandPost && teams == other.teams
+        other != null && commandPost == other.commandPost && teams == other.teams && fireChief == other.fireChief
 
     companion object {
         /** A call sign fills at most a whole long name ([TeamSuffix.LONG_NAME_MAX_BYTES]). */

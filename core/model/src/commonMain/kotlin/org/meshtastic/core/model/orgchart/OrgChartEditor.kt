@@ -29,6 +29,12 @@ sealed interface OrgChartEdit {
 
     /** Moves the member at [index] one rank up (towards rank 1) or down. */
     data class Move(override val team: String?, val index: Int, val up: Boolean) : OrgChartEdit
+
+    /**
+     * Designates the member at [index] of [team] as the one fire chief ([chief] true), replacing any other, or takes
+     * the designation back from them ([chief] false).
+     */
+    data class SetFireChief(override val team: String?, val index: Int, val chief: Boolean) : OrgChartEdit
 }
 
 sealed interface EditResult {
@@ -69,11 +75,15 @@ object OrgChartEditor {
                         .takeIf { edit.index in it.indices }
                         ?.let { list ->
                             EditResult.Changed(
-                                base.withMembers(edit.team, list.filterIndexed { i, _ -> i != edit.index }),
+                                base
+                                    .withMembers(edit.team, list.filterIndexed { i, _ -> i != edit.index })
+                                    .withoutChief(list[edit.index].callsign),
                             )
                         } ?: EditResult.Unchanged
 
                 is OrgChartEdit.Move -> moved(base, members, edit)
+
+                is OrgChartEdit.SetFireChief -> fireChief(base, members, edit)
             }
         return when (result) {
             is EditResult.Changed -> stamped(result.chart, edit, author, nowSeconds)
@@ -94,10 +104,26 @@ object OrgChartEditor {
 
             index == null -> EditResult.Changed(base.withMembers(team, members + input.member))
 
-            else ->
-                EditResult.Changed(base.withMembers(team, members.toMutableList().also { it[index] = input.member }))
+            else -> {
+                val replaced = members[index].callsign
+                val chart = base.withMembers(team, members.toMutableList().also { it[index] = input.member })
+                // The designation follows the member when their call sign is corrected.
+                EditResult.Changed(
+                    if (base.isFireChief(replaced)) chart.copy(fireChief = input.member.callsign) else chart,
+                )
+            }
         }
     }
+
+    private fun fireChief(base: OrgChart, members: List<OrgMember>, edit: OrgChartEdit.SetFireChief): EditResult {
+        val callsign = members.getOrNull(edit.index)?.callsign ?: return EditResult.Unchanged
+        val chief = if (edit.chief) callsign else base.fireChief.takeUnless { base.isFireChief(callsign) }.orEmpty()
+        return if (chief == base.fireChief) EditResult.Unchanged else EditResult.Changed(base.copy(fireChief = chief))
+    }
+
+    /** [this] without its fire chief when [callsign] was that chief. */
+    private fun OrgChart.withoutChief(callsign: String): OrgChart =
+        if (isFireChief(callsign)) copy(fireChief = "") else this
 
     private fun moved(base: OrgChart, members: List<OrgMember>, edit: OrgChartEdit.Move): EditResult {
         val target = if (edit.up) edit.index - 1 else edit.index + 1
@@ -112,7 +138,8 @@ object OrgChartEditor {
     private fun stamped(chart: OrgChart, edit: OrgChartEdit, author: String, nowSeconds: Long): EditResult {
         val stampedChart = chart.copy(author = OrgChart.clean(author), createdSeconds = nowSeconds)
         val size = OrgChartCode.size(stampedChart)
-        val grows = edit is OrgChartEdit.Add || edit is OrgChartEdit.Update
+        val grows =
+            edit is OrgChartEdit.Add || edit is OrgChartEdit.Update || (edit is OrgChartEdit.SetFireChief && edit.chief)
         return if (grows && !size.fits) EditResult.TooLarge(size.length) else EditResult.Changed(stampedChart)
     }
 
