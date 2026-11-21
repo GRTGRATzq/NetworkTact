@@ -754,7 +754,6 @@
     <string name="firereq_card_sent">DT %1$s · %2$d messages</string>
     <string name="firereq_card_title">Fire request %1$s</string>
     <string name="firereq_close">Close</string>
-    <string name="firereq_direct_note">Direct message to the recipient, with acknowledgement. The allocation and end DTGs are sent back by the recipient.</string>
     <string name="firereq_draft_kept">Draft kept on the phone</string>
     <string name="firereq_edit">Edit</string>
     <string name="firereq_empty_box">Empty box: it is sent anyway, as « %1$d non rempli ».</string>
@@ -776,6 +775,7 @@
     <string name="firereq_preview_part">Message %1$d / %2$d</string>
     <string name="firereq_preview_part_size">%1$d bytes of 200</string>
     <string name="firereq_preview_subtitle">To %1$s · direct · acknowledged</string>
+    <string name="firereq_preview_subtitle_channel">On %1$s · broadcast</string>
     <string name="firereq_preview_summary">Request %1$s: %2$d bytes, split into %3$d messages between two boxes. This is exactly what goes out by radio.</string>
     <string name="firereq_preview_title">Preview before sending</string>
     <string name="firereq_raw">Show the %1$d raw messages</string>
@@ -795,6 +795,13 @@
     <string name="firereq_sending_part">Sending part %1$d / %2$d…</string>
     <string name="firereq_shortcut">Fire request</string>
     <string name="firereq_size">%1$d bytes · %2$d messages</string>
+    <string name="firereq_target_both">Both</string>
+    <string name="firereq_target_both_warning">Both channels: the request goes out twice, radio traffic doubled.</string>
+    <string name="firereq_target_channel_note">Broadcast on the channel, no acknowledgement per recipient. Each station sends back a DT acknowledgement once the sheet is complete.</string>
+    <string name="firereq_target_form_note">Where the request goes is chosen in the preview, under « Envoyer à »: the fire team's channel by default.</string>
+    <string name="firereq_target_no_fire_team">No « Équipe TIR » channel on this radio: Principal by default.</string>
+    <string name="firereq_target_radio_note">Direct message to this radio, with acknowledgement (as before).</string>
+    <string name="firereq_target_title">Send to</string>
     <string name="firereq_title">Fire request</string>
     <string name="firereq_type_help">Several choices allowed, letters as well as types. The letters refer to the location lines of box 7.</string>
     <string name="firereq_waiting_part">Part %1$d / %2$d waiting (the radio refused it as too fast), new try %3$d / 3…</string>

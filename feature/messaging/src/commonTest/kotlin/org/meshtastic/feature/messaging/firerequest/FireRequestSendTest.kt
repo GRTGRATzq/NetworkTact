@@ -141,6 +141,19 @@ class FireRequestSendTest {
     }
 
     @Test
+    fun `back from a radio to a channel, Destinataire names the channel again`() = runTest {
+        channels("", "TIR")
+        val vm = viewModel()
+        vm.chooseTarget(SendTarget.ToRadio(RecipientOption(2, "!00000002", "CDS TIR")))
+        val fireTeam = SendTarget.OnChannels(listOf(ChannelOption(1, "TIR")))
+        vm.chooseTarget(fireTeam)
+
+        assertEquals(fireTeam, vm.target.value)
+        assertEquals("TIR", vm.request.value.recipient)
+        assertEquals("1^all", vm.send())
+    }
+
+    @Test
     fun `the direct conversation gives the recipient, its name without team in the Destinataire box`() {
         val vm = viewModel()
 

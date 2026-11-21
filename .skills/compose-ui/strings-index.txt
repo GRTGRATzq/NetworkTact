@@ -724,7 +724,6 @@ firereq_block_too_long
 firereq_card_sent
 firereq_card_title
 firereq_close
-firereq_direct_note
 firereq_draft_kept
 firereq_edit
 firereq_empty_box
@@ -746,6 +745,7 @@ firereq_preview_note
 firereq_preview_part
 firereq_preview_part_size
 firereq_preview_subtitle
+firereq_preview_subtitle_channel
 firereq_preview_summary
 firereq_preview_title
 firereq_raw
@@ -765,6 +765,13 @@ firereq_send
 firereq_sending_part
 firereq_shortcut
 firereq_size
+firereq_target_both
+firereq_target_both_warning
+firereq_target_channel_note
+firereq_target_form_note
+firereq_target_no_fire_team
+firereq_target_radio_note
+firereq_target_title
 firereq_title
 firereq_type_help
 firereq_waiting_part

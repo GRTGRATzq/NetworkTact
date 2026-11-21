@@ -1850,7 +1850,6 @@
     <string name="firereq_recipient_choose">Choisir le destinataire</string>
     <string name="firereq_zone">Format</string>
     <string name="firereq_zone_help">loc : heure locale · Z : heure zoulou · fra : heure française. Le choix est gardé pour les demandes suivantes.</string>
-    <string name="firereq_direct_note">Message direct au destinataire : accusé de réception obligatoire. GDH attribution et GDH fin sont renvoyés par le destinataire.</string>
     <string name="firereq_gdh_invalid">GDH illisible : JJHHMM loc MOIS AA, JJHHMMZ MOIS AA ou JJHHMM fra MOIS AA.</string>
     <string name="firereq_number_help">Lettres et chiffres, 10 au plus. Obligatoire pour l'envoi.</string>
     <string name="firereq_type_help">Plusieurs choix possibles, lettres comme types. Les lettres renvoient aux lignes de localisation de la case 7.</string>
@@ -2056,4 +2055,12 @@
     <string name="security_verified_contact_help">Vous avez vérifié la clé de ce nœud en personne, en échangeant les codes QR de contact : son identité est confirmée. C'est la confiance la plus forte que la liste affiche, quelle que soit la version du micrologiciel.</string>
     <string name="share_connected_node">Partager le nœud connecté</string>
     <string name="shared_contact_no_public_key">Ce contact n'a pas de clé publique : il ne peut pas être importé. Un contact sans clé effacerait celle que votre radio connaît déjà pour ce nœud. Demandez à l'expéditeur de le partager de nouveau une fois que son nœud aura échangé ses clés.</string>
+    <string name="firereq_target_title">Envoyer à</string>
+    <string name="firereq_target_both">Les deux</string>
+    <string name="firereq_target_both_warning">Les deux canaux : la demande part deux fois, trafic radio doublé.</string>
+    <string name="firereq_target_channel_note">Diffusée sur le canal, sans accusé par destinataire. Chaque poste renvoie un accusé DT quand la fiche est complète.</string>
+    <string name="firereq_target_radio_note">Message direct à cette radio, avec accusé de réception (comme avant).</string>
+    <string name="firereq_target_no_fire_team">Pas de canal « Équipe TIR » sur cette radio : Principal par défaut.</string>
+    <string name="firereq_target_form_note">Où part la demande se choisit dans l'aperçu, sous « Envoyer à » : canal de l'équipe TIR par défaut.</string>
+    <string name="firereq_preview_subtitle_channel">Sur %1$s · diffusée</string>
 </resources>
